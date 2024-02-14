@@ -1,0 +1,33 @@
+<graph id="someGraphId">
+    <version>1.0</version>
+    
+    <node id="idepix">
+        <operator>Idepix.S2</operator>
+        <sources>
+            <l1cProduct>${sourceProduct}</l1cProduct>
+        </sources>
+        <parameters>
+            <copyToaReflectances>false</copyToaReflectances>
+            <copyFeatureValues>false</copyFeatureValues>
+            <computeMountainShadow>true</computeMountainShadow>
+            <computeCloudShadow>true</computeCloudShadow>
+            <computeCloudBuffer>true</computeCloudBuffer>
+            <computeCloudBufferForCloudAmbiguous>true</computeCloudBufferForCloudAmbiguous>
+            <cloudBufferWidth>2</cloudBufferWidth>
+            <!-- <demName>SRTM 3Sec</demName> -->
+            <!-- <demName>GETASSE30</demName> -->
+            <!-- <demName>Copernicus 30m Global DEM</demName> -->
+            <demName>Copernicus 90m Global DEM</demName>
+        </parameters>
+    </node>
+
+    <node id="tilecache">
+      <operator>TileCache</operator>
+      <sources>
+	<source refid="idepix"/>
+      </sources>
+      <parameters>
+	<cacheSize>1024</cacheSize>
+      </parameters>
+    </node>
+</graph>

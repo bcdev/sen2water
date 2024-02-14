@@ -1,0 +1,65 @@
+<graph id="addGranuleMaskGraph">
+  <version>1.0</version>
+
+  <node id="resam">
+    <operator>S2Resampling</operator>
+    <sources>
+      <sourceProduct>${sourceProduct}</sourceProduct>
+    </sources>
+    <parameters>
+        <resolution>60</resolution>
+        <upsampling>Bilinear</upsampling>
+        <downsampling>Mean</downsampling>
+        <flagDownsampling>First</flagDownsampling>
+        <resampleOnPyramidLevels>false</resampleOnPyramidLevels>
+    </parameters>
+  </node>
+
+  <node id="tecqua">
+      <operator>BandMaths</operator>
+      <sources>
+          <sourceProducts>resam</sourceProducts>
+      </sources>
+      <parameters>
+          <targetBands>
+              <targetBand>
+                  <name>tecqua_mask</name>
+                  <type>int8</type>
+                  <expression>(msi_lost_B1 or msi_degraded_B1 or msi_lost_B2 or msi_degraded_B2 or msi_lost_B3 or msi_degraded_B3 or msi_lost_B4 or msi_degraded_B4 or msi_lost_B5 or msi_degraded_B5 or msi_lost_B6 or msi_degraded_B6 or msi_lost_B7 or msi_degraded_B7 or msi_lost_B8 or msi_degraded_B8 or msi_lost_B8A or msi_degraded_B8A or msi_lost_B9 or msi_degraded_B9 or msi_lost_B10 or msi_degraded_B10 or msi_lost_B11 or msi_degraded_B11 or msi_lost_B12 or msi_degraded_B12 or ancillary_lost_B1 or ancillary_degraded_B1 or ancillary_lost_B2 or ancillary_degraded_B2 or ancillary_lost_B3 or ancillary_degraded_B3 or ancillary_lost_B4 or ancillary_degraded_B4 or ancillary_lost_B5 or ancillary_degraded_B5 or ancillary_lost_B6 or ancillary_degraded_B6 or ancillary_lost_B7 or ancillary_degraded_B7 or ancillary_lost_B8 or ancillary_degraded_B8 or ancillary_lost_B8A or ancillary_degraded_B8A or ancillary_lost_B9 or ancillary_degraded_B9 or ancillary_lost_B10 or ancillary_degraded_B10 or ancillary_lost_B11 or ancillary_degraded_B11 or ancillary_lost_B12 or ancillary_degraded_B12) ? 1 : 0</expression>
+                  <description>combination of msi_lost, msi_degraded, ancillary_lost, ancillary_degraded</description>
+                  <unit>string</unit>
+                  <validExpression>true</validExpression>
+                  <noDataValue>-1</noDataValue>
+              </targetBand>
+          </targetBands>
+      </parameters>
+  </node>
+
+  <node id="merge">
+    <operator>Merge</operator>
+    <sources>
+      <masterProduct>resam</masterProduct>
+      <sourceProducts>tecqua</sourceProducts>
+    </sources>
+    <parameters>
+      <includes>
+        <include>
+          <productId>sourceProducts0</productId>
+          <name>tecqua_mask</name>
+        </include>
+      </includes>
+      <geographicError>1</geographicError>
+    </parameters>
+  </node>
+
+  <node id="tilecache">
+    <operator>TileCache</operator>
+    <sources>
+      <source refid="merge"/>
+    </sources>
+    <parameters>
+      <cacheSize>1024</cacheSize>
+    </parameters>
+  </node>
+
+</graph>

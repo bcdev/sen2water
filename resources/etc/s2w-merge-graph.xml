@@ -1,0 +1,80 @@
+<graph id="s2wmerge">
+  <version>1.0</version>
+
+  <node id="merged">
+      <operator>Merge</operator>
+      <sources>
+          <masterProduct>${resampled}</masterProduct>
+          <sourceProducts0>${idepix}</sourceProducts0>
+          <sourceProducts1>${c2rcc}</sourceProducts1>
+          <sourceProducts2>${acolite}</sourceProducts2>
+          <sourceProducts3>${polymer}</sourceProducts3>
+<!--          <sourceProducts4>${mask}</sourceProducts4>-->
+      </sources>
+      <parameters>
+          <includes>
+              <include><productId>masterProduct</productId><name>B2</name></include>
+              <include><productId>masterProduct</productId><name>B3</name></include>
+              <include><productId>masterProduct</productId><name>B4</name></include>
+<!--              <include><productId>sourceProducts4</productId><name>band_1</name><newName>watermask</newName></include>-->
+          </includes>
+          <geographicError>1</geographicError>
+      </parameters>
+  </node>
+  
+  <node id="flags">
+      <operator>BandMaths</operator>
+      <sources>
+        <sourceProducts>merged</sourceProducts>
+      </sources>
+      <parameters>
+        <targetBands>
+          <targetBand>
+            <name>pixel_class</name>
+            <type>uint8</type>
+            <expression>
+                pixel_classif_flags &amp; 1 == 1 ? 1 :
+                c2rcc_flags &amp; 3 != 0 and (rhos_443 &lt; 0.0 or rhos_492 &lt; 0.0 or rhos_560 &lt; 0.0 or rhos_665 &lt; 0.0 or rhos_704 &lt; 0.0 or rhos_740 &lt; 0.0 or rhos_783 &lt; 0.0 or rhos_833 &lt; 0.0 or rhos_865 &lt; 0.0 or rhos_1614 &lt; 0.0 or rhos_2202 &lt; 0.0) and bitmask &amp; 8+16+32+64+128+2048+4096 != 0 ? 9 :
+                pixel_classif_flags &amp; (2048+4096) != 0 ? 5 :
+                pixel_classif_flags &amp; (4+8) == 4 ? 7 :
+                pixel_classif_flags &amp; (2+8+16) != 0 ? 8 :
+                pixel_classif_flags &amp; (32+262144) != 0 ? 6 :
+                pixel_classif_flags &amp; 64 != 0 ? 4 :
+                pixel_classif_flags &amp; 8192+131072 != 0 ? 1 :
+                pixel_classif_flags &amp; 16384 != 0 and watermask == 2 ? 2 :
+                pixel_classif_flags &amp; 16384 != 0 ? 3 :
+                99
+            </expression>
+            <description>Value-coded alternative flags for NO_DATA (0), CLEAR_LAND (1), CLEAR_OCEAN_WATER (2), CLEAR_INLAND_WATER (3), SNOW_ICE (4), CIRRUS (5), CLOUD_OR_MONTAIN_SHADOW (6), AMBIGUOUS_CLOUD (7), CLOUD (8), OUT_OF_BOUNDS_SATURATED (9)</description>
+            <noDataValue>0</noDataValue>
+          </targetBand>
+          <targetBand>
+            <name>sen2water_masks</name>
+            <type>uint8</type>
+            <expression>
+                (c2rcc_flags &amp; 3 != 0 ? 1 : 0) +
+                (rhos_443 &lt; 0.0 or rhos_492 &lt; 0.0 or rhos_560 &lt; 0.0 or rhos_665 &lt; 0.0 or rhos_704 &lt; 0.0 or rhos_740 &lt; 0.0 or rhos_783 &lt; 0.0 or rhos_833 &lt; 0.0 or rhos_865 &lt; 0.0 or rhos_1614 &lt; 0.0 or rhos_2202 &lt; 0.0 ? 2 : 0) + 
+                (bitmask &amp; 8+16+32+64+128+2048+4096 != 0 ? 4 : 0) +
+                (pixel_classif_flags &amp; 16348 != 0 and watermask &amp; 2 != 0 and c2rcc_flags &amp; 3 == 0 ? 8 : 0) +
+                (pixel_classif_flags &amp; 16348 != 0 and watermask &amp; 2 != 0 and rhos_443 &gt;= 0.0 and rhos_492 &gt;= 0.0 and rhos_560 &gt;= 0.0 and rhos_665 &gt;= 0.0 and rhos_704 &gt;= 0.0 and rhos_740 &gt;= 0.0 and rhos_783 &gt;= 0.0 and rhos_833 &gt;= 0.0 and rhos_865 &gt;= 0.0 and rhos_1614 &gt;= 0.0 and rhos_2202 &gt;= 0.0 ? 16 : 0) +
+                (pixel_classif_flags &amp; 16348 != 0 and watermask &amp; 1 != 0 and bitmask &amp; 8+16+32+64+128+2048+4096 == 0 ? 32 : 0)
+            </expression>
+            <description>Flag masks-coded flags for c2rcc_oor (1), acolite_negatives (2), polymer_invalid (4), c2rcc_algo (8), acolite_algo (16), polymer_algo (32)</description>
+            <noDataValue>0</noDataValue>
+          </targetBand>
+        </targetBands>
+      </parameters>
+  </node>
+
+  <node id="merged2">
+      <operator>Merge</operator>
+      <sources>
+          <masterProduct>merged</masterProduct>
+          <sourceProducts>flags</sourceProducts>
+      </sources>
+      <parameters>
+          <geographicError>1</geographicError>
+      </parameters>
+  </node>
+          
+</graph>

@@ -1,0 +1,182 @@
+# create directory tree
+# copy parts provided as resource
+# download java jdk
+# download and compile snap, calvalus, install snap
+# install c2rcc
+# download, compile and install idepix
+# download and install python
+# compile and install msiresampling and s2wswitching
+# download and install acolite
+# download and install polymer
+# install auxdata
+# package delivery
+
+version=0.2
+tmpdir=$(pwd)
+installdir=$tmpdir/sen2water-$version
+
+#which gcc
+#which cmake
+
+cd $tmpdir
+git clone --branch 0.2-maintenance https://github.com/bcdev/sen2water.git
+wget https://cdn.azul.com/zulu/bin/zulu8.76.0.17-ca-jdk8.0.402-linux_x64.zip
+#wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.zip
+wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.2.5/apache-maven-3.2.5-bin.tar.gz
+#wget https://www.python.org/ftp/python/3.11.8/Python-3.11.8.tgz
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/snap-engine.git
+git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/snap-desktop.git
+git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/s1tbx.git
+git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/s2tbx.git
+git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/s3tbx.git
+git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/probavbox.git
+git clone https://github.com/bcdev/calvalus2.git
+git clone --depth 1 https://github.com/bcdev/snap-idepix.git
+git clone https://github.com/acolite/acolite.git
+git clone https://github.com/hygeos/polymer.git
+# TODO determine versions/tags for all repos
+
+unzip zulu8.76.0.17-ca-jdk8.0.402-linux_x64.zip
+unzip apache-maven-3.9.6-bin.zip
+#tar xf Python-3.11.8.tgz
+
+# snap
+export PATH=$(pwd)/zulu8.76.0.17-ca-jdk8.0.402-linux_x64/bin:$PATH
+export PATH=$(pwd)/apache-maven-3.9.6-bin/bin:$PATH
+cd snap-engine
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ..
+cd snap-desktop
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ..
+cd s1tbx
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ..
+cd s2tbx
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ..
+cd s3tbx
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ..
+cd probavbox
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ..
+cd calvalus2/calvalus-snap
+# need to comment away the dependencies and execution of unpacking hdf libs
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ../..
+# edit version and JTransforms 2.4 instead of jtransforms 2.3
+cd snap-idepix/idepix-core
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ../..
+cd snap-idepix/idepix-s2msi
+mvn -Dmaven.repo.local=/home/yarn/appcache/sen2water-tmp/m2 -DskipTests=true install
+cd ../..
+
+
+
+# make proj, libgdal
+#wget https://download.osgeo.org/proj/proj-9.3.1.tar.gz
+#wget https://download.osgeo.org/proj/proj-data-1.16.tar.gz
+#tar xf proj-9.3.1.tar.gz
+#cd proj-9.3.1
+#mkdir build
+#cd build
+#cmake ..
+#cmake --build .
+#for f in CMakeCache.txt cmake_install.cmake CPackConfig.cmake CPackSourceConfig.cmake; do sed -i -e s,/usr/local,/home/yarn/appcache/sen2water-tmp/sen2water-0.2/lib/python, $f; done
+#cmake --build . --target install
+#cd ..
+#cd ..
+
+#mkdir -p sen2water-0.2/auxdata/proj-data
+#tar xCf sen2water-0.2/auxdata/proj-data proj-data-1.16.tar.gz
+
+#git clone https://github.com/OSGeo/gdal.git
+#cd gdal
+#mkdir build
+#cd build
+#cmake ..
+#cmake --build .
+#cmake --build . --target install
+
+
+mkdir -p sen2water-$version/bin
+mkdir -p sen2water-$version/etc
+mkdir -p sen2water-$version/lib/jre
+mkdir -p sen2water-$version/lib/python
+mkdir -p sen2water-$version/lib/acolite
+mkdir -p sen2water-$version/lib/polymer
+mkdir -p sen2water-$version/lib/idepix
+mkdir -p sen2water-$version/lib/c2rcc
+mkdir -p sen2water-$version/lib/snap
+mkdir -p sen2water-$version/lib/s2wswitching
+mkdir -p sen2water-$version/lib/msiresampling
+mkdir -p sen2water-$version/licenses
+
+tar cCf zulu8.76.0.17-ca-jdk8.0.402-linux_x64 - jre | tar xCf sen2water-0.2/lib -
+
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $installdir/lib/conda
+export MAMBA_ROOT_PREFIX=$installdir/lib/conda
+export PATH=$(pwd)/bin:$PATH
+eval "$($(pwd)/bin/micromamba shell hook -s posix)"
+micromamba activate
+#micromamba install -c conda-forge -f requirements.txt
+micromamba install -c conda-forge -y $(cat requirements.txt|tr '\n' ' ')
+# edit setup.cfg, comment away the requirements.txt line, then install reader
+pip install --editable .
+
+#cd Python-3.11.8
+#./configure --enable-optimizations --prefix $installdir/lib/python
+#make -j 4
+#make install
+#cd ..
+#$installdir/lib/python/bin/python3 -m venv sen2water-$version/lib/python/s2wvenv
+#. sen2water-$version/lib/python/s2wvenv/bin/activate
+
+# patch 2 files in acolite and 2 files in polymer
+
+cd polymer
+make
+cd ..
+
+mv acolite/* sen2water-$version/lib/acolite
+mv polymer/* sen2water-$version/lib/polymer
+
+cp snap-idepix/idepix-core/target/idepix-core-9.0.7-SNAPSHOT.jar sen2water-$version/lib/idepix/
+cp snap-idepix/idepix-s2msi/target/idepix-s2msi-9.0.7-SNAPSHOT.jar sen2water-$version/lib/idepix/
+cp s3tbx/s3tbx-c2rcc/target/s3tbx-c2rcc-9.0.4.2cv.jar sen2water-$version/lib/c2rcc/
+
+tar xCf sen2water-$version/lib sen2water/resources/snap-for-s2w.tar.gz
+cp m2/org/esa/snap/lib-gdal/9.0.6.1cv/lib-gdal-9.0.6.1cv.jar sen2water-$version/lib/snap/snap/modules/
+cp s2tbx/s2tbx-gdal-reader/target/s2tbx-gdal-reader-9.0.2.1cv.jar sen2water-$version/lib/snap/snap/modules/
+cp calvalus2/calvalus-snap/target/snap-bundle/snap-all.jar sen2water-$version/lib/snap/snap/modules/
+ln -s ../../../idepix/idepix-core-9.0.7-SNAPSHOT.jar sen2water-$version/lib/snap/snap/modules/
+ln -s ../../../idepix/idepix-s2msi-9.0.7-SNAPSHOT.jar sen2water-$version/lib/snap/snap/modules/
+ln -s ../../../c2rcc/s3tbx-c2rcc-9.0.4.2cv.jar sen2water-$version/lib/snap/snap/modules/
+mkdir -p sen2water-$version/lib/snap/snap/modules/lib/amd64
+cp calvalus2/calvalus-snap/target/snap-bundle/libopenjp2.so sen2water-$version/lib/snap/snap/modules/lib/amd64
+mkdir -p sen2water-$version/lib/snap/snap/modules/ext/org.esa.snap.snap-core/org-esa-snap
+ln -s ../../../snap-all.jar sen2water-$version/lib/snap/snap/modules/ext/org.esa.snap.snap-core/org-esa-snap/snap-runtime.jar
+
+tar cCf sen2water - sen2water/__init__.py sen2water/eoutils sen2water/s2wswitching | tar xCf sen2water-0.2/lib/s2wswitching -
+tar cCf sen2water - sen2water/__init__.py sen2water/eoutils sen2water/msiresampling | tar xCf sen2water-0.2/lib/msiresampling -
+
+cp sen2water/resources/README sen2water-$version/
+cp sen2water/resources/bin/* sen2water-$version/bin/
+cp sen2water/resources/etc/* sen2water-$version/etc/
+
+#mkdir sen2water-0.2
+#mkdir packages
+#cd packages
+#wget https://www.python.org/ftp/python/3.11.8/Python-3.11.8.tgz
+#tar xf Python-3.11.8.tgz
+#cd Python-3.11.8
+#./configure --enable-optimizations --prefix `pwd`/python
+#make -j 4
+#make install
+#bin/python3 -m venv s2wvenv
+#. s2wvenv/bin/activate
+#cd ..

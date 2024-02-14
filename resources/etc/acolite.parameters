@@ -1,0 +1,51 @@
+## suggested ACOLITE settings for full tile processing
+## HR-OC validation exercise
+## Last update on 12-06-2023 (dd-mm-yyyy) generic ACOLITE
+
+inputfile=S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc
+output=.
+
+## tiled processing
+dsf_aot_estimate=tiled
+
+## use resolved geometry but don't save all the parameters
+resolved_geometry=True
+dsf_write_tiled_parameters=False
+
+## 60 m output resolution
+s2_target_res=60
+
+## optional glint correction
+dsf_residual_glint_correction=True
+dsf_residual_glint_correction_method=default
+dsf_residual_glint_wave_range=1500,2400
+glint_force_band=None
+glint_mask_rhos_wave=1600
+glint_mask_rhos_threshold=0.05
+glint_write_rhog_ref=False
+glint_write_rhog_all=False
+
+## tile dimensions in pixels
+## 60m x 400 = 24 km
+dsf_tile_dimensions=400,400
+
+## options from Vanhellemont 2020
+#dsf_interface_reflectance=True
+dsf_interface_reflectance=False
+dsf_interface_option=default
+
+## exclude SWIR from DSF
+dsf_wave_range=400,900
+
+## LUTs
+luts=ACOLITE-LUT-202110-MOD1,ACOLITE-LUT-202110-MOD2
+luts_pressures=500,750,1013,1100
+
+limit=None
+slicing=True
+
+ancillary_data=False
+s2_auxiliary_default=True
+s2_auxiliary_interpolate=True
+rgb_rhot=False
+rgb_rhos=False

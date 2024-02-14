@@ -1,0 +1,119 @@
+# -*- coding: utf-8 -*-
+
+"""Command line client of Sen2Water's switching processor that combines AC results into L2W"""
+
+__author__ = "Martin Böttcher, Brockmann Consult GmbH"
+__copyright__ = "Copyright 2023, Brockmann Consult GmbH"
+__license__ = "TBD"
+__version__ = "0.5"
+__email__ = "info@brockmann-consult.de"
+__status__ = "Development"
+
+# changes in 1.1:
+# ...
+
+"""
+Open points
+- find out how to split a stacked map_blocks output to avoid repeated detector majority computation
+- check chunking parameter in some calls
+"""
+
+import sys
+import click
+import traceback
+import os.path
+
+import dask.array
+import xarray as xr
+from sen2water.eoutils.eologging import logger
+from sen2water.eoutils.eoscheduler import Scheduler
+from sen2water.eoutils.eoprofiling import Profiling
+from sen2water.msiresampling.resamplingoperator import ResamplingOperator
+
+
+@click.command()
+@click.argument("l1c")
+@click.argument("output")
+@click.option("--resolution",
+              type=click.Choice(['10', '20', '60']),
+              default='60')
+@click.option("--downsampling",
+              type=click.Choice(['first', 'min', 'max', 'mean', 'median']),
+              default='mean')
+@click.option("--flagdownsampling",
+              type=click.Choice(['first', 'flagand', 'flagor', 'flagmedianand', 'flagmedianor']),
+              default='first')
+@click.option("--upsampling",
+              type=click.Choice(['nearest', 'bilinear', 'bicubicnotyetsupported']),
+              default='bilinear')
+@click.option(
+    "--scheduler",
+    type=click.Choice(["synchronous", "threads", "processes"]),
+    default="threads",
+)
+@click.option("--profiling")
+def run(
+    l1c: str,
+    output: str,
+    resolution: str,
+    downsampling: str,
+    flagdownsampling: str,
+    upsampling: str,
+    scheduler: str,
+    profiling: str,
+) -> int:
+    """Selects scheduler and optionally uses profiling"""
+    if profiling and scheduler != "synchronous":
+        print("profiling uses synchronous scheduler")
+        scheduler = "synchronous"
+    with Scheduler(scheduler):
+        with Profiling(profiling):
+            code = _run(
+                l1c,
+                output,
+                resolution,
+                downsampling,
+                flagdownsampling,
+                upsampling,
+            )
+    return code
+
+
+def _run(
+    l1c: str,
+    output: str,
+    resolution: str,
+    downsampling: str,
+    flagdownsampling: str,
+    upsampling: str,
+) -> int:
+    """Converts paths to xarray Datasets, writes output Dataset to file"""
+    try:
+        resampler = ResamplingOperator()
+        logger.info("opening inputs")
+        input_id = os.path.basename(l1c).replace(".zip", "").replace(".SAFE", "")
+        l1c_ds = xr.open_dataset(l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True)
+        logger.info("starting computation")
+        output_ds = resampler.run(l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, merge_flags=True)
+        output_ds.to_netcdf(
+            output,
+            encoding={
+                **{
+                    var: {
+                        "zlib": True,
+                        "complevel": 5,
+                        "chunksizes": output_ds[var].data.chunksize,
+                    }
+                    for var in output_ds.data_vars if isinstance(output_ds[var].data, dask.array.Array)
+                }
+            }
+        )
+        logger.info(f"output {output} written")
+        return 0
+    except Exception as e:
+        traceback.print_exc(file=sys.stdout)
+        return 1
+
+
+if __name__ == "__main__":
+    run()

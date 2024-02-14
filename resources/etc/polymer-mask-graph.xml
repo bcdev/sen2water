@@ -1,0 +1,22 @@
+<graph id="addGranuleMaskGraph">
+  <version>1.0</version>
+
+  <node id="mask">
+      <operator>BandMaths</operator>
+      <sources>
+          <sourceProducts>${sourceProduct}</sourceProducts>
+      </sources>
+      <parameters>
+          <targetBands>
+              <targetBand>
+                  <name>mask</name>
+                  <type>uint8</type>
+                  <expression>pixel_classif_flags.IDEPIX_INVALID or pixel_classif_flags.IDEPIX_CLOUD or pixel_classif_flags.IDEPIX_CLOUD_AMBIGUOUS or pixel_classif_flags.IDEPIX_CLOUD_SURE or pixel_classif_flags.IDEPIX_CLOUD_BUFFER or pixel_classif_flags.IDEPIX_CLOUD_SHADOW or pixel_classif_flags.IDEPIX_SNOW_ICE or pixel_classif_flags.IDEPIX_LAND or pixel_classif_flags.IDEPIX_CIRRUS_SURE or pixel_classif_flags.IDEPIX_CIRRUS_AMBIGUOUS or pixel_classif_flags.IDEPIX_VEG_RISK</expression>
+                  <description>idepix mask for polymer</description>
+                  <validExpression>true</validExpression>
+                  <noDataValue>128</noDataValue>
+              </targetBand>
+          </targetBands>
+      </parameters>
+  </node>
+</graph>

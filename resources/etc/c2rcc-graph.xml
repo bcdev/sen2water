@@ -1,0 +1,22 @@
+<graph id="someGraphId">
+    <version>1.0</version>
+    
+    <node id="c2rcc">
+        <operator>c2rcc.msi</operator>
+        <sources>
+            <sourceProduct>${sourceProduct}</sourceProduct>
+        </sources>
+        <parameters>
+            <netSet>C2RCC-Nets</netSet>
+            <validPixelExpression>! nan(B1) and ! nan(B2) and ! nan(B3) and ! nan(B4) and ! nan(B5) and ! nan(B6) and ! nan(B7) and ! nan(B8) and ! nan(B8A) and ! nan(B9) and ! nan(B10) and ! nan(B11) and ! nan(B12) and B1>=0 and B2>=0 and B3>=0 and B4>=0 and B5>=0 and B6>=0 and B7>=0 and B8>=0 and B8A>=0 and B9>=0 and B10>=0 and B11>=0 and B12>=0</validPixelExpression>
+            <outputAcReflectance>true</outputAcReflectance>
+            <outputAsRrs>false</outputAsRrs>
+            <outputKd>false</outputKd>
+            <outputRhown>false</outputRhown>
+            <outputRtoa>false</outputRtoa>
+            <outputUncertainties>false</outputUncertainties>
+            <useEcmwfAuxData>true</useEcmwfAuxData>
+            <demName>Copernicus 90m Global DEM</demName>
+        </parameters>
+    </node>
+</graph>

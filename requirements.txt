@@ -1,0 +1,16 @@
+cfgrib
+click
+dask
+dask-gateway
+distributed
+ecmwflibs
+fsspec
+lxml
+netcdf4
+numpy
+pyproj
+pytest
+pytz
+rasterio
+rioxarray
+xarray
