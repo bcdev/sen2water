@@ -239,9 +239,10 @@ class ResamplingOperator(Operator):
                     l1c[band].data,
                     mode=upsampling,
                     factor=(factor, factor),
-                    image_shape=l1c[band].data.shape,
-                    image_chunksize=(band_chunksize, band_chunksize),
+                    src_image_shape=l1c[band].data.shape,
+                    src_image_chunksize=(band_chunksize, band_chunksize),
                     depth=overlap_depth,
+                    trim=False,
                     dtype=l1c[band].dtype,
                     chunks=(band_chunksize * factor, band_chunksize * factor)
                 )
@@ -293,9 +294,9 @@ class ResamplingOperator(Operator):
                         l1c[flag_band].data,
                         mode='nearest',
                         factor=(factor, factor),
-                        image_shape=l1c[flag_band].data.shape,
-                        image_chunksize=(band_chunksize, band_chunksize),
-                        depth=overlap_depth,
+                        src_image_shape=l1c[flag_band].data.shape,
+                        src_image_chunksize=(band_chunksize, band_chunksize),
+                        depth=0,
                         dtype=l1c[flag_band].dtype,
                         chunks=(band_chunksize * factor, band_chunksize * factor)
                     )
@@ -329,13 +330,16 @@ class ResamplingOperator(Operator):
         for band in (["cloud_ice_flags"] if merge_flags else self.cloud_ice_flags):
             if resolution < 60:
                 factor = 60 // resolution
-                resampled = Downsampling().apply(
+                band_chunksize = self.chunksize_in_meters // 60
+                resampled = Upsampling().apply(
                     l1c[band].data,
-                    mode=flagdownsampling,
-                    factor=factor,
+                    mode='nearest',
+                    factor=(factor, factor),
+                    src_image_shape=l1c[band].data.shape,
+                    src_image_chunksize=(band_chunksize, band_chunksize),
+                    depth=0,
                     dtype=l1c[band].dtype,
-                    chunks=(self.chunksize_in_meters // resolution,
-                            self.chunksize_in_meters // resolution)
+                    chunks=(band_chunksize * factor, band_chunksize * factor)
                 )
             else:
                 resampled = l1c[band].data
@@ -408,8 +412,8 @@ class ResamplingOperator(Operator):
                     l1c[detector_footprint_band_name].data,
                     mode="nearest",
                     factor=(factor, factor),
-                    image_shape=l1c[detector_footprint_band_name].data.shape,
-                    image_chunksize=(band_chunksize, band_chunksize),
+                    src_image_shape=l1c[detector_footprint_band_name].data.shape,
+                    src_image_chunksize=(band_chunksize, band_chunksize),
                     depth=0,
                     dtype=l1c[detector_footprint_band_name].dtype,
                     chunks=(band_chunksize * factor, band_chunksize * factor)

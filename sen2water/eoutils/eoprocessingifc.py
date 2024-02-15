@@ -57,7 +57,7 @@ class OverlapAlgorithm(Algorithm):
         depth: int = 1,
         **kwargs: Any
     ) -> da.Array:
-        return da.map_opverlap(
+        return da.map_overlap(
             self.func,
             *inputs,
             depth=depth,

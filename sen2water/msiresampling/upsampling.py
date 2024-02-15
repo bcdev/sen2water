@@ -35,7 +35,7 @@ class Upsampling(OverlapAlgorithm):
         if mode == 'nearest':
             # src_data is not extended by map_overlap
 
-            target = np.empty((src_data.shape[0] * y_factor, src_data.shape[1] * x_factor))
+            target = np.empty((src_data.shape[0] * y_factor, src_data.shape[1] * x_factor), dtype=src_data.dtype)
             for j in range(y_factor):
                 for i in range(x_factor):
                     target[j::y_factor, i::x_factor] = src_data
@@ -66,7 +66,7 @@ class Upsampling(OverlapAlgorithm):
                 src_dummy_column = 2 * src_data[:, -1:] - src_data[:, -2:-1]
                 src_data = np.hstack([src_data, src_dummy_column])
 
-            # The buffered tp band's first pixel is factor/2 right of/above the target border
+            # The buffered tp band's first pixel is factor/2 left of/above the target border
             # and another 1/2 pixel from the first target pixel centre. src_offset is positive.
             # Example: if factor is 6 then the offset is 3.5 target pixels
             # Example: if factor is 5 then offset is 3 target pixels
@@ -81,14 +81,14 @@ class Upsampling(OverlapAlgorithm):
 
             # 1-D pixel coordinates, corresponding tp pixel coordinates, weights
             y = np.arange(y2-y1).reshape((y2-y1, 1))
-            x = np.arange(x2-y1)
+            x = np.arange(x2-x1)
             y_tp = (y + src_y_offset).astype(int) // y_factor
             x_tp = (x + src_x_offset).astype(int) // x_factor
             wy = (y - y_tp * y_factor + src_y_offset) / y_factor
             wx = (x - x_tp * x_factor + src_x_offset) / x_factor
 
             if is_azimuth_angle:
-                reference = src_data[0, 0]
+                reference = src_data[1, 1]
                 src_data = (src_data - reference + 540.0) % 360.0 - 180.0
 
             # 2-D interpolation using numpy broadcasting
