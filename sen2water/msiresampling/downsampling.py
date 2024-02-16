@@ -28,6 +28,7 @@ class Downsampling(BlockAlgorithm):
             "majority", "detectormean"]='mean',
         factor: int=6,
         is_azimuth_angle: bool=False,
+        is_reflectance: bool=False,
     ) -> np.ndarray:
         """Downsampling from e.g. 10m to 60m by mean or other aggregators"""
         data = inputs[0]
@@ -47,11 +48,26 @@ class Downsampling(BlockAlgorithm):
         elif mode == 'majority':  # for detector index
             result = np.round(np.mean(pixelcontributions, axis=0)).astype(np.uint8)
         elif mode == 'mean':
-            result = np.mean(pixelcontributions, axis=0)
+            if is_reflectance:
+                pixelcontributions = pixelcontributions.astype(np.float32)
+                pixelcontributions[pixelcontributions==0] = np.nan
+                result = np.nanmean(pixelcontributions, axis=0).astype(np.uint16)
+            else:
+                result = np.mean(pixelcontributions, axis=0)
         elif mode == 'median':
-            result = np.median(pixelcontributions, axis=0)
+            if is_reflectance:
+                pixelcontributions = pixelcontributions.astype(np.float32)
+                pixelcontributions[pixelcontributions==0] = np.nan
+                result = np.nanmedian(pixelcontributions, axis=0).astype(np.uint16)
+            else:
+                result = np.median(pixelcontributions, axis=0)
         elif mode == 'min' or mode == 'flagand':
-            result = np.min(pixelcontributions, axis=0)
+            if is_reflectance:
+                pixelcontributions = pixelcontributions.astype(np.float32)
+                pixelcontributions[pixelcontributions==0] = np.nan
+                result = np.nanmin(pixelcontributions, axis=0).astype(np.uint16)
+            else:
+                result = np.min(pixelcontributions, axis=0)
         elif mode == 'max' or mode == 'flagor':
             result = np.max(pixelcontributions, axis=0)
         elif mode == 'flagmedianand':

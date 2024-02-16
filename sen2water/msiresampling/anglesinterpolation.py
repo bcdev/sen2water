@@ -163,6 +163,7 @@ class AnglesInterpolation(BlockAlgorithm):
         # y = dyr * row + dyc * col + cy  ... and for y part of angles
 
         # we shift row and col independent for y and x to determine dy and dx per detector
+        # we patch 0.0 where there is no neighbour
         # dxc etc. have dim detector_i
         dxc = np.nanmean(x[:, :, 1:] - x[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
         dxr = np.nanmean(x[:, 1:, :] - x[:, :-1, :], axis=(1, 2)).reshape((num_detectors, 1, 1))

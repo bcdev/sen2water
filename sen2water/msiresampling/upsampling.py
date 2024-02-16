@@ -28,6 +28,7 @@ class Upsampling(OverlapAlgorithm):
         src_image_shape: Tuple[int, int],
         src_image_chunksize: Tuple[int, int],
         is_azimuth_angle: bool=False,
+        is_reflectance: bool=False,
         block_id: Tuple[int, int],
     ) -> np.ndarray:
         """Upsampling from e.g. 60m to 10m by filling or interpolation"""
@@ -91,13 +92,24 @@ class Upsampling(OverlapAlgorithm):
                 reference = src_data[1, 1]
                 src_data = (src_data - reference + 540.0) % 360.0 - 180.0
 
-            # 2-D interpolation using numpy broadcasting
-            result = (
+            if is_reflectance:
+                src_data = src_data.astype(np.float32)
+                src_data[src_data==0] = np.nan
+                result = np.nansum(np.stack([
+                    (1 - wy) * (1 - wx) * src_data[y_tp, x_tp],
+                    (1 - wy) * wx * src_data[y_tp, x_tp + 1],
+                    wy * (1 - wx) * src_data[y_tp + 1, x_tp],
+                    + wy * wx * src_data[y_tp + 1, x_tp + 1]
+                ]), axis=0).astype(src_data.dtype)
+
+            else:
+                # 2-D interpolation using numpy broadcasting
+                result = (
                     (1 - wy) * (1 - wx) * src_data[y_tp, x_tp]
                     + (1 - wy) * wx * src_data[y_tp, x_tp + 1]
                     + wy * (1 - wx) * src_data[y_tp + 1, x_tp]
                     + wy * wx * src_data[y_tp + 1, x_tp + 1]
-            ).astype(src_data.dtype)
+                ).astype(src_data.dtype)
 
             if is_azimuth_angle:
                 result = (result + reference + 540.0) % 360.0 - 180.0

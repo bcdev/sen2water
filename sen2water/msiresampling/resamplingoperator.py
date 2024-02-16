@@ -228,6 +228,7 @@ class ResamplingOperator(Operator):
                     l1c[detector_footprint_band_name].data,
                     mode=downsampling,
                     factor=factor,
+                    is_reflectance=True,
                     dtype=l1c[band].dtype,
                     chunks=(self.chunksize_in_meters // resolution,
                             self.chunksize_in_meters // resolution)
@@ -241,6 +242,7 @@ class ResamplingOperator(Operator):
                     factor=(factor, factor),
                     src_image_shape=l1c[band].data.shape,
                     src_image_chunksize=(band_chunksize, band_chunksize),
+                    is_reflectance=True,
                     depth=overlap_depth,
                     trim=False,
                     dtype=l1c[band].dtype,
