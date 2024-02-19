@@ -307,10 +307,20 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
         datasets.append(xr.Dataset({"y_tp": y, "x_tp": x}))
 
     def open_ancillary_files(self, auxpath, datasets):
+        prefix = auxpath[auxpath.rfind('_')+1:].lower()
         ds = xr.open_dataset(auxpath, engine="cfgrib", mask_and_scale=False)
         ds = ds.rename_dims(
             {"latitude": "aux_latitude", "longitude": "aux_longitude"}
-        ).rename_vars({"latitude": "aux_latitude", "longitude": "aux_longitude"})
+        ).rename_vars({
+            "latitude": "aux_latitude",
+            "longitude": "aux_longitude",
+            "number": prefix+"_number",
+            "time": prefix+"_time",
+            "step": prefix+"_step",
+            "surface": prefix+"_surface",
+            "valid_time": prefix+"_valid_time",
+            "isobaricInhPa": prefix+"_isobaricInhPa",
+        })
         datasets.append(ds)
 
     def open_cloud_masks(self, refl_path, resolution, chunks, merge_flags, datasets):
