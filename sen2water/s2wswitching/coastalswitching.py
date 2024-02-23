@@ -28,7 +28,7 @@ C2RCC_BANDS = [
     "rhow_B7",
     "rhow_B8A",
 ]
-ACOLITE_BANDS = [
+ACOLITE_BANDS_S2A = [
     "rhos_443",
     "rhos_492",
     "rhos_560",
@@ -40,6 +40,19 @@ ACOLITE_BANDS = [
     "rhos_865",
     "rhos_1614",
     "rhos_2202",
+]
+ACOLITE_BANDS_S2B = [
+    "rhos_442",
+    "rhos_492",
+    "rhos_559",
+    "rhos_665",
+    "rhos_704",
+    "rhos_739",
+    "rhos_780",
+    "rhos_833",
+    "rhos_864",
+    "rhos_1610",
+    "rhos_2186",
 ]
 OCEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
 C2RCC_INDICES = [0, 1, 2, 3, 4, 5, 6, 8]
@@ -214,7 +227,9 @@ class CoastalWaterSwitching(Operator):
         block_shape = c2rcc["c2rcc_flags"].data.shape
         ocean_bands_stack = CoastalWaterSwitchingAlgorithm().apply(
             *[c2rcc[b].data for b in C2RCC_BANDS],
-            *[acolite[b].data for b in ACOLITE_BANDS],
+            *[acolite[b].data for b in (ACOLITE_BANDS_S2A
+                                        if ACOLITE_BANDS_S2A[0] in acolite.variables
+                                        else ACOLITE_BANDS_S2B)],
             c2rcc["c2rcc_flags"].data,
             pixelclass["pixel_class"].data,
             dtype=np.float32,

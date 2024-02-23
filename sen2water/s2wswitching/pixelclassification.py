@@ -27,7 +27,7 @@ C2RCC_BANDS = [
     "rhow_B7",
     "rhow_B8A",
 ]
-ACOLITE_BANDS = [
+ACOLITE_BANDS_S2A = [
     "rhos_443",
     "rhos_492",
     "rhos_560",
@@ -40,7 +40,20 @@ ACOLITE_BANDS = [
     "rhos_1614",
     "rhos_2202",
 ]
-OCEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
+ACOLITE_BANDS_S2B = [
+    "rhos_442",
+    "rhos_492",
+    "rhos_559",
+    "rhos_665",
+    "rhos_704",
+    "rhos_739",
+    "rhos_780",
+    "rhos_833",
+    "rhos_864",
+    "rhos_1610",
+    "rhos_2186",
+]
+CEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
 
 BANDS = [
     "B1",
@@ -258,16 +271,17 @@ class PixelClassification(Operator):
 
         dims = {"y": idepix.sizes["y"], "x": idepix.sizes["x"]}
 
+        acolite_bands = ACOLITE_BANDS_S2A if ACOLITE_BANDS_S2A[0] in acolite.variables else ACOLITE_BANDS_S2B
         if "tecqua_mask" in resampled:
             pixel_class_data = PixelClassificationAlgorithm().apply(
                 idepix["pixel_classif_flags"].data,
                 c2rcc["c2rcc_flags"].data,
                 s2wmask["s2wmask"].data[0],
-                acolite["rhos_443"].data,
-                acolite["rhos_492"].data,
-                acolite["rhos_560"].data,
-                acolite["rhos_665"].data,
-                acolite["rhos_865"].data,
+                acolite[acolite_bands[0]].data,
+                acolite[acolite_bands[1]].data,
+                acolite[acolite_bands[2]].data,
+                acolite[acolite_bands[3]].data,
+                acolite[acolite_bands[8]].data,
                 resampled["B2"].data,
                 resampled["B4"].data,
                 resampled["B11"].data,
@@ -279,11 +293,11 @@ class PixelClassification(Operator):
                 idepix["pixel_classif_flags"].data,
                 c2rcc["c2rcc_flags"].data,
                 s2wmask["s2wmask"].data[0],
-                acolite["rhos_443"].data,
-                acolite["rhos_492"].data,
-                acolite["rhos_560"].data,
-                acolite["rhos_665"].data,
-                acolite["rhos_865"].data,
+                acolite[acolite_bands[0]].data,
+                acolite[acolite_bands[1]].data,
+                acolite[acolite_bands[2]].data,
+                acolite[acolite_bands[3]].data,
+                acolite[acolite_bands[8]].data,
                 resampled["B2"].data,
                 resampled["B4"].data,
                 resampled["B11"].data,
