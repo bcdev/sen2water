@@ -11,6 +11,7 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
+from typing import List
 
 """
 Open points
@@ -46,6 +47,9 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 @click.option("--upsampling",
               type=click.Choice(['nearest', 'bilinear', 'bicubicnotyetsupported']),
               default='bilinear')
+@click.option("--ancillary",
+              type=click.Choice(['msl', 'tco3', 'tcwv', 'u10', 'v10', 'aod550']),
+              multiple=True)
 @click.option(
     "--scheduler",
     type=click.Choice(["synchronous", "threads", "processes"]),
@@ -59,6 +63,7 @@ def run(
     downsampling: str,
     flagdownsampling: str,
     upsampling: str,
+    ancillary: List[str],
     scheduler: str,
     profiling: str,
 ) -> int:
@@ -75,6 +80,7 @@ def run(
                 downsampling,
                 flagdownsampling,
                 upsampling,
+                ancillary,
             )
     return code
 
@@ -86,6 +92,7 @@ def _run(
     downsampling: str,
     flagdownsampling: str,
     upsampling: str,
+    ancillary: List[str],
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
@@ -94,7 +101,8 @@ def _run(
         input_id = os.path.basename(l1c).replace(".zip", "").replace(".SAFE", "")
         l1c_ds = xr.open_dataset(l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True)
         logger.info("starting computation")
-        output_ds = resampler.run(l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, merge_flags=True)
+        output_ds = resampler.run(
+            l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, ancillary, merge_flags=True)
         output_ds.to_netcdf(
             output,
             encoding={
