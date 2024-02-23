@@ -12,15 +12,17 @@ __status__ = "Development"
 # changes in 1.1:
 # ...
 
-from typing import Tuple, Union, Dict
+from typing import Tuple, Union, Dict, List
 
-import dask.array
+import dask.array as da
 import xarray as xr
 import numpy as np
 from pyproj import Transformer, CRS
 from sen2water.eoutils.eoprocessingifc import Operator
 from sen2water.eoutils.eoutils import copy_variable
+from sen2water.msiresampling.ancillaryinterpolation import AncillaryInterpolation
 from sen2water.msiresampling.downsampling import Downsampling
+from sen2water.msiresampling.geocoordinates import GeoCoordinates
 from sen2water.msiresampling.meanangles import MeanAngles
 from sen2water.msiresampling.upsampling import Upsampling
 from sen2water.msiresampling.tpinterpolation import TpInterpolation
@@ -55,25 +57,21 @@ class ResamplingOperator(Operator):
         self,
         l1c: xr.Dataset,
         resolution: int,
-        downsampling: Union["nearest", "bilinear", "bicubic"],
+        downsampling: Union['first', 'min', 'max', 'mean', 'median'],
         flagdownsampling: str,
         upsampling: Union["nearest", "bilinear", "bicubic"],
+        ancillary: List[str],
         merge_flags: bool=False
     ) -> xr.Dataset:
 
         overlap_depth = 2 if upsampling == 'bicubic' else 1 if upsampling == 'bilinear' else 0
-
-        # copy y and x of target resolution, copy aux latitude and longitude
-
         dims = {"y": l1c.sizes[f"y{resolution}"], "x": l1c.sizes[f"x{resolution}"]}
-        # TODO move to an algorithm to save memory, find out how to compute two bands in one algo
-        y = l1c[f"y{resolution}"].values
-        x = l1c[f"x{resolution}"].values
-        transformer = Transformer.from_crs(CRS.from_cf(l1c['spatial_ref'].attrs), CRS("EPSG:4326"))
-        lat, lon = transformer.transform(np.broadcast_to(x, (y.shape[0], x.shape[0])),
-                                         np.broadcast_to(y, (y.shape[0], x.shape[0])).T)
-        del y, x, transformer
+        chunks = (self.chunksize_in_meters // resolution, self.chunksize_in_meters // resolution)
         coordinate_bands = {}
+        target_bands = {}
+
+        # copy 1-d metric coordinate bands
+
         coordinate_bands["y"] = xr.DataArray(
             l1c[f"y{resolution}"].data,
             dims=['y'],
@@ -88,19 +86,43 @@ class ResamplingOperator(Operator):
                    "standard_name": "projection_x_coordinate",
                    "units": "m"}
         )
+
+        # transform UTM coordinates into geo-coordinates, add them
+
+        y = da.from_array(l1c[f"y{resolution}"].values, chunks=self.chunksize_in_meters // resolution)
+        x = da.from_array(l1c[f"x{resolution}"].values, chunks=self.chunksize_in_meters // resolution)
+        xx = da.broadcast_to(x, (y.shape[0], x.shape[0]), chunks=chunks)
+        yy = da.transpose(da.broadcast_to(y, (y.shape[0], x.shape[0]), chunks=chunks[::-1]))
+        transformer = Transformer.from_crs(CRS.from_cf(l1c['spatial_ref'].attrs), CRS("EPSG:4326"))
+        lat_lon = GeoCoordinates().apply(
+            xx,
+            yy,
+            transformer=transformer,
+            new_axis=0,
+            dtype=np.float64,
+            chunks=(2, *chunks),
+        )
+        lat_data = lat_lon[0]
+        lon_data = lat_lon[1]
+        del x, y, xx, yy, transformer, lat_lon
+
         coordinate_bands["lat"] = xr.DataArray(
-            lat,
+            lat_data,
             dims=['y', 'x'],
             attrs={"standard_name": "latitude",
                    "units": "degrees_north"}
         )
         coordinate_bands["lon"] = xr.DataArray(
-            lon,
+            lon_data,
             dims=['y', 'x'],
             attrs={"standard_name": "longitude",
                    "units": "degrees_east"}
         )
-        del lat, lon
+
+        coordinate_bands["crs"] = copy_variable(l1c["spatial_ref"])
+
+        # copy geographic coordinates of ancillary data
+
         for band in ["aux_latitude", "aux_longitude"]:
             attrs = dict(l1c[band].attrs)
             attrs["offset_y"] = 0.0
@@ -111,11 +133,9 @@ class ResamplingOperator(Operator):
             coordinate_bands[band] = xr.DataArray(l1c[band].data,
                                                   dims={f"tp_{band[4:7]}": l1c[band].sizes[band]},
                                                   attrs=attrs)
-        coordinate_bands["crs"] = copy_variable(l1c["spatial_ref"])
 
         # resample reflectance bands B1 .. B12
 
-        target_bands = {}
         input_band_with_target_resolution = self._resample_reflectance(
             downsampling, upsampling, resolution, overlap_depth, dims, l1c, target_bands)
 
@@ -126,6 +146,12 @@ class ResamplingOperator(Operator):
         # resample cloud and ice flag bands B_opaque_clouds, ...
 
         self._resample_cloud_ice(flagdownsampling, resolution, dims, l1c, target_bands, merge_flags)
+
+        # interpolate ancillary bands if requested
+
+        if ancillary:
+            self._resample_ancillary(ancillary, l1c, lat_data, lon_data, dims, target_bands)
+        del lat_data, lon_data
 
         # copy ECMWF and CAMS bands tco3, ...
 
@@ -148,19 +174,21 @@ class ResamplingOperator(Operator):
 
         # interpolate viewing angles considering detector footprint
 
-        detectors = l1c["detector"].values
-
         self._resample_detectors(resolution, dims, l1c, target_bands)
         self._resample_viewing_angles(resolution, dims, l1c, target_bands)
 
         self._add_snap_masks(merge_flags, target_bands)
 
+        # for debugging copy angles per band and detector
         # for band in self.bands:
         #     for detector_i, detector in enumerate(detectors):
         #         target_bands[f"vaa_{band}_{detector}"] = xr.DataArray(
         #             np.copy(l1c[f"vaa_{band}"].values[detector_i]),
         #             dims={"angle_y": 23, "angle_x": 23},
         #             attrs=l1c[f"vaa_{band}"].attrs)
+
+        # create attributes similar to S2Resampling
+        # add spacecraft to global attributes because we do not provide the metadata variable
 
         target_attrs = {
             "conventions": "CF-1.10",
@@ -197,11 +225,27 @@ class ResamplingOperator(Operator):
                              "detector_footprint-B07:detector_footprint-B08:detector_footprint-B8A:" \
                              "detector_footprint-B09:detector_footprint-B10:detector_footprint-B11:" \
                              "detector_footprint-B12:" \
-                             "qualit_mask",
+                             "quality_mask",
             "start_date": l1c.attrs["start_date"],
             "stop_date": l1c.attrs["stop_date"],
         };
+
         return xr.Dataset(target_bands, coordinate_bands, target_attrs)
+
+    def _resample_ancillary(self, ancillary, l1c, lat_data, lon_data, dims, target_bands):
+        for anc_band in ancillary:
+            anc_data = AncillaryInterpolation().apply(
+                lat_data,
+                lon_data,
+                anc_lat=l1c["aux_latitude"].values,
+                anc_lon=l1c["aux_longitude"].values,
+                anc_data=l1c[anc_band].values,
+                dtype=np.float32,
+            )
+            attrs = {n: l1c[anc_band].attrs[n] for n in l1c[anc_band].attrs if
+                     not n.startswith("GRIB_") and n != "_FillValue"}
+            attrs["coordinates"] = "crs y x lat lon"
+            target_bands[f"{anc_band}_interpolated"] = xr.DataArray(anc_data, dims=dims, attrs=attrs)
 
     def _resample_reflectance(
             self,
