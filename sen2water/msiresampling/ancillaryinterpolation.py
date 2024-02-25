@@ -25,6 +25,7 @@ class AncillaryInterpolation(BlockAlgorithm):
         anc_lat: np.array=None,
         anc_lon: np.array=None,
         anc_data: np.array=None,
+        variable: str=None,
     ) -> np.ndarray:
         """
         Block-wise interpolation of geographically projected data to the image grid
@@ -60,13 +61,13 @@ class AncillaryInterpolation(BlockAlgorithm):
         lat_end = anc_lat[-1]
         lon_end = anc_lon[-1]
         lat_step = (lat_end - lat_start) / (len(anc_lat) - 1)
-        lon_step = (lon_end - lat_start) / (len(anc_lon) - 1)
+        lon_step = (lon_end - lon_start) / (len(anc_lon) - 1)
 
         # we do not fully trust coverage of the ancillary
         lat_eps = 0.0001 * lat_step
         lon_eps = 0.0001 * lon_step
-        lat[lat<lat_start] = lat_start
-        lat[lat>=lat_end] = lat_end - lat_eps
+        lat[lat>lat_start] = lat_start
+        lat[lat<=lat_end] = lat_end - lat_eps
         lon[lon<lon_start] = lon_start
         lon[lon>=lon_end] = lon_end - lon_eps
 

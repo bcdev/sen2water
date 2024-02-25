@@ -240,6 +240,7 @@ class ResamplingOperator(Operator):
                 anc_lat=l1c["aux_latitude"].values,
                 anc_lon=l1c["aux_longitude"].values,
                 anc_data=l1c[anc_band].values,
+                variable=anc_band,
                 dtype=np.float32,
             )
             attrs = {n: l1c[anc_band].attrs[n] for n in l1c[anc_band].attrs if
