@@ -69,7 +69,13 @@ def _run(
         hroc_mask_ds = xr.open_dataset(hrocmask, chunks={ "y": 610, "x": 610 }, engine="rasterio")
 
         logger.info("starting computation")
-        intermediate_ds = resampler.run(l1c_ds, 60, "mean", "first", "bilinear", merge_flags=True)
+        intermediate_ds = resampler.run(l1c_ds,
+                                        resolution=60,
+                                        downsampling="mean",
+                                        flagdownsampling="first",
+                                        upsampling="bilinear",
+                                        ancillary=['msl', 'tco3', 'tcwv', 'u10', 'v10'],
+                                        merge_flags=True)
         output_ds = HrocMask().run(intermediate_ds, hroc_mask_ds)
 
         output_ds.to_netcdf(
