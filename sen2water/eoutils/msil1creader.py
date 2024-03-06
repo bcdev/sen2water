@@ -182,9 +182,8 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                 resolution = self.resolutions["B1"]
                 chunks = self.chunksize_in_meters // resolution
                 self.open_cloud_masks(refl_path, resolution, chunks, merge_flags, datasets)
-            # open atmospheric ancillary data
-            for auxfile in ["AUX_CAMSFO", "AUX_ECMWFT"]:
-                auxpath = os.path.join(granule_dir, f"AUX_DATA/{auxfile}")
+            # open atmospheric ancillary data AUX_CAMSFO, AUX_ECMWFT
+            for auxpath in glob.glob(os.path.join(granule_dir, f"AUX_DATA/AUX_??????")):
                 self.open_ancillary_files(auxpath, datasets)
             # read angles from XML metadata
             mtd_path = os.path.join(granule_dir, "MTD_TL.xml")
