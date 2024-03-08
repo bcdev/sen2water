@@ -385,6 +385,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             "units": "dl",
             "scale_factor": scale_factor,
             "add_offset": add_offsets[band_index],
+            "_FillValue": add_offsets[band_index],
             "radiation_wavelength": self.wavelengths[variable],
             "radiation_wavelength_unit": "nm",
             "spectral_band_index": np.int32(band_index)
