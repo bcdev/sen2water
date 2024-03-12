@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"name": "GlobalIslandsv2_WGS84_fixed",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+    { "type": "Feature", "properties": { "OBJECTID_1": 1, "Name_USGSO": "globe", "Plate": "all", "USGS_ISID": 1, "NEAR_FID": 676, "NEAR_DIST": 0.0, "ALL_Uniq": 282458, "Linework_S": "USGS: Sayre et al. 2018", "Meaning_AL": "USGS poly had WCMC poly intersect\/overlap", "ID_GID": 354385.0, "NAME_wcmcI": null, "NAME_LOCAL": null, "OBJECTID": 0, "ChangeType": null, "ChangeNote": null, "ChangeRef": null, "Shape_Leng": 26803.526300900001, "IslandArea": 51.7378456701, "IslandCoas": 26.8035263009, "Area_Geode": 51.441282657000002, "Coast_Geod": 25.921844953000001, "Shape_Le_1": 26803.526300900001, "Shape_Area": 51737845.670099996, "FID_EApoly": null, "FID_Contin": null, "Area_km2": null, "Coastline_": null, "Shape_Le_2": null, "layer": "GlobalIslandsv2_BigIslands", "path": "C:\/Users\/Jan\/Downloads\/USGSEsriWCMC_GlobalIslands_v3_mpk\/GlobalIslandsv2_BigIslands.shp", "land": 1, "CONVERT": 0 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -180.0, -90.0 ], [ -180.0, 90.0 ], [ 180.0, 90.0 ], [ 180.0, -90.0 ], [ -180.0, -90.0 ] ] ] } },
+]}
