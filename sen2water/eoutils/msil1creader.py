@@ -138,6 +138,12 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                 "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
             }
         )]
+        fill_value = int(l1c_dom.xpath(
+            "n1:General_Info/Product_Image_Characteristics/Special_Values[SPECIAL_VALUE_TEXT='NODATA']/SPECIAL_VALUE_INDEX",
+            namespaces={
+                "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
+            }
+        ).text)
         #wavelengths = [np.round(float(w.text)) for w in l1c_dom.xpath(
         #    "n1:General_Info/Product_Image_Characteristics/Spectral_Information_List/Spectral_Information/Wavelength/CENTRAL",
         #    namespaces={
@@ -155,7 +161,8 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                 resolution = self.resolutions[variable]
                 chunks = self.chunksize_in_meters // resolution
                 #print(f"{variable=} {chunks=}")
-                self.open_reflectance_bands(refl_path, band_index, variable, resolution, chunks, scale_factor, add_offsets,
+                self.open_reflectance_bands(refl_path, band_index, variable, resolution, chunks,
+                                            scale_factor, add_offsets, fill_value,
                                             datasets)
             # open detector footprint
             for refl_path in glob.glob(
@@ -368,7 +375,8 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                 )
         del da, ds
 
-    def open_reflectance_bands(self, refl_path, band_index, variable, resolution, chunks, scale_factor, add_offsets,
+    def open_reflectance_bands(self, refl_path, band_index, variable, resolution, chunks,
+                               scale_factor, add_offsets, fill_value,
                                datasets):
         ds = xr.open_dataset(
             refl_path,
@@ -385,7 +393,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             "units": "dl",
             "scale_factor": scale_factor,
             "add_offset": add_offsets[band_index],
-            "_FillValue": add_offsets[band_index],
+            "_FillValue": fill_value,
             "radiation_wavelength": self.wavelengths[variable],
             "radiation_wavelength_unit": "nm",
             "spectral_band_index": np.int32(band_index)
