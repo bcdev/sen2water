@@ -143,7 +143,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             namespaces={
                 "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
             }
-        ).text)
+        )[0].text)
         #wavelengths = [np.round(float(w.text)) for w in l1c_dom.xpath(
         #    "n1:General_Info/Product_Image_Characteristics/Spectral_Information_List/Spectral_Information/Wavelength/CENTRAL",
         #    namespaces={
