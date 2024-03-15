@@ -51,21 +51,27 @@ class Downsampling(BlockAlgorithm):
             if is_reflectance:
                 pixelcontributions = pixelcontributions.astype(np.float32)
                 pixelcontributions[pixelcontributions==0] = np.nan
-                result = np.nanmean(pixelcontributions, axis=0).astype(np.uint16)
+                mean = np.nanmean(pixelcontributions, axis=0)
+                mean[np.isnan(mean)] = 0.0
+                result = mean.astype(np.uint16)
             else:
                 result = np.mean(pixelcontributions, axis=0)
         elif mode == 'median':
             if is_reflectance:
                 pixelcontributions = pixelcontributions.astype(np.float32)
                 pixelcontributions[pixelcontributions==0] = np.nan
-                result = np.nanmedian(pixelcontributions, axis=0).astype(np.uint16)
+                median = np.nanmedian(pixelcontributions, axis=0)
+                median[np.isnan(median)] = 0.0
+                result = median.astype(np.uint16)
             else:
                 result = np.median(pixelcontributions, axis=0)
         elif mode == 'min' or mode == 'flagand':
             if is_reflectance:
                 pixelcontributions = pixelcontributions.astype(np.float32)
                 pixelcontributions[pixelcontributions==0] = np.nan
-                result = np.nanmin(pixelcontributions, axis=0).astype(np.uint16)
+                min = np.nanmin(pixelcontributions, axis=0)
+                min[np.isnan(min)] = 0.0
+                result = min.astype(np.uint16)
             else:
                 result = np.min(pixelcontributions, axis=0)
         elif mode == 'max' or mode == 'flagor':
