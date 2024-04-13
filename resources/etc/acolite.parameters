@@ -49,3 +49,5 @@ s2_auxiliary_default=True
 s2_auxiliary_interpolate=True
 rgb_rhot=False
 rgb_rhos=False
+copy_datasets=None
+netcdf_compression=True
