@@ -42,18 +42,14 @@ acolite=${p}_MSI_${y}_${m}_${d}_${H}_${M}_${S}_S2R_L2R.nc
 cloudmask=${base}-mask.nc
 polymer=${base}-polymer.nc
 staticmask=${s2wdir}/auxdata/s2w-mask/${granule:0:2}/s2w-mask-${granule}.tif
+if [ ! -e $staticmask ]; then
+    staticmask=${s2wdir}/auxdata/s2w-global-mask/${granule:0:2}/s2w-globalmask-${granule}.tif
+fi
 s2w=${base}-s2w.nc
 
 echo "resampling to 60m ..."
 
-#ln -sf $s2wdir/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so
-##    -Dsnap.production.concurrent=false -Dsnap.gpf.disableTileCache=true \
-#time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -c 2048M -q 4 -e \
-#    -Dsnap.gpf.disableTileCache=true \
-#    $s2wdir/etc/s2resampling-graph.xml $input/MTD_MSIL1C.xml -t $resampled -f NetCDF4-BEAM
-#rm libenvironment-variables.so
-
-export PYTHONPATH=$s2wdir/lib/msiresampling:$PYTHONPATH
+export PYTHONPATH=$s2wdir/lib/msiresampling
 time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py $input $resampled
 
 echo $resampled
@@ -89,7 +85,6 @@ echo
 echo "POLYMER atmospheric correction ..."
 
 cat $s2wdir/etc/polymer.parameters | sed -e s/S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_mask.nc/$cloudmask/ > polymer.parameters
-#export PYTHONPATH=/home/yarn/appcache/sen2water2/sen2water-0.1/lib/polymer:$PYTHONPATH
 rm -f $polymer
 time python $s2wdir/lib/polymer/run-polymer.py polymer.parameters $resampled $polymer
 
@@ -98,18 +93,9 @@ echo
 echo "Sen2Water switching and output formatting ..."
 
 if [ -e ${staticmask} ]; then
-#    time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 3 -e \
-#         $s2wdir/etc/s2w-merge-graph.xml \
-#         -Sresampled=$resampled \
-#         -Sidepix=$idepix \
-#         -Sc2rcc=$c2rcc \
-#         -Sacolite=$acolite \
-#         -Spolymer=$polymer \
-#         -Smask=${staticmask} \
-#         -t $s2w -f NetCDF4-BEAM
-    export PYTHONPATH=$s2wdir/lib/s2wswitching:$PYTHONPATH
-    time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py --copyinputs $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
-    #time python $s2wdir/lib/switching/main.py --copyinputs $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
+    export PYTHONPATH=$s2wdir/lib/s2wswitching
+    #time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py --copyinputs $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
+    time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
     newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
     mv $s2w $newname
     s2w=$newname
