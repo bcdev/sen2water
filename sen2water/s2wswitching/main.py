@@ -99,7 +99,7 @@ def _run(
             acolite, chunks={"y": 610, "x": 610}, mask_and_scale=False
         )
         polymer_ds = xr.open_dataset(
-            polymer, chunks={"height": 610, "width": 610}, mask_and_scale=False
+            polymer, chunks={"height": 610, "width": 610}, mask_and_scale=True  # Polymer does not use NaN as fill value
         )
         s2wmask_ds = rio.open_rasterio(
             s2wmask, chunks={"y": 610, "x": 610}, mask_and_scale=False
