@@ -240,9 +240,9 @@ class CoastalWaterSwitching(Operator):
         ocean_bands_stack.compute_chunk_sizes()
 
         coordinate_bands = {}
-        coordinate_bands["y"] = copy_variable(c2rcc["y"])
-        coordinate_bands["x"] = copy_variable(c2rcc["x"])
-        #coordinate_bands["crs"] = copy_variable(c2rcc["crs"])
+        coordinate_bands["y"] = copy_variable(pixelclass["y"])
+        coordinate_bands["x"] = copy_variable(pixelclass["x"])
+        coordinate_bands["crs"] = copy_variable(pixelclass["crs"])
 
         target_bands = {}
         for i in range(len(OCEAN_WAVELENGTHS)):

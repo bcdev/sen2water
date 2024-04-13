@@ -305,9 +305,9 @@ class PixelClassification(Operator):
                 dtype=np.int8
             )
         coordinate_bands = {}
-        coordinate_bands["y"] = copy_variable(idepix["y"])
-        coordinate_bands["x"] = copy_variable(idepix["x"])
-        #coordinate_bands["crs"] = copy_variable(idepix["crs"])
+        coordinate_bands["y"] = copy_variable(resampled["y"])
+        coordinate_bands["x"] = copy_variable(resampled["x"])
+        coordinate_bands["crs"] = copy_variable(resampled["crs"])
 
         target_bands = {}
         target_bands["pixel_class"] = xr.DataArray(

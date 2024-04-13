@@ -195,6 +195,7 @@ class InlandWaterSwitching(Operator):
         coordinate_bands = {}
         coordinate_bands["y"] = copy_variable(ocean["y"])
         coordinate_bands["x"] = copy_variable(ocean["x"])
+        coordinate_bands["crs"] = copy_variable(ocean["crs"])
 
         target_bands = {}
         for i in range(len(OCEAN_WAVELENGTHS)):
