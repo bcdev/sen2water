@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+
+from setuptools import setup
+
+setup(
+    name="sen2water",
+    version="1.0",
+    description="Sen2Water MSI pixel identification and atmospheric correction for ocean and inland water areas",
+    author="Martin Böttcher, Brockmann Consult GmbH",
+    license="MIT",
+    url="https://github.com/bcdev/sen2water.git",
+    packages=["sen2water"],
+    entry_points={
+        "xarray.backends": [
+            "safe_msi_l1c=sen2water.eoutils.msil1creader:MsiL1cBackendEntrypoint",
+        ],
+    },
+)
