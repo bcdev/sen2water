@@ -11,7 +11,7 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
-
+import warnings
 from typing import Union
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
@@ -61,7 +61,9 @@ class Downsampling(BlockAlgorithm):
                 pixelcontributions[pixelcontributions==0.0] = np.nan
             self._mask_contributions_of_non_target_detector(target_detector_index, detector_index, factor,
                                                             pixelcontributions)
-            result = np.nanmean(pixelcontributions, axis=0)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore")
+                result = np.nanmean(pixelcontributions, axis=0)
             if is_reflectance:
                 result[np.isnan(result)] = 0.0
                 result = result.astype(np.uint16)

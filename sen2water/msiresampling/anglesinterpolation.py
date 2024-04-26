@@ -11,7 +11,7 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
-
+import warnings
 from typing import Tuple, Any
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
@@ -165,19 +165,23 @@ class AnglesInterpolation(BlockAlgorithm):
         # we shift row and col independent for y and x to determine dy and dx per detector
         # we patch 0.0 where there is no neighbour
         # dxc etc. have dim detector_i
-        dxc = np.nanmean(x[:, :, 1:] - x[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
-        dxr = np.nanmean(x[:, 1:, :] - x[:, :-1, :], axis=(1, 2)).reshape((num_detectors, 1, 1))
-        dyc = np.nanmean(y[:, :, 1:] - y[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
-        dyr = np.nanmean(y[:, 1:, :] - y[:, :-1, :], axis=(1, 2)).reshape((num_detectors, 1, 1))
-        dxc[dxc==np.nan] = 0.0
-        dxr[dxr==np.nan] = 0.0
-        dyc[dyc==np.nan] = 0.0
-        dyr[dyr==np.nan] = 0.0
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            dxc = np.nanmean(x[:, :, 1:] - x[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
+            dxr = np.nanmean(x[:, 1:, :] - x[:, :-1, :], axis=(1, 2)).reshape((num_detectors, 1, 1))
+            dyc = np.nanmean(y[:, :, 1:] - y[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
+            dyr = np.nanmean(y[:, 1:, :] - y[:, :-1, :], axis=(1, 2)).reshape((num_detectors, 1, 1))
+        dxc[np.isnan(dxc)] = 0.0
+        dxr[np.isnan(dxr)] = 0.0
+        dyc[np.isnan(dyc)] = 0.0
+        dyr[np.isnan(dyr)] = 0.0
 
         cols = np.arange(num_cols).reshape((1, 1, num_cols))
         rows = np.arange(num_rows).reshape((1, num_rows, 1))
-        cx = np.nanmean(x - dxc * cols - dxr * rows, axis=(1, 2)).reshape((num_detectors, 1, 1))
-        cy = np.nanmean(y - dyc * cols - dyr * rows, axis=(1, 2)).reshape((num_detectors, 1, 1))
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            cx = np.nanmean(x - dxc * cols - dxr * rows, axis=(1, 2)).reshape((num_detectors, 1, 1))
+            cy = np.nanmean(y - dyc * cols - dyr * rows, axis=(1, 2)).reshape((num_detectors, 1, 1))
         del x, y
 
         x_fill = dxc * cols + dxr * rows + cx
