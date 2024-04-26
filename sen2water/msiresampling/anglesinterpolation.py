@@ -166,7 +166,7 @@ class AnglesInterpolation(BlockAlgorithm):
         # we patch 0.0 where there is no neighbour
         # dxc etc. have dim detector_i
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore")
+            warnings.simplefilter("ignore")
             dxc = np.nanmean(x[:, :, 1:] - x[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
             dxr = np.nanmean(x[:, 1:, :] - x[:, :-1, :], axis=(1, 2)).reshape((num_detectors, 1, 1))
             dyc = np.nanmean(y[:, :, 1:] - y[:, :, :-1], axis=(1, 2)).reshape((num_detectors, 1, 1))
@@ -179,7 +179,7 @@ class AnglesInterpolation(BlockAlgorithm):
         cols = np.arange(num_cols).reshape((1, 1, num_cols))
         rows = np.arange(num_rows).reshape((1, num_rows, 1))
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore")
+            warnings.simplefilter("ignore")
             cx = np.nanmean(x - dxc * cols - dxr * rows, axis=(1, 2)).reshape((num_detectors, 1, 1))
             cy = np.nanmean(y - dyc * cols - dyr * rows, axis=(1, 2)).reshape((num_detectors, 1, 1))
         del x, y
