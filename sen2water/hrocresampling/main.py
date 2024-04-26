@@ -75,7 +75,7 @@ def _run(
                                         flagdownsampling="first",
                                         upsampling="bilinear",
                                         ancillary=['msl', 'tco3', 'tcwv', 'u10', 'v10'],
-                                        with_master_detfoo=True,
+                                        with_master_detfoo=False,
                                         merge_flags=True)
         output_ds = HrocMask().run(intermediate_ds, hroc_mask_ds)
 
