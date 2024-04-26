@@ -13,6 +13,8 @@ __status__ = "Development"
 # ...
 
 import sys
+import warnings
+
 import click
 import traceback
 
@@ -21,6 +23,7 @@ import xarray as xr
 from sen2water.eoutils.eologging import logger
 from sen2water.eoutils.eoscheduler import Scheduler
 from sen2water.eoutils.eoprofiling import Profiling
+from sen2water.eoutils.eoprogress import Progress
 from sen2water.hrocresampling.hrocmask import HrocMask
 from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 
@@ -35,12 +38,14 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
     default="threads",
 )
 @click.option("--profiling")
+@click.option("--progress", is_flag=True)
 def run(
     l1c: str,
     hrocmask: str,
     output: str,
     scheduler: str,
     profiling: str,
+    progress: bool,
 ) -> int:
     """Selects scheduler and optionally uses profiling"""
     if profiling and scheduler != "synchronous":
@@ -52,6 +57,7 @@ def run(
                 l1c,
                 hrocmask,
                 output,
+                progress,
             )
     return code
 
@@ -60,13 +66,16 @@ def _run(
     l1c: str,
     hrocmask: str,
     output: str,
+    progress: bool,
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
         logger.info("opening inputs")
         resampler = ResamplingOperator()
         l1c_ds = xr.open_dataset(l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True)
-        hroc_mask_ds = xr.open_dataset(hrocmask, chunks={ "y": 610, "x": 610 }, engine="rasterio")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            hroc_mask_ds = xr.open_dataset(hrocmask, chunks={ "y": 610, "x": 610 }, engine="rasterio")
 
         logger.info("starting computation")
         intermediate_ds = resampler.run(l1c_ds,
@@ -79,19 +88,20 @@ def _run(
                                         merge_flags=True)
         output_ds = HrocMask().run(intermediate_ds, hroc_mask_ds)
 
-        output_ds.to_netcdf(
-            output,
-            encoding={
-                **{
-                    var: {
-                        "zlib": True,
-                        "complevel": 5,
-                        "chunksizes": output_ds[var].data.chunksize,
+        with Progress(progress):
+            output_ds.to_netcdf(
+                output,
+                encoding={
+                    **{
+                        var: {
+                            "zlib": True,
+                            "complevel": 5,
+                            "chunksizes": output_ds[var].data.chunksize,
+                        }
+                        for var in output_ds.data_vars if isinstance(output_ds[var].data, dask.array.Array)
                     }
-                    for var in output_ds.data_vars if isinstance(output_ds[var].data, dask.array.Array)
                 }
-            }
-        )
+            )
         logger.info(f"output {output} written")
         return 0
     except Exception as e:

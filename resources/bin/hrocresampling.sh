@@ -42,8 +42,7 @@ resampled=${base}-hrocresampled.nc
 
 echo "resampling to 60m ..."
 
-export PYTHONPATH=$s2wdir/lib/msiresampling
-time python -u $s2wdir/lib/msiresampling/sen2water/hrocresampling/main.py $input $staticmask $resampled
+time python -u $s2wdir/lib/msiresampling/sen2water/hrocresampling/main.py --progress $input $staticmask $resampled
 
 echo $resampled
 echo "done"
