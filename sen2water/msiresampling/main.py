@@ -51,7 +51,7 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
               type=click.Choice(['msl', 'tco3', 'tcwv', 'u10', 'v10', 'aod550']),
               multiple=True)
 @click.option("--withmasterdetfoo",
-              default=True)
+              default=False)
 @click.option("--scheduler",
               type=click.Choice(["synchronous", "threads", "processes"]),
               default="threads")
