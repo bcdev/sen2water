@@ -275,7 +275,7 @@ class ResamplingOperator(Operator):
                     detector_footprint_band_name = f"B_detector_footprint_{band}"
                     resampled = Downsampling().apply(
                         l1c[band].data,
-                        target_bands["master_detfoo" if with_master_detfoo else detector_footprint_band_name],
+                        target_bands["master_detfoo" if with_master_detfoo else detector_footprint_band_name].data,
                         l1c[detector_footprint_band_name].data,
                         mode=downsampling,
                         factor=factor,
