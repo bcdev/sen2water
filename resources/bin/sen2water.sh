@@ -49,7 +49,6 @@ s2w=${base}-s2w.nc
 
 echo "resampling to 60m ..."
 
-export PYTHONPATH=$s2wdir/lib/msiresampling
 time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py $input $resampled
 
 echo $resampled
@@ -93,7 +92,6 @@ echo
 echo "Sen2Water switching and output formatting ..."
 
 if [ -e ${staticmask} ]; then
-    export PYTHONPATH=$s2wdir/lib/s2wswitching
     #time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py --copyinputs $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
     time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
     newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)

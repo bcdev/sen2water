@@ -11,7 +11,6 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
-from typing import List
 
 """
 Open points
@@ -23,12 +22,13 @@ import sys
 import click
 import traceback
 import os.path
-
+from typing import List
 import dask.array
 import xarray as xr
 from sen2water.eoutils.eologging import logger
 from sen2water.eoutils.eoscheduler import Scheduler
 from sen2water.eoutils.eoprofiling import Profiling
+from sen2water.eoutils.eoprogress import Progress
 from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 
 
@@ -50,12 +50,12 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 @click.option("--ancillary",
               type=click.Choice(['msl', 'tco3', 'tcwv', 'u10', 'v10', 'aod550']),
               multiple=True)
-@click.option("--withmasterdetfoo",
-              default=False)
+@click.option("--withmasterdetfoo", is_flag=True)
 @click.option("--scheduler",
               type=click.Choice(["synchronous", "threads", "processes"]),
               default="threads")
 @click.option("--profiling")
+@click.option("--progress", is_flag=True)
 def run(
     l1c: str,
     output: str,
@@ -66,6 +66,7 @@ def run(
     ancillary: List[str],
     scheduler: str,
     profiling: str,
+    progress: bool,
 ) -> int:
     """Selects scheduler and optionally uses profiling"""
     if profiling and scheduler != "synchronous":
@@ -81,6 +82,7 @@ def run(
                 flagdownsampling,
                 upsampling,
                 ancillary,
+                progress,
             )
     return code
 
@@ -94,6 +96,7 @@ def _run(
     upsampling: str,
     ancillary: List[str],
     withmasterdetfoo: bool,
+    progress: bool,
 
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
@@ -107,19 +110,20 @@ def _run(
             l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, ancillary, withmasterdetfoo,
             merge_flags=True
         )
-        output_ds.to_netcdf(
-            output,
-            encoding={
-                **{
-                    var: {
-                        "zlib": True,
-                        "complevel": 5,
-                        "chunksizes": output_ds[var].data.chunksize,
+        with Progress(progress):
+            output_ds.to_netcdf(
+                output,
+                encoding={
+                    **{
+                        var: {
+                            "zlib": True,
+                            "complevel": 5,
+                            "chunksizes": output_ds[var].data.chunksize,
+                        }
+                        for var in output_ds.data_vars if isinstance(output_ds[var].data, dask.array.Array)
                     }
-                    for var in output_ds.data_vars if isinstance(output_ds[var].data, dask.array.Array)
                 }
-            }
-        )
+            )
         logger.info(f"output {output} written")
         return 0
     except Exception as e:
