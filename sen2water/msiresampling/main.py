@@ -39,8 +39,8 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
               type=click.Choice(['10', '20', '60']),
               default='60')
 @click.option("--downsampling",
-              type=click.Choice(['first', 'min', 'max', 'mean', 'median']),
-              default='mean')
+              type=click.Choice(['detectormean', 'first', 'min', 'max', 'mean', 'median']),
+              default='detectormean')
 @click.option("--flagdownsampling",
               type=click.Choice(['first', 'flagand', 'flagor', 'flagmedianand', 'flagmedianor']),
               default='first')
@@ -50,11 +50,11 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 @click.option("--ancillary",
               type=click.Choice(['msl', 'tco3', 'tcwv', 'u10', 'v10', 'aod550']),
               multiple=True)
-@click.option(
-    "--scheduler",
-    type=click.Choice(["synchronous", "threads", "processes"]),
-    default="threads",
-)
+@click.option("--withmasterdetfoo",
+              default=True)
+@click.option("--scheduler",
+              type=click.Choice(["synchronous", "threads", "processes"]),
+              default="threads")
 @click.option("--profiling")
 def run(
     l1c: str,
@@ -93,6 +93,8 @@ def _run(
     flagdownsampling: str,
     upsampling: str,
     ancillary: List[str],
+    withmasterdetfoo: bool,
+
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
@@ -102,7 +104,9 @@ def _run(
         l1c_ds = xr.open_dataset(l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True)
         logger.info("starting computation")
         output_ds = resampler.run(
-            l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, ancillary, merge_flags=True)
+            l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, ancillary, withmasterdetfoo,
+            merge_flags=True
+        )
         output_ds.to_netcdf(
             output,
             encoding={
