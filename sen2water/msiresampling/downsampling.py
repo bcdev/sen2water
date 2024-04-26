@@ -42,7 +42,7 @@ class Downsampling(BlockAlgorithm):
             i = (factor - 1) // 2
             return data[j::factor,i::factor]
         # turn angles by a reference per detector to have them close to +/- 0
-        if is_azimuth_angle and len(inputs) > 1:
+        if is_azimuth_angle and len(inputs) > 2:
             reference = self._reference_per_detector(data, detector_index)
             data = self._normalise_angles_180_180(data, reference[detector_index])
         # stack data according to factor
@@ -108,7 +108,7 @@ class Downsampling(BlockAlgorithm):
         else:
             raise ValueError(f"unknown mode {mode} in downsample")
         # turn back angles per detector
-        if is_azimuth_angle and len(inputs) > 1:
+        if is_azimuth_angle and len(inputs) > 2:
             result = self._normalise_angles_0_360(result, reference[target_detector_index])
         return result
 
