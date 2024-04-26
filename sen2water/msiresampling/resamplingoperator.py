@@ -57,10 +57,11 @@ class ResamplingOperator(Operator):
         self,
         l1c: xr.Dataset,
         resolution: int,
-        downsampling: Union['first', 'min', 'max', 'mean', 'median'],
+        downsampling: Union['detectormean', 'first', 'min', 'max', 'mean', 'median'],
         flagdownsampling: str,
         upsampling: Union["nearest", "bilinear", "bicubic"],
         ancillary: List[str],
+        with_master_detfoo: bool,
         merge_flags: bool=False
     ) -> xr.Dataset:
 
@@ -134,10 +135,14 @@ class ResamplingOperator(Operator):
                                                   dims={f"tp_{band[4:7]}": l1c[band].sizes[band]},
                                                   attrs=attrs)
 
+        # select detector per target pixel (with_master_detfoo) or per target pixel per band
+
+        self._resample_detectors(resolution, dims, l1c, target_bands, with_master_detfoo=with_master_detfoo)
+
         # resample reflectance bands B1 .. B12
 
         input_band_with_target_resolution = self._resample_reflectance(
-            downsampling, upsampling, resolution, overlap_depth, dims, l1c, target_bands)
+            downsampling, upsampling, resolution, overlap_depth, dims, l1c, target_bands, with_master_detfoo=with_master_detfoo)
 
         # resample flag bands B_xxx_B1 .. B_zzz_B12
 
@@ -174,10 +179,9 @@ class ResamplingOperator(Operator):
 
         # interpolate viewing angles considering detector footprint
 
-        self._resample_detectors(resolution, dims, l1c, target_bands)
-        self._resample_viewing_angles(resolution, dims, l1c, target_bands)
+        self._resample_viewing_angles(resolution, dims, l1c, target_bands, with_master_detfoo=with_master_detfoo)
 
-        self._add_snap_masks(merge_flags, target_bands)
+        self._add_snap_masks(merge_flags, target_bands, with_master_detfoo=with_master_detfoo)
 
         # for debugging copy angles per band and detector
         # for band in self.bands:
@@ -251,33 +255,45 @@ class ResamplingOperator(Operator):
     def _resample_reflectance(
             self,
             downsampling: Union[
-                "mean", "median", "min", "max",
+                "detectormean", "mean", "median", "min", "max", "first",
                 "flagand", "flagor", "flagmedianand", "flagmedianor",
-                "majority", "detectormean"
             ],
             upsampling: Union["nearest", "bilinear", "bicubic"],
             resolution: int,
             overlap_depth: int,
             dims: Dict[str,int],
             l1c: xr.Dataset,
-            target_bands: Dict[str, xr.DataArray]
+            target_bands: Dict[str, xr.DataArray],
+            with_master_detfoo: bool
     ) -> xr.DataArray:
         """Adds resampled reflectance bands, returns one input band with target resolution as dummy"""
         input_band_with_target_resolution = None
         for band in self.bands:
-            detector_footprint_band_name = f"B_detector_footprint_{band}"
             if resolution > self.resolutions[band]:
                 factor = resolution // self.resolutions[band]
-                resampled = Downsampling().apply(
-                    l1c[band].data,
-                    l1c[detector_footprint_band_name].data,
-                    mode=downsampling,
-                    factor=factor,
-                    is_reflectance=True,
-                    dtype=l1c[band].dtype,
-                    chunks=(self.chunksize_in_meters // resolution,
-                            self.chunksize_in_meters // resolution)
-                )
+                if downsampling == 'detectormean':
+                    detector_footprint_band_name = f"B_detector_footprint_{band}"
+                    resampled = Downsampling().apply(
+                        l1c[band].data,
+                        target_bands["master_detfoo" if with_master_detfoo else detector_footprint_band_name],
+                        l1c[detector_footprint_band_name].data,
+                        mode=downsampling,
+                        factor=factor,
+                        is_reflectance=True,
+                        dtype=l1c[band].dtype,
+                        chunks=(self.chunksize_in_meters // resolution,
+                                self.chunksize_in_meters // resolution)
+                    )
+                else:
+                    resampled = Downsampling().apply(
+                        l1c[band].data,
+                        mode=downsampling,
+                        factor=factor,
+                        is_reflectance=True,
+                        dtype=l1c[band].dtype,
+                        chunks=(self.chunksize_in_meters // resolution,
+                                self.chunksize_in_meters // resolution)
+                    )
             elif resolution < self.resolutions[band]:
                 factor = self.resolutions[band] // resolution
                 band_chunksize = self.chunksize_in_meters // self.resolutions[band]
@@ -435,58 +451,113 @@ class ResamplingOperator(Operator):
             resolution: int,
             dims: Dict[str,int],
             l1c: xr.Dataset,
-            target_bands: Dict[str,xr.DataArray]
+            target_bands: Dict[str,xr.DataArray],
+            with_master_detfoo: bool=True
     ):
         """Adds resampled detector index"""
-        for band in self.bands:
-            detector_footprint_band_name = f"B_detector_footprint_{band}"
-            band_resolution = self.resolutions[band]
-            if resolution > band_resolution:
-                factor = resolution // band_resolution
-                resampled_detector = Downsampling().apply(
-                    l1c[detector_footprint_band_name].data,
-                    mode="majority",
-                    factor=factor,
-                    dtype=l1c[detector_footprint_band_name].dtype,
-                    chunks=(self.chunksize_in_meters // resolution,
-                            self.chunksize_in_meters // resolution)
-                )
-
-            elif resolution < band_resolution:
-                factor = band_resolution // resolution
-                band_chunksize = self.chunksize_in_meters // band_resolution
-                resampled_detector = Upsampling().apply(
-                    l1c[detector_footprint_band_name].data,
-                    mode="nearest",
-                    factor=(factor, factor),
-                    src_image_shape=l1c[detector_footprint_band_name].data.shape,
-                    src_image_chunksize=(band_chunksize, band_chunksize),
-                    depth=0,
-                    dtype=l1c[detector_footprint_band_name].dtype,
-                    chunks=(band_chunksize * factor, band_chunksize * factor)
-                )
-            else:
-                resampled_detector = l1c[detector_footprint_band_name].data
-            target_bands[detector_footprint_band_name] = xr.DataArray(
-                resampled_detector,
+        if with_master_detfoo:
+            # The result shall be a single detfoo with fill value in the overlapping area without a common detfoo value.
+            # Any of the source bands with the target resolution determines the master detector footprint value.
+            # If any of the other bands does not have a contribution with this master detfoo value then the master detfoo pixel is set to invalid.
+            master_band = None
+            master_detfoo = None
+            for band in self.bands:
+                if self.resolutions[band] == resolution:
+                    master_band = band
+                    detector_footprint_band_name = f"B_detector_footprint_{band}"
+                    master_detfoo = l1c[detector_footprint_band_name].data
+                    break
+            for band in self.bands:
+                if band == master_band:
+                    continue
+                detector_footprint_band_name = f"B_detector_footprint_{band}"
+                band_resolution = self.resolutions[band]
+                if resolution > band_resolution:
+                    factor = resolution // band_resolution
+                    master_detfoo = Downsampling().apply(
+                        l1c[detector_footprint_band_name].data,
+                        master_detfoo,
+                        mode="masterdetfoo",
+                        factor=factor,
+                        dtype=l1c[detector_footprint_band_name].dtype,
+                        chunks=(self.chunksize_in_meters // resolution,
+                                self.chunksize_in_meters // resolution)
+                    )
+                elif resolution < band_resolution:
+                    factor = band_resolution // resolution
+                    band_chunksize = self.chunksize_in_meters // band_resolution
+                    resampled_detector = Upsampling().apply(
+                        l1c[detector_footprint_band_name].data,
+                        mode="nearest",
+                        factor=(factor, factor),
+                        src_image_shape=l1c[detector_footprint_band_name].data.shape,
+                        src_image_chunksize=(band_chunksize, band_chunksize),
+                        depth=0,
+                        dtype=l1c[detector_footprint_band_name].dtype,
+                        chunks=(band_chunksize * factor, band_chunksize * factor)
+                    )
+                    master_detfoo = da.where(resampled_detector == master_detfoo, master_detfoo, 0)
+                else:
+                    resampled_detector = l1c[detector_footprint_band_name].data
+                    master_detfoo = da.where(resampled_detector == master_detfoo, master_detfoo, 0)
+            target_bands["master_detfoo"] = xr.DataArray(
+                master_detfoo,
                 dims=dims,
                 attrs={"long_name": f"detector footprint of {band}",
                        "_FillValue": np.uint8(0),
                        "coordinates": "crs y x lat lon"}
             )
+        else:
+            for band in self.bands:
+                detector_footprint_band_name = f"B_detector_footprint_{band}"
+                band_resolution = self.resolutions[band]
+                if resolution > band_resolution:
+                    factor = resolution // band_resolution
+                    resampled_detector = Downsampling().apply(
+                        l1c[detector_footprint_band_name].data,
+                        mode="majority",
+                        factor=factor,
+                        dtype=l1c[detector_footprint_band_name].dtype,
+                        chunks=(self.chunksize_in_meters // resolution,
+                                self.chunksize_in_meters // resolution)
+                    )
+
+                elif resolution < band_resolution:
+                    factor = band_resolution // resolution
+                    band_chunksize = self.chunksize_in_meters // band_resolution
+                    resampled_detector = Upsampling().apply(
+                        l1c[detector_footprint_band_name].data,
+                        mode="nearest",
+                        factor=(factor, factor),
+                        src_image_shape=l1c[detector_footprint_band_name].data.shape,
+                        src_image_chunksize=(band_chunksize, band_chunksize),
+                        depth=0,
+                        dtype=l1c[detector_footprint_band_name].dtype,
+                        chunks=(band_chunksize * factor, band_chunksize * factor)
+                    )
+                else:
+                    resampled_detector = l1c[detector_footprint_band_name].data
+                target_bands[detector_footprint_band_name] = xr.DataArray(
+                    resampled_detector,
+                    dims=dims,
+                    attrs={"long_name": f"detector footprint of {band}",
+                           "_FillValue": np.uint8(0),
+                           "coordinates": "crs y x lat lon"}
+                )
 
     def _resample_viewing_angles(
             self,
             resolution: int,
             dims: Dict[str,int],
             l1c: xr.Dataset,
-            target_bands: Dict[str,xr.DataArray]
+            target_bands: Dict[str,xr.DataArray],
+            with_master_detfoo: bool=True
     ):
         """Resamples viewing angles per detector and adds viewing angles per band"""
         vza_accu = []
         vaa_accu = []
         for band in self.bands:
-            detector_footprint_band_name = f"B_detector_footprint_{band}"
+            detector_footprint_band_name = "master_detfoo" if with_master_detfoo else f"B_detector_footprint_{band}"
             vza_band_name = f"view_zenith_{band}"
             vaa_band_name = f"view_azimuth_{band}"
             target_chunksize = self.chunksize_in_meters // resolution
@@ -558,16 +629,25 @@ class ResamplingOperator(Operator):
     def _add_snap_masks(
             self,
             merge_flags: bool,
-            target_bands: Dict[str,xr.DataArray]
+            target_bands: Dict[str,xr.DataArray],
+            with_master_detfoo: bool=True
     ):
         """Adds mask expressions without extend for SNAP"""
-        for band in self.bands:
+        if with_master_detfoo:
             for detector in range(1, 13):
-                ResamplingOperator._add_snap_mask(f"detector_footprint-{band}-{detector}_mask",
-                                    f"B_detector_footprint_{band}=={detector}",
+                ResamplingOperator._add_snap_mask(f"detector_footprint-{detector}_mask",
+                                    f"master_detfoo=={detector}",
                                     [np.int32(c) for c in self.detector_colour[detector-1]],
                                     0.5,
                                     target_bands)
+        else:
+            for band in self.bands:
+                for detector in range(1, 13):
+                    ResamplingOperator._add_snap_mask(f"detector_footprint-{band}-{detector}_mask",
+                                        f"B_detector_footprint_{band}=={detector}",
+                                        [np.int32(c) for c in self.detector_colour[detector-1]],
+                                        0.5,
+                                        target_bands)
         for band in self.bands:
             for flag_i, flag in enumerate(self.flag_band_prefixes):
                 ResamplingOperator._add_snap_mask(f"{flag[2:]}_{band}_mask",

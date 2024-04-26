@@ -23,9 +23,9 @@ class Downsampling(BlockAlgorithm):
         self,
         *inputs: np.ndarray,
         mode: Union[
-            "mean", "median", "min", "max",
+            "mean", "median", "min", "max", "first",
             "flagand", "flagor", "flagmedianand", "flagmedianor",
-            "majority", "detectormean"]='mean',
+            "majority", "detectormean", "masterdetfoo"]='mean',
         factor: int=6,
         is_azimuth_angle: bool=False,
         is_reflectance: bool=False,
@@ -33,20 +33,38 @@ class Downsampling(BlockAlgorithm):
         """Downsampling from e.g. 10m to 60m by mean or other aggregators"""
         data = inputs[0]
         if len(inputs) > 1:
-            detector_index = inputs[1]
+            target_detector_index = inputs[1]
+        if len(inputs) > 2:
+            detector_index = inputs[2]
+        # quick return for mode first
         if mode == 'first':
             j = (factor - 1) // 2
             i = (factor - 1) // 2
             return data[j::factor,i::factor]
-        if is_azimuth_angle:
+        # turn angles by a reference per detector to have them close to +/- 0
+        if is_azimuth_angle and len(inputs) > 1:
             reference = self._reference_per_detector(data, detector_index)
             data = self._normalise_angles_180_180(data, reference[detector_index])
+        # stack data according to factor
         pixelcontributions = np.stack([data[j::factor,i::factor] for i in range(factor) for j in range(factor)])
-        if mode == 'detectormean':
-            selected_detector = self._select_majority_detector(detector_index, factor, pixelcontributions)
-            result = np.nanmean(pixelcontributions, axis=0)
-        elif mode == 'majority':  # for detector index
+        # distinguish modes and aggregate stacked data
+        if mode == 'masterdetfoo':
+            # for detector index, masks pixels that do not have at least one contrib from master_detfoo
+            target_detector_index[np.all(pixelcontributions != target_detector_index, axis=0)] = 0
+            result = target_detector_index
+        elif mode == 'majority':  # for detector index if not masterdetfoo
             result = np.round(np.mean(pixelcontributions, axis=0)).astype(np.uint8)
+        elif mode == 'detectormean' and len(inputs) > 2:
+            # for reflectances
+            if is_reflectance:
+                pixelcontributions = pixelcontributions.astype(np.float32)
+                pixelcontributions[pixelcontributions==0.0] = np.nan
+            self._mask_contributions_of_non_target_detector(target_detector_index, detector_index, factor,
+                                                            pixelcontributions)
+            result = np.nanmean(pixelcontributions, axis=0)
+            if is_reflectance:
+                result[np.isnan(result)] = 0.0
+                result = result.astype(np.uint16)
         elif mode == 'mean':
             if is_reflectance:
                 pixelcontributions = pixelcontributions.astype(np.float32)
@@ -75,15 +93,23 @@ class Downsampling(BlockAlgorithm):
             else:
                 result = np.min(pixelcontributions, axis=0)
         elif mode == 'max' or mode == 'flagor':
-            result = np.max(pixelcontributions, axis=0)
+            if is_reflectance:
+                pixelcontributions = pixelcontributions.astype(np.float32)
+                pixelcontributions[pixelcontributions==0] = np.nan
+                max = np.nanmax(pixelcontributions, axis=0)
+                max[np.isnan(max)] = 0.0
+                result = max.astype(np.uint16)
+            else:
+                result = np.max(pixelcontributions, axis=0)
         elif mode == 'flagmedianand':
             raise ValueError(f"downsampling mode {mode} not yet implemented")
         elif mode == 'flagmedianor':
             raise ValueError(f"downsampling mode {mode} not yet implemented")
         else:
             raise ValueError(f"unknown mode {mode} in downsample")
-        if is_azimuth_angle:
-            result = self._normalise_angles_0_360(result, reference[selected_detector])
+        # turn back angles per detector
+        if is_azimuth_angle and len(inputs) > 1:
+            result = self._normalise_angles_0_360(result, reference[target_detector_index])
         return result
 
     func = downsample
@@ -94,14 +120,13 @@ class Downsampling(BlockAlgorithm):
                         [Downsampling._first(data[((detector_index==detector) & (np.isnan(data)==0))])
                          for detector in range(1, 13)])
 
-    def _select_majority_detector(
-            self, detector_index: np.ndarray, factor: int, pixelcontributions: np.ndarray) -> np.ndarray:
-        """We make use of the fact that only adjacent detectors overlap such that the mean determines majority."""
+    def _mask_contributions_of_non_target_detector(
+            self, target_detector_index: np.ndarray, detector_index: np.ndarray, factor: int,
+            pixelcontributions: np.ndarray
+    ) -> np.ndarray:
         detector_contributions = np.stack([detector_index[j::factor,i::factor] for i in range(factor)
                                            for j in range(factor)])
-        selected_detector = np.round(np.mean(detector_contributions, axis=0)).astype(np.uint8)
-        pixelcontributions[detector_contributions != selected_detector] = np.nan
-        return selected_detector
+        pixelcontributions[detector_contributions != target_detector_index] = np.nan
 
     @staticmethod
     def _normalise_angles_180_180(angles: np.ndarray, reference: np.ndarray) -> np.ndarray:
