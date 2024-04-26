@@ -71,10 +71,11 @@ def _run(
         logger.info("starting computation")
         intermediate_ds = resampler.run(l1c_ds,
                                         resolution=60,
-                                        downsampling="mean",
+                                        downsampling="detectormean",
                                         flagdownsampling="first",
                                         upsampling="bilinear",
                                         ancillary=['msl', 'tco3', 'tcwv', 'u10', 'v10'],
+                                        with_master_detfoo=True,
                                         merge_flags=True)
         output_ds = HrocMask().run(intermediate_ds, hroc_mask_ds)
 
