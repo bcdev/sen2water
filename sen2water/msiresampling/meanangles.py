@@ -11,6 +11,7 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
+import warnings
 
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
@@ -40,11 +41,13 @@ class MeanAngles(BlockAlgorithm):
         """
         
         angles_stack = np.stack(angles)
-        if is_azimuth_angle:
-            angles_mask = np.nanmax(angles_stack, axis=0) > 270.0
-            angles_stack_mask = np.tile(angles_mask, (angles_stack.shape[0], 1, 1))
-            angles_stack[angles_stack_mask] = (angles_stack[angles_stack_mask] + 180.0) % 360.0
-        angles_mean = np.nanmean(angles_stack, axis=0)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            if is_azimuth_angle:
+                angles_mask = np.nanmax(angles_stack, axis=0) > 270.0
+                angles_stack_mask = np.tile(angles_mask, (angles_stack.shape[0], 1, 1))
+                angles_stack[angles_stack_mask] = (angles_stack[angles_stack_mask] + 180.0) % 360.0
+            angles_mean = np.nanmean(angles_stack, axis=0)
         if is_azimuth_angle:
             angles_mean[angles_mask] = (angles_mean[angles_mask] + 180.0) % 360.0
         return angles_mean
