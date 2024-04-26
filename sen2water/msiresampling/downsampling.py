@@ -62,7 +62,7 @@ class Downsampling(BlockAlgorithm):
             self._mask_contributions_of_non_target_detector(target_detector_index, detector_index, factor,
                                                             pixelcontributions)
             with warnings.catch_warnings():
-                warnings.filterwarnings("ignore")
+                warnings.simplefilter("ignore")
                 result = np.nanmean(pixelcontributions, axis=0)
             if is_reflectance:
                 result[np.isnan(result)] = 0.0

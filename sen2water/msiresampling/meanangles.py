@@ -42,7 +42,7 @@ class MeanAngles(BlockAlgorithm):
         
         angles_stack = np.stack(angles)
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore")
+            warnings.simplefilter("ignore")
             if is_azimuth_angle:
                 angles_mask = np.nanmax(angles_stack, axis=0) > 270.0
                 angles_stack_mask = np.tile(angles_mask, (angles_stack.shape[0], 1, 1))
