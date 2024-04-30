@@ -386,7 +386,8 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
         )
         ds = ds.rename_dims(
             {"y": f"y{resolution}", "x": f"x{resolution}"}
-        ).rename_vars({"y": f"y{resolution}", "x": f"x{resolution}"})
+        ).rename_vars({"y": f"y{resolution}", "x": f"x{resolution}",
+                       "spatial_ref": f"spatial_ref_{resolution}"})
         da = ds["band_data"].drop_vars("band")
         attrs = {
             "long_name": f"Reflectance in band {variable}",

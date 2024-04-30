@@ -120,7 +120,7 @@ class ResamplingOperator(Operator):
                    "units": "degrees_east"}
         )
 
-        coordinate_bands["crs"] = copy_variable(l1c["spatial_ref"])
+        coordinate_bands["crs"] = copy_variable(l1c[f"spatial_ref_{resolution}"])
 
         # copy geographic coordinates of ancillary data
 
