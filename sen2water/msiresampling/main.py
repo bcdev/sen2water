@@ -64,6 +64,7 @@ def run(
     flagdownsampling: str,
     upsampling: str,
     ancillary: List[str],
+    withmasterdetfoo: bool,
     scheduler: str,
     profiling: str,
     progress: bool,
@@ -82,6 +83,7 @@ def run(
                 flagdownsampling,
                 upsampling,
                 ancillary,
+                withmasterdetfoo,
                 progress,
             )
     return code
