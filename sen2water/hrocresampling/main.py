@@ -73,9 +73,12 @@ def _run(
         logger.info("opening inputs")
         resampler = ResamplingOperator()
         l1c_ds = xr.open_dataset(l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=UserWarning)
-            hroc_mask_ds = xr.open_dataset(hrocmask, chunks={ "y": 610, "x": 610 }, engine="rasterio")
+        if hrocmask != "ocean":
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                hroc_mask_ds = xr.open_dataset(hrocmask, chunks={ "y": 610, "x": 610 }, engine="rasterio")
+        else:
+            hroc_mask_ds = None
 
         logger.info("starting computation")
         intermediate_ds = resampler.run(l1c_ds,
@@ -86,7 +89,10 @@ def _run(
                                         ancillary=['msl', 'tco3', 'tcwv', 'u10', 'v10'],
                                         with_master_detfoo=False,
                                         merge_flags=True)
-        output_ds = HrocMask().run(intermediate_ds, hroc_mask_ds)
+        if hroc_mask_ds:
+            output_ds = HrocMask().run(intermediate_ds, hroc_mask_ds)
+        else:
+            output_ds = HrocMask().run_with_constant(intermediate_ds, 2)
 
         with Progress(progress):
             output_ds.to_netcdf(

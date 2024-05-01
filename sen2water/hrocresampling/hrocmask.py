@@ -11,9 +11,10 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
-
+import dask.array
 import numpy as np
 import xarray as xr
+import dask.array as da
 
 from sen2water.eoutils.eoprocessingifc import Operator, BlockAlgorithm
 
@@ -64,6 +65,35 @@ class HrocMask(Operator):
         )
         resampled["hroc_watermask"] = xr.DataArray(
             hroc_mask["band_data"].data[0].astype(np.uint8),
+            dims=resampled["B1"].dims,
+            attrs={
+                "long_name": "static HR-OC water mask",
+                "flag_values": [np.int32(0), np.int32(1), np.int32(2), np.int32(3), np.int32(4)],
+                "flag_meanings": ["invalid", "land", "ocean", "coastal", "bottom_reflection"],
+            }
+        )
+        return resampled
+
+    def run_with_constant(
+        self,
+        resampled: xr.Dataset,
+        value: np.uint8,
+    ) -> xr.Dataset:
+        tecqua_data = TecquaAlgorithm().apply(
+            *[resampled[f"quality_flags_{band}"].data for band in BANDS],
+            dtype=np.int8
+        )
+
+        resampled["tecqua_mask"] = xr.DataArray(
+            tecqua_data,
+            dims=resampled["B1"].dims,
+            attrs={
+                "long_name": "tecqua mask, a combination of the quality flags of all bands",
+            }
+        )
+        ocean_data = da.full_like(tecqua_data, value, chunks=tecqua_data.chunks, dtype=np.uint8)
+        resampled["hroc_watermask"] = xr.DataArray(
+            ocean_data,
             dims=resampled["B1"].dims,
             attrs={
                 "long_name": "static HR-OC water mask",
