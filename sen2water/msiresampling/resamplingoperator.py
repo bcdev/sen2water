@@ -121,6 +121,14 @@ class ResamplingOperator(Operator):
         )
 
         coordinate_bands["crs"] = copy_variable(l1c[f"spatial_ref_{resolution}"])
+        # make SNAP happy
+        if "wkt" not in coordinate_bands["crs"].attrs:
+            coordinate_bands["crs"].attrs["wkt"] = coordinate_bands["crs"].attrs["crs_wkt"]
+        # GeoTransform 699960.0 60.0 0.0 5200020.0 0.0 -60.0
+        # i2m 60.0,0.0,0.0,-60.0,699960.0,5200020.0
+        if "i2m" not in coordinate_bands["crs"].attrs:
+            geo_t = coordinate_bands["crs"].attrs["GeoTransform"].split(" ")
+            coordinate_bands["crs"].attrs["i2m"] = ",".join([geo_t[i] for i in [1,2,4,5,0,3]])
 
         # copy geographic coordinates of ancillary data
 
