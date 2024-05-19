@@ -94,7 +94,7 @@ class ResamplingOperator(Operator):
         x = da.from_array(l1c[f"x{resolution}"].values, chunks=self.chunksize_in_meters // resolution)
         xx = da.broadcast_to(x, (y.shape[0], x.shape[0]), chunks=chunks)
         yy = da.transpose(da.broadcast_to(y, (y.shape[0], x.shape[0]), chunks=chunks[::-1]))
-        transformer = Transformer.from_crs(CRS.from_cf(l1c['spatial_ref'].attrs), CRS("EPSG:4326"))
+        transformer = Transformer.from_crs(CRS.from_cf(l1c[f'spatial_ref_{resolution}'].attrs), CRS("EPSG:4326"))
         lat_lon = GeoCoordinates().apply(
             xx,
             yy,
