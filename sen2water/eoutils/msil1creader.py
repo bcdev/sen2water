@@ -319,14 +319,10 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             {"latitude": "aux_latitude", "longitude": "aux_longitude"}
         ).rename_vars({
             "latitude": "aux_latitude",
-            "longitude": "aux_longitude",
-            "number": prefix+"_number",
-            "time": prefix+"_time",
-            "step": prefix+"_step",
-            "surface": prefix+"_surface",
-            "valid_time": prefix+"_valid_time",
-            "isobaricInhPa": prefix+"_isobaricInhPa",
-        })
+            "longitude": "aux_longitude"}
+        ).rename_vars({ name: f"{prefix}_{name}"
+                        for name in ["number", "time", "step", "surface", "valid_time", "isobaricInhPa"]
+                        if name in ds.variables})
         datasets.append(ds)
 
     def open_cloud_masks(self, refl_path, resolution, chunks, merge_flags, datasets):
@@ -393,7 +389,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             "long_name": f"Reflectance in band {variable}",
             "units": "dl",
             "scale_factor": scale_factor,
-            "add_offset": add_offsets[band_index],
+            "add_offset": add_offsets[band_index] if len(add_offsets) > 0 else 0.0,
             "_FillValue": fill_value,
             "radiation_wavelength": self.wavelengths[variable],
             "radiation_wavelength_unit": "nm",
