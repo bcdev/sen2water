@@ -38,32 +38,38 @@ class S2wStatistics(object):
     @staticmethod
     def count_pixels(pixel_class: da.array, s2wmask: da.array):
         return [
+            # clear
             da.count_nonzero((pixel_class == 2)),
             da.count_nonzero((pixel_class == 3)),
             da.count_nonzero((pixel_class == 1)),
+            # snow and ice
             da.count_nonzero(
                 ((pixel_class == 4) & ((s2wmask == 64) | (s2wmask == 128)))
             ),
             da.count_nonzero(((pixel_class == 4) & (s2wmask > 64) & (s2wmask <= 96))),
             da.count_nonzero(((pixel_class == 4) & (s2wmask >= 159))),
+            # cloud etc.
             da.count_nonzero(
                 (
                     (pixel_class >= 5)
-                    & (pixel_class <= 8)
+#                    & (pixel_class <= 8)
                     & ((s2wmask == 64) | (s2wmask == 128))
                 )
             ),
             da.count_nonzero(
                 (
                     (pixel_class >= 5)
-                    & (pixel_class <= 8)
+#                    & (pixel_class <= 8)
                     & (s2wmask > 64)
                     & (s2wmask <= 96)
                 )
             ),
             da.count_nonzero(
-                ((pixel_class >= 5) & (pixel_class <= 8) & (s2wmask >= 159))
+                ((pixel_class >= 5)
+#                 & (pixel_class <= 8)
+                 & (s2wmask >= 159))
             ),
+            # valid
             da.count_nonzero(
                 (
                     (pixel_class == 2)
@@ -79,5 +85,6 @@ class S2wStatistics(object):
             da.count_nonzero(
                 ((pixel_class == 1) | ((pixel_class >= 4) & (s2wmask >= 159)))
             ),
+            # total
             da.count_nonzero((pixel_class > 0)),
         ]
