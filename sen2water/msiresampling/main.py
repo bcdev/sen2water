@@ -34,7 +34,7 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 
 @click.command()
 @click.argument("l1c")
-@click.argument("output")
+@click.argument("output", required=False)
 @click.option("--resolution",
               type=click.Choice(['10', '20', '60']),
               default='60')
@@ -55,7 +55,7 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
               type=click.Choice(["synchronous", "threads", "processes"]),
               default="threads")
 @click.option("--profiling")
-@click.option("--progress", is_flag=True)
+@click.option("--progress/--quiet", is_flag=True, default=True)
 def run(
     l1c: str,
     output: str,
@@ -73,11 +73,17 @@ def run(
     if profiling and scheduler != "synchronous":
         print("profiling uses synchronous scheduler")
         scheduler = "synchronous"
+    if output:
+        output_name = output
+    elif l1c.endswith(".SAFE"):
+        output_name = f"{l1c[:-5]}-resampled.nc"
+    else:
+        output_name = f"{l1c}-resampled.nc"
     with Scheduler(scheduler):
         with Profiling(profiling):
             code = _run(
                 l1c,
-                output,
+                output_name,
                 resolution,
                 downsampling,
                 flagdownsampling,
@@ -86,6 +92,8 @@ def run(
                 withmasterdetfoo,
                 progress,
             )
+    if not output:
+        print(output_name)
     return code
 
 
