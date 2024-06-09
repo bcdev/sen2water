@@ -14,10 +14,7 @@
             <computeCloudBuffer>true</computeCloudBuffer>
             <computeCloudBufferForCloudAmbiguous>true</computeCloudBufferForCloudAmbiguous>
             <cloudBufferWidth>2</cloudBufferWidth>
-            <!-- <demName>SRTM 3Sec</demName> -->
-            <!-- <demName>GETASSE30</demName> -->
-            <!-- <demName>Copernicus 30m Global DEM</demName> -->
-            <demName>Copernicus 90m Global DEM</demName>
+            <demName>${dem}</demName>
         </parameters>
     </node>
 

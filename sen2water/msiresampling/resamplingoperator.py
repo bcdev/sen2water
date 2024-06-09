@@ -44,13 +44,15 @@ class ResamplingOperator(Operator):
 
     chunksize_in_meters = 36600
 
-    def preferred_chunks(self):
-        return { "y10": self.chunksize_in_meters // 10,
-                 "x10": self.chunksize_in_meters // 10,
-                 "y20": self.chunksize_in_meters // 20,
-                 "x20": self.chunksize_in_meters // 20,
-                 "y60": self.chunksize_in_meters // 60,
-                 "x60": self.chunksize_in_meters // 60,
+    def preferred_chunks(self, chunksize_in_meters: int=None):
+        if not chunksize_in_meters:
+            chunksize_in_meters = self.chunksize_in_meters
+        return { "y10": chunksize_in_meters // 10,
+                 "x10": chunksize_in_meters // 10,
+                 "y20": chunksize_in_meters // 20,
+                 "x20": chunksize_in_meters // 20,
+                 "y60": chunksize_in_meters // 60,
+                 "x60": chunksize_in_meters // 60,
                  }
 
     def run(
@@ -61,7 +63,7 @@ class ResamplingOperator(Operator):
         flagdownsampling: str,
         upsampling: Union["nearest", "bilinear", "bicubic"],
         ancillary: List[str],
-        with_master_detfoo: bool,
+        with_detfoo_filter: bool,
         merge_flags: bool=False
     ) -> xr.Dataset:
 
@@ -143,14 +145,14 @@ class ResamplingOperator(Operator):
                                                   dims={f"tp_{band[4:7]}": l1c[band].sizes[band]},
                                                   attrs=attrs)
 
-        # select detector per target pixel (with_master_detfoo) or per target pixel per band
+        # select detector per target pixel (with_detfoo_filter) or per target pixel per band
 
-        self._resample_detectors(resolution, dims, l1c, target_bands, with_master_detfoo=with_master_detfoo)
+        self._resample_detectors(resolution, dims, l1c, target_bands, with_detfoo_filter=with_detfoo_filter)
 
         # resample reflectance bands B1 .. B12
 
         input_band_with_target_resolution = self._resample_reflectance(
-            downsampling, upsampling, resolution, overlap_depth, dims, l1c, target_bands, with_master_detfoo=with_master_detfoo)
+            downsampling, upsampling, resolution, overlap_depth, dims, l1c, target_bands, with_detfoo_filter=with_detfoo_filter)
 
         # resample flag bands B_xxx_B1 .. B_zzz_B12
 
@@ -187,9 +189,9 @@ class ResamplingOperator(Operator):
 
         # interpolate viewing angles considering detector footprint
 
-        self._resample_viewing_angles(resolution, dims, l1c, target_bands, with_master_detfoo=with_master_detfoo)
+        self._resample_viewing_angles(resolution, dims, l1c, target_bands, with_detfoo_filter=with_detfoo_filter)
 
-        self._add_snap_masks(merge_flags, target_bands, with_master_detfoo=with_master_detfoo)
+        self._add_snap_masks(merge_flags, target_bands, with_detfoo_filter=with_detfoo_filter)
 
         # for debugging copy angles per band and detector
         # for band in self.bands:
@@ -272,7 +274,7 @@ class ResamplingOperator(Operator):
             dims: Dict[str,int],
             l1c: xr.Dataset,
             target_bands: Dict[str, xr.DataArray],
-            with_master_detfoo: bool
+            with_detfoo_filter: bool
     ) -> xr.DataArray:
         """Adds resampled reflectance bands, returns one input band with target resolution as dummy"""
         input_band_with_target_resolution = None
@@ -283,7 +285,7 @@ class ResamplingOperator(Operator):
                     detector_footprint_band_name = f"B_detector_footprint_{band}"
                     resampled = Downsampling().apply(
                         l1c[band].data,
-                        target_bands["master_detfoo" if with_master_detfoo else detector_footprint_band_name].data,
+                        target_bands["master_detfoo" if with_detfoo_filter else detector_footprint_band_name].data,
                         l1c[detector_footprint_band_name].data,
                         mode=downsampling,
                         factor=factor,
@@ -460,10 +462,10 @@ class ResamplingOperator(Operator):
             dims: Dict[str,int],
             l1c: xr.Dataset,
             target_bands: Dict[str,xr.DataArray],
-            with_master_detfoo: bool=True
+            with_detfoo_filter: bool=True
     ):
         """Adds resampled detector index"""
-        if with_master_detfoo:
+        if with_detfoo_filter:
             # The result shall be a single detfoo with fill value in the overlapping area without a common detfoo value.
             # Any of the source bands with the target resolution determines the master detector footprint value.
             # If any of the other bands does not have a contribution with this master detfoo value then the master detfoo pixel is set to invalid.
@@ -559,13 +561,13 @@ class ResamplingOperator(Operator):
             dims: Dict[str,int],
             l1c: xr.Dataset,
             target_bands: Dict[str,xr.DataArray],
-            with_master_detfoo: bool=True
+            with_detfoo_filter: bool=True
     ):
         """Resamples viewing angles per detector and adds viewing angles per band"""
         vza_accu = []
         vaa_accu = []
         for band in self.bands:
-            detector_footprint_band_name = "master_detfoo" if with_master_detfoo else f"B_detector_footprint_{band}"
+            detector_footprint_band_name = "master_detfoo" if with_detfoo_filter else f"B_detector_footprint_{band}"
             vza_band_name = f"view_zenith_{band}"
             vaa_band_name = f"view_azimuth_{band}"
             target_chunksize = self.chunksize_in_meters // resolution
@@ -638,10 +640,10 @@ class ResamplingOperator(Operator):
             self,
             merge_flags: bool,
             target_bands: Dict[str,xr.DataArray],
-            with_master_detfoo: bool=True
+            with_detfoo_filter: bool=True
     ):
         """Adds mask expressions without extend for SNAP"""
-        if with_master_detfoo:
+        if with_detfoo_filter:
             for detector in range(1, 13):
                 ResamplingOperator._add_snap_mask(f"detector_footprint-{detector}_mask",
                                     f"master_detfoo=={detector}",

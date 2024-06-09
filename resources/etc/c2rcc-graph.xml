@@ -15,8 +15,8 @@
             <outputRhown>false</outputRhown>
             <outputRtoa>false</outputRtoa>
             <outputUncertainties>false</outputUncertainties>
-            <useEcmwfAuxData>true</useEcmwfAuxData>
-            <demName>Copernicus 90m Global DEM</demName>
+            <useEcmwfAuxData>${useEcmwfAuxData}</useEcmwfAuxData>
+            <demName>${dem}</demName>
         </parameters>
     </node>
 </graph>

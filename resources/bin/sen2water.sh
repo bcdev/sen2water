@@ -16,16 +16,44 @@ if [ "$(which gpt)" != "$s2wdir/lib/snap/bin/gpt" ]; then
     echo ". $s2wdir/bin/mys2w"
     exit 1
 fi
-# check whether we have an input parameter
-if [ "$1" = "" ]; then
-    echo "sen2water.sh <l1cpath>"
+
+# parse parameters
+input=
+c2rccanc=
+acoliteanc=
+polymeranc=
+dem=
+withdetfoofilter=
+numchunks=
+while [ "$1" != "" ]; do
+    if [ "$1" = "--c2rccanc" ]; then c2rccanc="$1 $2"; shift 2
+    elif [ "$1" = "--acoliteanc" ]; then c2rccanc="$1 $2"; shift 2
+    elif [ "$1" = "--polymeranc" ]; then c2rccanc="$1 $2"; shift 2
+    elif [ "$1" = "--dem" ]; then dem="$1 $2"; shift 2
+    elif [ "$1" = "--withdetfoofilter" ]; then withdetfoofilter="$1"; shift 1
+    elif [ "$1" = "--chunksize" ]; then chunksize="$1 $2"; shift 2
+    elfi [ "$1" = "--help" ]; then shift 1
+    elif [ "${1:0:1}" = "-" ]; then echo unknown parameter $1; exit 1
+    elif [ "$input" = "" ]; then input="$1"; shift 1
+    else echo "unknown parameter $1"; exit 1
+    fi
+done
+
+if [ "$input" = "" ]; then
+    echo "sen2water.sh <options> <l1cpath>"
     echo "e.g."
     echo "sen2water.sh S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE"
+    echo "options"
+    echo "--c2rccanc embedded | constant"
+    echo "--acoliteanc embedded | constant"
+    echo "--polymeranc embedded | nasa | constant"
+    echo "--dem 'Copernicus 90m Global DEM' | 'Copernicus 30m Global DEM'"
+    echo "--withdetfoofilter"
+    echo "--chunksize 610 | 1830 | 915 | 366 | 305 | 183 | 122 | 61"
     exit 1
 fi
 
 # S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112.SAFE
-input=$1
 base=$(basename ${input%.SAFE})
 granule=${base:39:5}
 p=${base:0:3}
@@ -41,42 +69,68 @@ c2rcc=${base}-c2rcc.nc
 acolite=${p}_MSI_${y}_${m}_${d}_${H}_${M}_${S}_S2R_L2R.nc
 cloudmask=${base}-mask.nc
 polymer=${base}-polymer.nc
+s2w=${base}-s2w.nc
+
 staticmask=${s2wdir}/auxdata/s2w-mask/${granule:0:2}/s2w-mask-${granule}.tif
 if [ ! -e $staticmask ]; then
     staticmask=${s2wdir}/auxdata/s2w-global-mask/${granule:0:2}/s2w-globalmask-${granule}.tif
+    if [ ! -e $staticmask ]; then
+        echo "missing mask ${s2wdir}/auxdata/s2w-global-mask/${granule:0:2}/s2w-globalmask-${granule}.tif"
+        echo "assuming ocean"
+        staticmask=ocean
+    fi
 fi
-s2w=${base}-s2w.nc
 
 echo "resampling to 60m ..."
 
-time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py $input $resampled
+time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py \
+     --ancillary msl --ancillary tco3 --ancillary tcwv --ancillary u10 --ancillary v10 \
+     $withdetfoofilter $chunksize $input $resampled
 
 echo $resampled
 echo
 echo "Idepix cloud screening ..."
 
-time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 3 -e \
-    $s2wdir/etc/idepix-graph.xml $resampled -t $idepix -f NetCDF4-BEAM
+if [ "$dem" = "" ]; then
+    dem="Copernicus 90m Global DEM"
+fi
+time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
+    $s2wdir/etc/idepix-graph.xml -Pdem="$dem" $resampled -t $idepix -f NetCDF4-BEAM
 
 echo $idepix
 echo
 echo "C2RCC atmospheric correction ..."
 
-time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 3 -e \
-    $s2wdir/etc/c2rcc-graph.xml $resampled -t $c2rcc -f NetCDF4-BEAM
+if [ "$c2rccanc" == "constant" ]; then
+    useEcmwfAuxData=false
+else
+    useEcmwfAuxData=true
+fi
+time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
+    $s2wdir/etc/c2rcc-graph.xml -Pdem="$dem" -PuseEcmwfAuxData="$useEcmwfAuxData" $resampled -t $c2rcc -f NetCDF4-BEAM
 
 echo $c2rcc
 echo
 echo "ACOLITE atmospheric correction ..."
 
-cat $s2wdir/etc/acolite.parameters | sed -e s/S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc/$resampled/ > acolite.parameters
+if [ "$acoliteanc" == "constant" ]; then
+    s2auxiliarydefault=False
+else
+    s2auxiliarydefault=True
+fi
+s2_auxiliary_default=True
+
+cat $s2wdir/etc/acolite.parameters | sed \
+    -e s/S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc/$resampled/ \
+    -e s.s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
+    > acolite.parameters
 time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
 
 echo $acolite
 echo
 echo "POLYMER reformatting of cloud mask ..."
 
-time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 3 -e \
+time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
     $s2wdir/etc/polymer-mask-graph.xml $idepix -t $cloudmask -f NetCDF4-BEAM
 
 echo $cloudmask
@@ -91,22 +145,11 @@ echo $polymer
 echo
 echo "Sen2Water switching and output formatting ..."
 
-if [ -e ${staticmask} ]; then
-    #time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py --copyinputs $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
-    time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
-    newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
-    mv $s2w $newname
-    s2w=$newname
-else
-    time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 3 -e \
-         $s2wdir/etc/s2w-merge-graph.xml \
-         -Sresampled=$resampled \
-         -Sidepix=$idepix \
-         -Sc2rcc=$c2rcc \
-         -Sacolite=$acolite \
-         -Spolymer=$polymer \
-         -t $s2w -f NetCDF4-BEAM
-fi
+time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py \
+     $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
+newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
+mv $s2w $newname
+s2w=$newname
 
 echo $s2w
 echo "done"

@@ -51,7 +51,10 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
 @click.option("--ancillary",
               type=click.Choice(['msl', 'tco3', 'tcwv', 'u10', 'v10', 'aod550']),
               multiple=True)
-@click.option("--withmasterdetfoo", is_flag=True)
+@click.option("--withdetfoofilter", is_flag=True)
+@click.option("--chunksize",
+              type=click.Choice([1830, 915, 610, 366, 305, 183, 122, 61]),
+              default=610)
 @click.option("--hrocmask")
 @click.option("--scheduler",
               type=click.Choice(["synchronous", "threads", "processes"]),
@@ -66,7 +69,8 @@ def run(
     flagdownsampling: str,
     upsampling: str,
     ancillary: List[str],
-    withmasterdetfoo: bool,
+    withdetfoofilter: bool,
+    chunksize: int,
     hrocmask: str,
     scheduler: str,
     profiling: str,
@@ -86,7 +90,8 @@ def run(
                 flagdownsampling,
                 upsampling,
                 ancillary,
-                withmasterdetfoo,
+                withdetfoofilter,
+                chunksize,
                 hrocmask,
                 progress,
             )
@@ -101,7 +106,8 @@ def _run(
     flagdownsampling: str,
     upsampling: str,
     ancillary: List[str],
-    withmasterdetfoo: bool,
+    withdetfoofilter: bool,
+    chunksize: int,
     hrocmask: str,
     progress: bool,
 
@@ -114,7 +120,7 @@ def _run(
             output = f"{input_id}-resampled.nc"
         logger.info("opening inputs")
         l1c_ds = xr.open_dataset(
-            l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True
+            l1c, chunks=resampler.preferred_chunks(chunksize * 60), engine="safe_msi_l1c", merge_flags=True
         )
         # open static mask before resampling to fail early in case it is missing
         if hrocmask and hrocmask != "ocean":
@@ -137,7 +143,7 @@ def _run(
             flagdownsampling,
             upsampling,
             ancillary,
-            withmasterdetfoo,
+            withdetfoofilter,
             merge_flags=True
         )
         if hrocmask:
