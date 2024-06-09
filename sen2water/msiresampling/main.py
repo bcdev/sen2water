@@ -19,6 +19,7 @@ Open points
 """
 
 import sys
+import warnings
 import click
 import traceback
 import os.path
@@ -29,8 +30,8 @@ from sen2water.eoutils.eologging import logger
 from sen2water.eoutils.eoscheduler import Scheduler
 from sen2water.eoutils.eoprofiling import Profiling
 from sen2water.eoutils.eoprogress import Progress
+from sen2water.msiresampling.hrocmask import HrocMask
 from sen2water.msiresampling.resamplingoperator import ResamplingOperator
-
 
 @click.command()
 @click.argument("l1c")
@@ -51,11 +52,12 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
               type=click.Choice(['msl', 'tco3', 'tcwv', 'u10', 'v10', 'aod550']),
               multiple=True)
 @click.option("--withmasterdetfoo", is_flag=True)
+@click.option("--hrocmask")
 @click.option("--scheduler",
               type=click.Choice(["synchronous", "threads", "processes"]),
               default="threads")
 @click.option("--profiling")
-@click.option("--progress/--quiet", is_flag=True, default=True)
+@click.option("--progress/--noprogress", is_flag=True, default=True)
 def run(
     l1c: str,
     output: str,
@@ -65,6 +67,7 @@ def run(
     upsampling: str,
     ancillary: List[str],
     withmasterdetfoo: bool,
+    hrocmask: str,
     scheduler: str,
     profiling: str,
     progress: bool,
@@ -73,27 +76,20 @@ def run(
     if profiling and scheduler != "synchronous":
         print("profiling uses synchronous scheduler")
         scheduler = "synchronous"
-    if output:
-        output_name = output
-    elif l1c.endswith(".SAFE"):
-        output_name = f"{l1c[:-5]}-resampled.nc"
-    else:
-        output_name = f"{l1c}-resampled.nc"
     with Scheduler(scheduler):
         with Profiling(profiling):
             code = _run(
                 l1c,
-                output_name,
+                output,
                 resolution,
                 downsampling,
                 flagdownsampling,
                 upsampling,
                 ancillary,
                 withmasterdetfoo,
+                hrocmask,
                 progress,
             )
-    if not output:
-        print(output_name)
     return code
 
 
@@ -106,20 +102,50 @@ def _run(
     upsampling: str,
     ancillary: List[str],
     withmasterdetfoo: bool,
+    hrocmask: str,
     progress: bool,
 
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
         resampler = ResamplingOperator()
-        logger.info("opening inputs")
         input_id = os.path.basename(l1c).replace(".zip", "").replace(".SAFE", "")
-        l1c_ds = xr.open_dataset(l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True)
-        logger.info("starting computation")
+        if not output:
+            output = f"{input_id}-resampled.nc"
+        logger.info("opening inputs")
+        l1c_ds = xr.open_dataset(
+            l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True
+        )
+        # open static mask before resampling to fail early in case it is missing
+        if hrocmask and hrocmask != "ocean":
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                hroc_mask_ds = xr.open_dataset(
+                    hrocmask, chunks={ "y": 610, "x": 610 }, engine="rasterio"
+                )
+        else:
+            hroc_mask_ds = None
+            HROC_MASK_OCEAN = 2
+        # change default of ancillary interpolation in case of hroc, using static mask as marker
+        if hrocmask and not ancillary:
+            ancillary = ['msl', 'tco3', 'tcwv', 'u10', 'v10']
+        logger.info("preparing computation")
         output_ds = resampler.run(
-            l1c_ds, int(resolution), downsampling, flagdownsampling, upsampling, ancillary, withmasterdetfoo,
+            l1c_ds,
+            int(resolution),
+            downsampling,
+            flagdownsampling,
+            upsampling,
+            ancillary,
+            withmasterdetfoo,
             merge_flags=True
         )
+        if hrocmask:
+            if hroc_mask_ds:
+                output_ds = HrocMask().run(output_ds, hroc_mask_ds)
+            else:
+                output_ds = HrocMask().run_with_constant(output_ds, HROC_MASK_OCEAN)
+        logger.info("starting computation")
         with Progress(progress):
             output_ds.to_netcdf(
                 output,
