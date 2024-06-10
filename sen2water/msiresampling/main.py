@@ -53,8 +53,8 @@ from sen2water.msiresampling.resamplingoperator import ResamplingOperator
               multiple=True)
 @click.option("--withdetfoofilter", is_flag=True)
 @click.option("--chunksize",
-              type=click.Choice([1830, 915, 610, 366, 305, 183, 122, 61]),
-              default=610)
+              type=click.Choice(['1830', '915', '610', '366', '305', '183', '122', '61']),
+              default='610')
 @click.option("--hrocmask")
 @click.option("--scheduler",
               type=click.Choice(["synchronous", "threads", "processes"]),
@@ -70,7 +70,7 @@ def run(
     upsampling: str,
     ancillary: List[str],
     withdetfoofilter: bool,
-    chunksize: int,
+    chunksize: str,
     hrocmask: str,
     scheduler: str,
     profiling: str,
@@ -107,20 +107,20 @@ def _run(
     upsampling: str,
     ancillary: List[str],
     withdetfoofilter: bool,
-    chunksize: int,
+    chunksize: str,
     hrocmask: str,
     progress: bool,
 
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
-        resampler = ResamplingOperator()
+        resampler = ResamplingOperator(int(chunksize) * 60)
         input_id = os.path.basename(l1c).replace(".zip", "").replace(".SAFE", "")
         if not output:
             output = f"{input_id}-resampled.nc"
         logger.info("opening inputs")
         l1c_ds = xr.open_dataset(
-            l1c, chunks=resampler.preferred_chunks(chunksize * 60), engine="safe_msi_l1c", merge_flags=True
+            l1c, chunks=resampler.preferred_chunks(), engine="safe_msi_l1c", merge_flags=True
         )
         # open static mask before resampling to fail early in case it is missing
         if hrocmask and hrocmask != "ocean":

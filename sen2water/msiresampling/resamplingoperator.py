@@ -44,15 +44,17 @@ class ResamplingOperator(Operator):
 
     chunksize_in_meters = 36600
 
-    def preferred_chunks(self, chunksize_in_meters: int=None):
-        if not chunksize_in_meters:
-            chunksize_in_meters = self.chunksize_in_meters
-        return { "y10": chunksize_in_meters // 10,
-                 "x10": chunksize_in_meters // 10,
-                 "y20": chunksize_in_meters // 20,
-                 "x20": chunksize_in_meters // 20,
-                 "y60": chunksize_in_meters // 60,
-                 "x60": chunksize_in_meters // 60,
+    def __init__(self, chunksize_in_meters: int=None):
+        if chunksize_in_meters:
+            self.chunksize_in_meters = chunksize_in_meters
+
+    def preferred_chunks(self):
+        return { "y10": self.chunksize_in_meters // 10,
+                 "x10": self.chunksize_in_meters // 10,
+                 "y20": self.chunksize_in_meters // 20,
+                 "x20": self.chunksize_in_meters // 20,
+                 "y60": self.chunksize_in_meters // 60,
+                 "x60": self.chunksize_in_meters // 60,
                  }
 
     def run(
