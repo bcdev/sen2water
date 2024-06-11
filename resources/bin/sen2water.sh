@@ -24,15 +24,15 @@ acoliteanc=
 polymeranc=
 dem=
 withdetfoofilter=
-numchunks=
+chunksize=
 while [ "$1" != "" ]; do
     if [ "$1" = "--c2rccanc" ]; then c2rccanc="$1 $2"; shift 2
     elif [ "$1" = "--acoliteanc" ]; then c2rccanc="$1 $2"; shift 2
     elif [ "$1" = "--polymeranc" ]; then c2rccanc="$1 $2"; shift 2
-    elif [ "$1" = "--dem" ]; then dem="$1 $2"; shift 2
+    elif [ "$1" = "--dem" ]; then dem="$2"; shift 2
     elif [ "$1" = "--withdetfoofilter" ]; then withdetfoofilter="$1"; shift 1
     elif [ "$1" = "--chunksize" ]; then chunksize="$1 $2"; shift 2
-    elfi [ "$1" = "--help" ]; then shift 1
+    elif [ "$1" = "--help" ]; then shift 1
     elif [ "${1:0:1}" = "-" ]; then echo unknown parameter $1; exit 1
     elif [ "$input" = "" ]; then input="$1"; shift 1
     else echo "unknown parameter $1"; exit 1
@@ -94,7 +94,13 @@ echo "Idepix cloud screening ..."
 if [ "$dem" = "" ]; then
     dem="Copernicus 90m Global DEM"
 fi
+if [ "$chunksize" = "" ]; then
+    blocksize=610
+else
+    blocksize=$(echo $chunksize|awk '{print $2}')
+fi
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
+    -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
     $s2wdir/etc/idepix-graph.xml -Pdem="$dem" $resampled -t $idepix -f NetCDF4-BEAM
 
 echo $idepix
@@ -107,6 +113,7 @@ else
     useEcmwfAuxData=true
 fi
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
+    -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
     $s2wdir/etc/c2rcc-graph.xml -Pdem="$dem" -PuseEcmwfAuxData="$useEcmwfAuxData" $resampled -t $c2rcc -f NetCDF4-BEAM
 
 echo $c2rcc
@@ -121,8 +128,8 @@ fi
 s2_auxiliary_default=True
 
 cat $s2wdir/etc/acolite.parameters | sed \
-    -e s/S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc/$resampled/ \
-    -e s.s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
+    -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$resampled, \
+    -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
     > acolite.parameters
 time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
 
@@ -131,6 +138,7 @@ echo
 echo "POLYMER reformatting of cloud mask ..."
 
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
+    -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
     $s2wdir/etc/polymer-mask-graph.xml $idepix -t $cloudmask -f NetCDF4-BEAM
 
 echo $cloudmask
@@ -145,7 +153,8 @@ echo $polymer
 echo
 echo "Sen2Water switching and output formatting ..."
 
-time python -u $s2wdir/lib/s2wswitching/sen2water/s2wswitching/main.py \
+time python -u $s2wdir/lib/msiresampling/sen2water/s2wswitching/main.py \
+     $chunksize \
      $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
 newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
 mv $s2w $newname

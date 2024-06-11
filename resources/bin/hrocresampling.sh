@@ -34,10 +34,16 @@ if [ "$2" != "" ]; then
 elif [ -e ${s2wdir}/auxdata/s2w-mask/${granule:0:2}/s2w-mask-${granule}.tif ]; then
     # European coastal ocean/inlandwater/land mask
     hrocmask=${s2wdir}/auxdata/s2w-mask/${granule:0:2}/s2w-mask-${granule}.tif
-else
-    # Global ocean/inlandwater/land mask
+elif [ -e ${s2wdir}/auxdata/s2w-global-mask/${granule:0:2}/s2w-globalmask-${granule}.tif ]; then
+    echo "missing mask ${s2wdir}/auxdata/s2w-mask/${granule:0:2}/s2w-mask-${granule}.tif"
+    echo "using global mask"
     hrocmask=${s2wdir}/auxdata/s2w-global-mask/${granule:0:2}/s2w-globalmask-${granule}.tif
+else
+    echo "missing mask ${s2wdir}/auxdata/s2w-mask/${granule:0:2}/s2w-mask-${granule}.tif"
+    echo "assuming ocean"
+    hrocmask=ocean
 fi
+
 resampled=${base}-hrocresampled.nc
 
 echo "resampling to 60m ..."
