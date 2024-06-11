@@ -13,19 +13,19 @@ The prototype comprises
 
 sen2water-0.2/
     bin/
-        mys2w         environment source script
-        sen2water.sh  processor control script
+        mys2w          environment source script
+        sen2water.sh   processor control script
     lib/
-        idepix/       Idepix processor
-        c2rcc/        C2RCC processor
-        acolite/      ACOLITE processor
-        polymer/      POLYMER processor
-        switching/    Sen2Water combination of AC results processor
-        snap/         SNAP runtime
-        jre/          JAVA runtime
-        conda/        PYTHON runtime
-    etc/              templates
-    auxdata/          processor auxiliary data, tiles of Copernicus DEM
+        idepix/        Idepix processor
+        c2rcc/         C2RCC processor
+        acolite/       ACOLITE processor
+        polymer/       POLYMER processor
+        msiresampling/ Sen2Water combination of AC results processor
+        snap/          SNAP runtime
+        jre/           JAVA runtime
+        conda/         PYTHON runtime
+    etc/               templates
+    auxdata/           processor auxiliary data, tiles of Copernicus DEM
     licenses/
     README
 
@@ -36,9 +36,22 @@ Install this package and the corresponding auxiliary package on a
 Linux machine in the same folder.
 
 cd /some/software/folder/
-tar xf sen2water-0.2-20240125.tar.gz
-tar xf sen2water-auxdata-0.1-20240108.tar.gz
-mv sen2water-0.1/auxdata sen2water-0.2
+tar xf sen2water-0.2-20240530.tar.gz
+tar xf sen2water-auxdata-0.2.tar.gz
+
+If the Copernicus 90m DEM tile for an input granule is not yet
+installed in the sen2water-0.2/auxdata/dem/ folder it will be
+automatically downloaded. For this purose the auxdata folder must be
+writeable by the user executing the processor.
+
+To avoid automated download of the DEM a directory with the Copernicus
+DEM can be provided. It needs to be linked into sen2water-0.2/auxdata
+with the correct name:
+
+rm -r sen2water-0.2/auxdata/'Copernicus 90m Global DEM'
+ln -s /path/to/Copernicus90mGlobalDEM sen2water-0.2/auxdata/'Copernicus 90m Global DEM'
+#rm -r sen2water-0.2/auxdata/'Copernicus 30m Global DEM'
+#ln -s /path/to/Copernicus30mGlobalDEM sen2water-0.2/auxdata/'Copernicus 30m Global DEM'
 
 Create a working directory on a partition with space for input,
 intermediates, and output. Extract an input into this working
@@ -53,12 +66,7 @@ Set the shell environment and start the processor.
 . ../sen2water-0.2/bin/mys2w
 sen2water.sh S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE
 
-The processor will run for about 25 minutes and generate an output
-NetCDF4 file preliminarily called
-S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149-s2w.nc
+The processor will run for about 10 minutes and generate an output
+NetCDF4 file called
+S2A_MSIL2W_20240104T103431_N0510_R108_T32UME_20240104T123149.nc
 . This file can be inspected with the Sentinel Toolbox.
-
-If the Copernicus 90m DEM tile for an input granule is not yet
-installed in the sen2water-0.1/auxdata/ folder it will be
-automatically downloaded. For this purose the auxdata folder must be
-writeable by the user executing the processor.
