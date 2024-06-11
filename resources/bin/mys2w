@@ -4,7 +4,7 @@ s2wdir=$(dirname $(dirname $(realpath $BASH_SOURCE)))
 export INSTALL4J_JAVA_HOME=${s2wdir}/lib/jre
 export INSTALL4J_JAVA_HOME_OVERRIDE=$s2wdir/lib/jre
 export LD_LIBRARY_PATH="${s2wdir}/lib/snap/snap/modules/lib/amd64:$LD_LIBRARY_PATH"
-export PYTHONPATH=${s2wdir}/lib/polymer:${s2wdir}/lib/msiresampling:${s2wdir}/lib/s2wswitching:$PYTHONPATH
+export PYTHONPATH=${s2wdir}/lib/polymer:${s2wdir}/lib/msiresampling:$PYTHONPATH
 export PATH="${s2wdir}/bin:${s2wdir}/lib/snap/bin:$PATH"
 export GPT_ADD_CLASSPATH=$s2wdir/lib/snap/snap/modules:$s2wdir/lib/snap/snap/modules/s2tbx-gdal-reader-9.0.2.1cv.jar:$s2wdir/lib/snap/snap/modules/lib-gdal-9.0.6.1cv.jar
 
