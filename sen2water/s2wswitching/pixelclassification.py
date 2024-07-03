@@ -11,6 +11,7 @@ __status__ = "Development"
 
 # changes in 1.1:
 # ...
+import warnings
 
 import xarray as xr
 import numpy as np
@@ -193,8 +194,10 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
         vis_a = np.reshape(
             np.dstack((Rrs443_a, Rrs492_a, Rrs560_a, Rrs665_a)), (*Rrs443_a.shape, 4)
         )
-        vis_a_mean = np.nanmean(vis_a, axis=-1)
-        vis_a_max = np.nanmax(vis_a, axis=-1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            vis_a_mean = np.nanmean(vis_a, axis=-1)
+            vis_a_max = np.nanmax(vis_a, axis=-1)
         del vis_a
         # Rrs are in fact rhow here. Thresholds need to be multiplied by PI.
         pixel_class[
@@ -214,17 +217,19 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
         # cloud
         pixel_class[((pixel_classif_flags & 0b11000) != 0)] = 8
         # only apply additional HR-OC cloud test to ocean
-        pixel_class[
-            (
-                (pixel_class == 2)
-                & ((c2rcc_flags & 0b1000) != 0)
-                & (
-                    ((B2 - B4) / (B2 + B4) > 0.2)
-                    | (B11 > 0.04)
-                    | ((pixel_classif_flags & 0b1000000000000) != 0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            pixel_class[
+                (
+                    (pixel_class == 2)
+                    & ((c2rcc_flags & 0b1000) != 0)
+                    & (
+                        ((B2 - B4) / (B2 + B4) > 0.2)
+                        | (B11 > 0.04)
+                        | ((pixel_classif_flags & 0b1000000000000) != 0)
+                    )
                 )
-            )
-        ] = 8
+            ] = 8
         # invalid
         pixel_class[(tecqua != 0)] = 0
         pixel_class[((pixel_classif_flags & 0b1) != 0)] = 0
