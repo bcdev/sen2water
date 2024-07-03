@@ -144,7 +144,7 @@ def _run(
             output_ds["pixel_class"].data, s2wmask_ds["s2wmask"].data
         )
         logger.info("starting computation")
-        statistics = dask.compute([write_to_netcdf, *count_pixels])
+        statistics = dask.compute([*count_pixels, write_to_netcdf])
         logger.info("adding statistics")
         statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics[0][1:]))
         statistics_ds = xr.Dataset(attrs=statistics_attrs)
