@@ -146,7 +146,7 @@ def _run(
         logger.info("starting computation")
         statistics = dask.compute([*count_pixels, write_to_netcdf])
         logger.info("adding statistics")
-        statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics[0][1:]))
+        statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics[0][:-1]))
         statistics_ds = xr.Dataset(attrs=statistics_attrs)
         statistics_ds.to_netcdf(output, mode="a")
         logger.info(f"output {output} written")
