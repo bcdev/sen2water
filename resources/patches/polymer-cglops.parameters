@@ -1,0 +1,15 @@
+{ 
+    "min_abs": 1,
+    "bounds": [[-2, 3], [-3, 3]],
+    "initial_point_1": [0, 0],
+    "initial_point_2": [1, 1],
+    "bands_rw": [443,490,560,665,705,740,783,842,865,945,1375,1610,2190],
+    "external_mask": "S2B_MSIL1C_20230903T074619_N0509_R135_T36MXE_20230903T095937-mask.nc",
+    "thres_Rcloud": -1,
+    "thres_Rcloud_std": -1,
+    "reinit_rw_neg": 1,
+    "water_model": "PR05",
+    "BITMASK_INVALID": 512,
+    "BITMASK_REJECT": 0,
+    "multiprocessing": 4
+}

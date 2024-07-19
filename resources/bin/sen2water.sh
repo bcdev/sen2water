@@ -25,12 +25,14 @@ polymeranc=
 dem=
 withdetfoofilter=
 chunksize=
+withcleanup=false
 while [ "$1" != "" ]; do
-    if [ "$1" = "--c2rccanc" ]; then c2rccanc="$1 $2"; shift 2
-    elif [ "$1" = "--acoliteanc" ]; then c2rccanc="$1 $2"; shift 2
-    elif [ "$1" = "--polymeranc" ]; then c2rccanc="$1 $2"; shift 2
+    if [ "$1" = "--c2rccanc" ]; then c2rccanc="$2"; shift 2
+    elif [ "$1" = "--acoliteanc" ]; then acoliteanc="$2"; shift 2
+    elif [ "$1" = "--polymeranc" ]; then polymeranc="$2"; shift 2
     elif [ "$1" = "--dem" ]; then dem="$2"; shift 2
     elif [ "$1" = "--withdetfoofilter" ]; then withdetfoofilter="$1"; shift 1
+    elif [ "$1" = "--withcleanup" ]; then withcleanup=true; shift 1
     elif [ "$1" = "--chunksize" ]; then chunksize="$1 $2"; shift 2
     elif [ "$1" = "--help" ]; then shift 1
     elif [ "${1:0:1}" = "-" ]; then echo unknown parameter $1; exit 1
@@ -49,6 +51,7 @@ if [ "$input" = "" ]; then
     echo "--polymeranc embedded | nasa | constant"
     echo "--dem 'Copernicus 90m Global DEM' | 'Copernicus 30m Global DEM'"
     echo "--withdetfoofilter"
+    echo "--withcleanup"
     echo "--chunksize 610 | 1830 | 915 | 366 | 305 | 183 | 122 | 61"
     exit 1
 fi
@@ -107,10 +110,10 @@ echo $idepix
 echo
 echo "C2RCC atmospheric correction ..."
 
-if [ "$c2rccanc" == "constant" ]; then
-    useEcmwfAuxData=false
-else
+if [ "$c2rccanc" == "embedded" ]; then
     useEcmwfAuxData=true
+else
+    useEcmwfAuxData=false
 fi
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
     -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
@@ -125,7 +128,6 @@ if [ "$acoliteanc" == "constant" ]; then
 else
     s2auxiliarydefault=True
 fi
-s2_auxiliary_default=True
 
 cat $s2wdir/etc/acolite.parameters | sed \
     -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$resampled, \
@@ -145,9 +147,13 @@ echo $cloudmask
 echo
 echo "POLYMER atmospheric correction ..."
 
+if [ "$polymeranc" == "" ]; then
+    polymeranc=embedded
+fi
+
 cat $s2wdir/etc/polymer.parameters | sed -e s/S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_mask.nc/$cloudmask/ > polymer.parameters
 rm -f $polymer
-time python $s2wdir/lib/polymer/run-polymer.py polymer.parameters $resampled $polymer
+time python $s2wdir/lib/polymer/run-polymer.py polymer.parameters "$polymeranc" "$s2wdir/auxdata/dem/$dem" $resampled $polymer
 
 echo $polymer
 echo
@@ -159,6 +165,11 @@ time python -u $s2wdir/lib/msiresampling/sen2water/s2wswitching/main.py \
 newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
 mv $s2w $newname
 s2w=$newname
+
+if $withcleanup; then
+  rm $resampled $idepix $c2rcc $acolite ${acolite/L2R/L1R} ${polymer/polymer/mask} $polymer
+  rm acolite_run*txt ${resampled/resampled.nc/acolite.log} acolite.parameters polymer.parameters
+fi
 
 echo $s2w
 echo "done"
