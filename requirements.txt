@@ -5,6 +5,7 @@ dask=2024.2.0
 dask-gateway=2024.1.0
 distributed=2024.2.0
 fsspec=2024.2.0
+gdal=3.9.0
 h5py=3.11.0
 lxml=5.1.0
 netcdf4=1.6.5
