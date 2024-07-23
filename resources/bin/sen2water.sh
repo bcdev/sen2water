@@ -84,6 +84,8 @@ if [ ! -e $staticmask ]; then
     fi
 fi
 
+ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .
+
 echo "resampling to 60m ..."
 
 time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py \
@@ -169,6 +171,7 @@ s2w=$newname
 if $withcleanup; then
   rm $resampled $idepix $c2rcc $acolite ${acolite/L2R/L1R} ${polymer/polymer/mask} $polymer
   rm acolite_run*txt ${resampled/resampled.nc/acolite.log} acolite.parameters polymer.parameters
+  rm libenvironment-variables.so
 fi
 
 echo $s2w

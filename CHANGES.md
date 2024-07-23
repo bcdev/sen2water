@@ -1,4 +1,21 @@
-## Version 0.2 (in development)
+## Version 0.4.1 (2024-07-23)
+
+### Fixes
+
+* Copernicus DEM handling for certain latitudes (e.g. MSI granule 32VLM) patched, SNAP issue [SNAP-3752] raised
+* libenvironment linked into working directory for Ubuntu 20
+
+## Version 0.4 (2024-07-19)
+
+### Enhancements
+
+* POLYMER v4.7beta2 with configuration min_abs=-2
+* ACOLITE 20240523 with configuration dsf_interface_reflectance=False
+* msiresampling
+* Global water mask, HR-OC mask for European coasts
+* Switched back to conda because of GDAL dependency of ACOLITE
+
+## Version 0.2 (continuous development)
 
 ### Enhancements
 
@@ -17,7 +34,8 @@
   (see SNAP issue ...) 
 * Coordinates of CAMS and ECMWF data included in L1C added to 
   resampling intermediate to allow correct interpolation
-  (see SNAP issue ...)
+  (see SNAP issue SNAP-3572)
+* Switching step sometimes hangs. sequence in compute call changed.
 
 ## Version 0.1 (2024-01-09)
 
