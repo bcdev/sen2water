@@ -180,3 +180,29 @@ cp sen2water/resources/etc/* sen2water-$version/etc/
 #bin/python3 -m venv s2wvenv
 #. s2wvenv/bin/activate
 #cd ..
+
+bash Miniconda3-latest-Linux-x86_64.sh -b -p conda
+export MAMBA_ROOT_PREFIX=$(pwd)/conda
+#export PATH=$(pwd)/bin:$PATH
+eval "$($(pwd)/bin/micromamba shell hook -s posix)"
+micromamba activate
+#micromamba install -c conda-forge -f requirements.txt
+micromamba install -c conda-forge -y $(cat requirements.txt|tr '\n' ' ')
+# edit setup.cfg, comment away the requirements.txt line, then install reader
+pip install --editable .
+
+git clone https://github.com/bcdev/sen2water.git
+cd sen2water
+micromamba install -c conda-forge -r requirements.txt
+pip install --editable .
+
+cd wd
+sen2water.sh 
+conda pack -f -o conda-s2w.tar.gz
+cd sen2water-0.4/lib
+rm conda
+mkdir conda
+cd conda
+tar xf ../../../conda-s2w.tar.gz
+cd ../../..
+tar czf sen2water-0.4-20240719.tar.gz sen2water-0.4/{bin,lib,etc,licenses,README}
