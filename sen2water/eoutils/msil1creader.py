@@ -25,7 +25,6 @@ import numpy as np
 from xarray.backends import BackendEntrypoint
 
 
-
 class MsiL1cBackendEntrypoint(BackendEntrypoint):
 
     band_name_in_file = {
