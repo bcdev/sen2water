@@ -25,6 +25,7 @@ import numpy as np
 from xarray.backends import BackendEntrypoint
 
 
+
 class MsiL1cBackendEntrypoint(BackendEntrypoint):
 
     band_name_in_file = {
@@ -123,26 +124,21 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
 
         # read metadata from XML metadata
         mtd_path = os.path.join(filename_or_obj, "MTD_MSIL1C.xml")
+        self.name_spaces = self.extractNameSpaces(mtd_path)
         l1c_dom = etree.parse(mtd_path)
         scale_factor = 1.0 / int(
             l1c_dom.xpath(
                 "n1:General_Info/Product_Image_Characteristics/QUANTIFICATION_VALUE",
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
-                },
+                namespaces=self.name_spaces
             )[0].text
         )
         add_offsets = [int(offset.text) * scale_factor for offset in l1c_dom.xpath(
             "n1:General_Info/Product_Image_Characteristics/Radiometric_Offset_List/RADIO_ADD_OFFSET",
-            namespaces={
-                "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
-            }
+            namespaces=self.name_spaces
         )]
         fill_value = int(l1c_dom.xpath(
             "n1:General_Info/Product_Image_Characteristics/Special_Values[SPECIAL_VALUE_TEXT='NODATA']/SPECIAL_VALUE_INDEX",
-            namespaces={
-                "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
-            }
+            namespaces=self.name_spaces
         )[0].text)
         #wavelengths = [np.round(float(w.text)) for w in l1c_dom.xpath(
         #    "n1:General_Info/Product_Image_Characteristics/Spectral_Information_List/Spectral_Information/Wavelength/CENTRAL",
@@ -200,21 +196,15 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             attrs = reduce(operator.ior, [d.attrs for d in datasets], {})
             start_time = datetime.strptime(l1c_dom.xpath(
                 "n1:General_Info/Product_Info/PRODUCT_START_TIME",
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
-                },
+                namespaces=self.name_spaces,
             )[0].text[:-1]+"000", "%Y-%m-%dT%H:%M:%S.%f")
             stop_time = datetime.strptime(l1c_dom.xpath(
                 "n1:General_Info/Product_Info/PRODUCT_STOP_TIME",
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
-                },
+                namespaces=self.name_spaces,
             )[0].text[:-1]+"000", "%Y-%m-%dT%H:%M:%S.%f")
             spacecraft = l1c_dom.xpath(
                 "n1:General_Info/Product_Info/Datatake/SPACECRAFT_NAME",
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
-                },
+                namespaces=self.name_spaces,
             )[0].text
             attrs["start_date"] = start_time.strftime("%d-%b-%Y %H:%M:%S.%f").upper()
             attrs["stop_date"] = stop_time.strftime("%d-%b-%Y %H:%M:%S.%f").upper()
@@ -223,7 +213,39 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
             ds = xr.Dataset(data_vars=vars, attrs=attrs)
             return ds
 
+    def extractNameSpaces(self, mtd_path):
+        with open(mtd_path, 'r') as file:
+            data = file.read()
+
+        if "psd-14.sentinel2.eo.esa.int" in data:
+            return {
+                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
+                }
+        elif "psd-15.sentinel2.eo.esa.int" in data:
+            return {
+                    "n1": "https://psd-15.sentinel2.eo.esa.int/PSD/User_Product_Level-1C.xsd"
+                }
+        else:
+            raise ValueError("unsupported processing version")
+
+    def extractNameSpacesForTile(self, tile_path):
+        with open(tile_path, 'r') as file:
+            data = file.read()
+
+        if "psd-14.sentinel2.eo.esa.int" in data:
+            return {
+                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
+                }
+        elif "psd-15.sentinel2.eo.esa.int" in data:
+            return {
+                    "n1": "https://psd-15.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
+                }
+        else:
+            raise ValueError("unsupported processing version")
+
+
     def open_angles(self, mtd_path, datasets):
+        self.name_spaces_tile = self.extractNameSpacesForTile(mtd_path)
         dom = etree.parse(mtd_path)
         sza = self.get_values(
             dom,
@@ -277,33 +299,25 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
         ymax = float(
             dom.xpath(
                 'n1:Geometric_Info/Tile_Geocoding/Geoposition[@resolution="10"]/ULY',
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
-                },
+                namespaces=self.name_spaces_tile,
             )[0].text
         )
         xmin = float(
             dom.xpath(
                 'n1:Geometric_Info/Tile_Geocoding/Geoposition[@resolution="10"]/ULX',
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
-                },
+                namespaces=self.name_spaces_tile,
             )[0].text
         )
         ystep = float(
             dom.xpath(
                 "n1:Geometric_Info/Tile_Angles/Sun_Angles_Grid/Zenith/ROW_STEP",
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
-                },
+                namespaces=self.name_spaces_tile,
             )[0].text
         )
         xstep = float(
             dom.xpath(
                 "n1:Geometric_Info/Tile_Angles/Sun_Angles_Grid/Zenith/COL_STEP",
-                namespaces={
-                    "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
-                },
+                namespaces=self.name_spaces_tile,
             )[0].text
         )
         # y = [ymax - i * ystep - ystep / 2 for i in range(shape_y_x[0])]
@@ -493,25 +507,19 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
 
     url = "https://link_to/your_backend/documentation"
 
-    @staticmethod
-    def get_values(dom, xpath):
+    def get_values(self, dom, xpath):
         list = dom.xpath(
             xpath,
-            namespaces={
-                "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
-            },
+            namespaces=self.name_spaces_tile,
         )
         if len(list) > 0:
             return np.array([[np.float32(i) for i in x.text.split()] for x in list], dtype=np.float32)
         else:
             return None
 
-    @staticmethod
-    def get_shape(dom, xpath):
+    def get_shape(self, dom, xpath):
         list = dom.xpath(
             xpath,
-            namespaces={
-                "n1": "https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-1C_Tile_Metadata.xsd"
-            },
+            namespaces=self.name_spaces_tile,
         )
         return [len(list), len(list[0].text.split())]
