@@ -11,7 +11,7 @@
 # install auxdata
 # package delivery
 
-version=0.2
+version=0.4
 tmpdir=$(pwd)
 installdir=$tmpdir/sen2water-$version
 
@@ -114,7 +114,6 @@ mkdir -p sen2water-$version/lib/polymer
 mkdir -p sen2water-$version/lib/idepix
 mkdir -p sen2water-$version/lib/c2rcc
 mkdir -p sen2water-$version/lib/snap
-mkdir -p sen2water-$version/lib/s2wswitching
 mkdir -p sen2water-$version/lib/msiresampling
 mkdir -p sen2water-$version/licenses
 
@@ -163,8 +162,7 @@ cp calvalus2/calvalus-snap/target/snap-bundle/libopenjp2.so sen2water-$version/l
 mkdir -p sen2water-$version/lib/snap/snap/modules/ext/org.esa.snap.snap-core/org-esa-snap
 ln -s ../../../snap-all.jar sen2water-$version/lib/snap/snap/modules/ext/org.esa.snap.snap-core/org-esa-snap/snap-runtime.jar
 
-tar cCf sen2water - sen2water/__init__.py sen2water/eoutils sen2water/s2wswitching | tar xCf sen2water-0.2/lib/s2wswitching -
-tar cCf sen2water - sen2water/__init__.py sen2water/eoutils sen2water/msiresampling | tar xCf sen2water-0.2/lib/msiresampling -
+tar cCf sen2water - sen2water/__init__.py sen2water/eoutils sen2water/msiresampling sen2water/s2wswitching | tar xCf sen2water-0.2/lib/msiresampling -
 
 cp sen2water/resources/README sen2water-$version/
 cp sen2water/resources/bin/* sen2water-$version/bin/

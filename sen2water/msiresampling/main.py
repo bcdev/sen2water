@@ -114,6 +114,7 @@ def _run(
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
+        logger.info("starting computation")
         resampler = ResamplingOperator(int(chunksize) * 60)
         input_id = os.path.basename(l1c).replace(".zip", "").replace(".SAFE", "")
         if not output:

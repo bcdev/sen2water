@@ -4,6 +4,7 @@ Sen2Water README
 2024-01-25 0.2   continuous development version
 2024-07-19 0.4   version with coordinated AC configurations, for validation
 2024-07-23 0.4.1 patch for tiles at DEM resolution steps, e.g. 32VLM
+2024-09-24 0.4.2 fixes after validation report (ante-meridian, C2RCC cloud risk thresholds)
 
 This is the prototype of the Sen2Water processor distributed to partners
 of the OPT-MPC Sen2Water project for validation. This version and its
