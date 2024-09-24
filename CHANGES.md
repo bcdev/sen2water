@@ -1,3 +1,16 @@
+## Version 0.4.2 (2024-09-24)
+
+### Fixes
+
+* Copernicus DEM handling for ante-meridian fixed in POLYMER (01KAB 20240103)
+* Work-around for cfgrip reader of embedded ECMWF data with rotated longitude (01KAB), integrated into msiresampling and POLYMER, ticket https://github.com/ecmwf/cfgrib/issues/402
+* Criterion for clouds flagged by C2RCC fixed, scale factor and offset applied (32MRU 20230808)
+* s2wswitching main modified to avoid delayed NetCDF writing, attempt to fix sporadic infinite run.
+
+### Enhancements
+
+* MSI L1C reader updated to recognise the new namespace of N0511 in metadata XML files.
+
 ## Version 0.4.1 (2024-07-23)
 
 ### Fixes

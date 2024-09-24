@@ -5,12 +5,12 @@
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
 __license__ = "TBD"
-__version__ = "0.5"
+__version__ = "0.51"
 __email__ = "info@brockmann-consult.de"
 __status__ = "Development"
 
-# changes in 1.1:
-# ...
+# changes in 0.51:
+# separate to_netcdf from computation of statistics, attempt to avoid infinite run of compute
 
 import sys
 import click
@@ -125,7 +125,8 @@ def _run(
             input_id=input_id,
             with_copyinputs=with_copyinputs,
         )
-        write_to_netcdf = output_ds.to_netcdf(
+#        write_to_netcdf = output_ds.to_netcdf(
+        output_ds.to_netcdf(
             output,
             encoding={
                 **{
@@ -137,16 +138,19 @@ def _run(
                     for var in output_ds.data_vars
                 }
             },
-            compute=False,
+#            compute=False,
         )
-        logger.info("writing prepared")
+        logger.info("data written")
+        logger.info("computing statistics")
         count_pixels = S2wStatistics.count_pixels(
             output_ds["pixel_class"].data, s2wmask_ds["s2wmask"].data
         )
-        logger.info("starting computation")
-        statistics = dask.compute([*count_pixels, write_to_netcdf])
+#        logger.info("starting computation")
+#        statistics = dask.compute([*count_pixels, write_to_netcdf])
+        statistics = dask.compute(*count_pixels)
         logger.info("adding statistics")
-        statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics[0][:-1]))
+#        statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics[0][:-1]))
+        statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics))
         statistics_ds = xr.Dataset(attrs=statistics_attrs)
         statistics_ds.to_netcdf(output, mode="a")
         logger.info(f"output {output} written")

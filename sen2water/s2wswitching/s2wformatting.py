@@ -5,12 +5,12 @@
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
 __license__ = "TBD"
-__version__ = "0.5"
+__version__ = "0.51"
 __email__ = "info@brockmann-consult.de"
 __status__ = "Development"
 
-# changes in 1.1:
-# ...
+# changes in 0.51:
+# remove statistics attribute, there are individual ones
 
 import uuid
 import re
@@ -203,7 +203,7 @@ class S2wFormatting(Operator):
             "Sen2Water switching v{processor_version}; Polymer 4.17beta; Acolite "
             + "20210203; C2RCC 9.0cv; Idepix 9.0cv; SNAP-9.0cv S2Resampling"
         )
-        target_attrs["statistics"] = "TBD"
+        #target_attrs["statistics"] = "TBD"
         target_attrs["references"] = (
             "https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2/"
         )
@@ -227,7 +227,7 @@ class S2wFormatting(Operator):
         target_attrs["standard_name_vocabulary"] = (
             "NetCDF Climate and Forecast (CF) Metadata Convention"
         )
-        target_attrs["creator_name"] = "BC as part of OPT-MPC for ESA"
+        target_attrs["creator_name"] = "Brockmann Consult GmbH as part of OPT-MPC for ESA"
         target_attrs["creator_url"] = "https://www.brockmann-consult.de/"
         target_attrs["creator_email"] = "info@brockmann-consult.de"
         target_attrs["contact"] = "TBD"

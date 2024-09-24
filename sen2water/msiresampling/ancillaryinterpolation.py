@@ -5,12 +5,12 @@
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
 __license__ = "TBD"
-__version__ = "0.5"
+__version__ = "0.51"
 __email__ = "info@brockmann-consult.de"
 __status__ = "Development"
 
-# changes in 1.1:
-# ...
+# changes in 0.51:
+# change criterion when to rotate angles to avoid discontinuity at ante-meridian
 
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
@@ -51,8 +51,8 @@ class AncillaryInterpolation(BlockAlgorithm):
         """
 
         # shift by 180 degrees if anc may cross antimeridian
-        # assumption: anc_lon spans less than 180 degrees
-        if anc_lon[-1] > 90.0:
+        # assumption: anc_lon spans less than 90 degrees
+        if anc_lon[0] > 90.0:
             anc_lon = (anc_lon + 360.0) % 360.0 - 180.0
             lon = (lon + 360.0) % 360.0 - 180.0
 

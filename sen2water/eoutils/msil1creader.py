@@ -5,12 +5,12 @@
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
 __license__ = "TBD"
-__version__ = "0.5"
+__version__ = "0.51"
 __email__ = "info@brockmann-consult.de"
 __status__ = "Development"
 
-# changes in 1.1:
-# ...
+# changes in 0.51:
+# sort aux_longitude, see https://github.com/ecmwf/cfgrib/issues/402
 
 import re
 import glob
@@ -328,6 +328,18 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
     def open_ancillary_files(self, auxpath, datasets):
         prefix = auxpath[auxpath.rfind('_')+1:].lower()
         ds = xr.open_dataset(auxpath, engine="cfgrib", mask_and_scale=False)
+        # work around for https://github.com/ecmwf/cfgrib/issues/402
+        if -90.0 <= ds.longitude[0] < 90.0:
+            pass
+        else:
+            # sort coordinates after shifting them from -180..180 to 0..360, then shift back
+            coord_lon = xr.DataArray((np.sort(ds.longitude.data % 360.0) + 180.0) % 360.0 - 180.0, dims=['longitude'])
+            ds = xr.Dataset({name: xr.DataArray(ds[name],
+                                                coords={"latitude": ds.latitude, "longitude": coord_lon},
+                                                dims=["latitude", "longitude"])
+                             for name in ds.variables if len(ds[name].dims) == 2},
+                            coords={"latitude": ds.latitude, "longitude": coord_lon},
+                            attrs=ds.attrs)
         ds = ds.rename_dims(
             {"latitude": "aux_latitude", "longitude": "aux_longitude"}
         ).rename_vars({

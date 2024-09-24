@@ -5,12 +5,12 @@
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
 __license__ = "TBD"
-__version__ = "0.5"
+__version__ = "0.51"
 __email__ = "info@brockmann-consult.de"
 __status__ = "Development"
 
-# changes in 1.1:
-# ...
+# changes in 0.51:
+# add parameters scale_factor and add_offset and apply before comparing against thresholds, fixes misclassification of
 import warnings
 
 import xarray as xr
@@ -143,6 +143,8 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
         B4: np.ndarray,
         B11: np.ndarray,
         *quality_masks: np.ndarray,
+        scale_factor: np.float32 = None,
+        add_offset: np.float32 = None,
     ) -> np.ndarray:
         tecqua = np.any((np.stack(quality_masks) & 15) != 0, axis=0)
         block_shape = pixel_classif_flags.shape
@@ -200,15 +202,21 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
             vis_a_max = np.nanmax(vis_a, axis=-1)
         del vis_a
         # Rrs are in fact rhow here. Thresholds need to be multiplied by PI.
-        pixel_class[
-            ((vis_a_mean > 0.04 * np.pi) & (vis_a_max > 0.05 * np.pi) & (B11 < 0.12))
-        ] = 4
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            pixel_class[
+                (
+                    (vis_a_mean > 0.04 * np.pi)
+                    & (vis_a_max > 0.05 * np.pi)
+                    & (B11 * scale_factor + add_offset < 0.12)
+                )
+            ] = 4
         pixel_class[
             (
                 (Rrs443_a > 0.025 * np.pi)
                 & (Rrs865_a > 0.015 * np.pi)
                 & (Rrs443_a > Rrs865_a)
-                & (B11 < 0.12)
+                & (B11 * scale_factor + add_offset < 0.12)
             )
         ] = 4
         del vis_a_mean, vis_a_max
@@ -225,7 +233,7 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
                     & ((c2rcc_flags & 0b1000) != 0)
                     & (
                         ((B2 - B4) / (B2 + B4) > 0.2)
-                        | (B11 > 0.04)
+                        | (B11 * scale_factor + add_offset > 0.04)
                         | ((pixel_classif_flags & 0b1000000000000) != 0)
                     )
                 )
@@ -291,6 +299,8 @@ class PixelClassification(Operator):
                 resampled["B4"].data,
                 resampled["B11"].data,
                 resampled["tecqua_mask"].data,
+                scale_factor=resampled["B2"].attrs["scale_factor"],
+                add_offset=resampled["B2"].attrs["add_offset"],
                 dtype=np.int8
             )
         else:
@@ -307,6 +317,8 @@ class PixelClassification(Operator):
                 resampled["B4"].data,
                 resampled["B11"].data,
                 *[resampled[f"quality_flags_{band}"].data for band in BANDS],
+                scale_factor=resampled["B2"].attrs["scale_factor"],
+                add_offset=resampled["B2"].attrs["add_offset"],
                 dtype=np.int8
             )
         coordinate_bands = {}
