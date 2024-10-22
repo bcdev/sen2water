@@ -74,7 +74,7 @@ def run(
                 chunksize,
                 with_copyinputs,
             )
-    return code
+    sys.exit(code)
 
 
 def _run(
@@ -125,7 +125,7 @@ def _run(
             input_id=input_id,
             with_copyinputs=with_copyinputs,
         )
-#        write_to_netcdf = output_ds.to_netcdf(
+        logger.info("starting computation")
         output_ds.to_netcdf(
             output,
             encoding={
@@ -137,19 +137,14 @@ def _run(
                     }
                     for var in output_ds.data_vars
                 }
-            },
-#            compute=False,
+            }
         )
-        logger.info("data written")
         logger.info("computing statistics")
         count_pixels = S2wStatistics.count_pixels(
             output_ds["pixel_class"].data, s2wmask_ds["s2wmask"].data
         )
-#        logger.info("starting computation")
-#        statistics = dask.compute([*count_pixels, write_to_netcdf])
         statistics = dask.compute(*count_pixels)
         logger.info("adding statistics")
-#        statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics[0][:-1]))
         statistics_attrs = dict(zip(S2wStatistics.attributes(), statistics))
         statistics_ds = xr.Dataset(attrs=statistics_attrs)
         statistics_ds.to_netcdf(output, mode="a")
@@ -162,19 +157,19 @@ def _run(
 
 if __name__ == "__main__":
 
-    import code, traceback, signal
-    def debug(sig, frame):
-        """Interrupt running process, and provide a python prompt for
-        interactive debugging."""
-        d={'_frame':frame}         # Allow access to frame object.
-        d.update(frame.f_globals)  # Unless shadowed by global
-        d.update(frame.f_locals)
-        i = code.InteractiveConsole(d)
-        message  = "Signal received : entering python shell.\nTraceback:\n"
-        message += ''.join(traceback.format_stack(frame))
-        i.interact(message)
-    def listen():
-        signal.signal(signal.SIGQUIT, debug)  # Register handler
-    listen()
+    # import code, traceback, signal
+    # def debug(sig, frame):
+    #     """Interrupt running process, and provide a python prompt for
+    #     interactive debugging."""
+    #     d={'_frame':frame}         # Allow access to frame object.
+    #     d.update(frame.f_globals)  # Unless shadowed by global
+    #     d.update(frame.f_locals)
+    #     i = code.InteractiveConsole(d)
+    #     message  = "Signal received : entering python shell.\nTraceback:\n"
+    #     message += ''.join(traceback.format_stack(frame))
+    #     i.interact(message)
+    # def listen():
+    #     signal.signal(signal.SIGQUIT, debug)  # Register handler
+    # listen()
 
-    sys.exit(run())
+    run()

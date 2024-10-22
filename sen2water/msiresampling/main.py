@@ -95,7 +95,7 @@ def run(
                 hrocmask,
                 progress,
             )
-    return code
+    sys.exit(code)
 
 
 def _run(
@@ -114,7 +114,7 @@ def _run(
 ) -> int:
     """Converts paths to xarray Datasets, writes output Dataset to file"""
     try:
-        logger.info("starting computation")
+        logger.info("starting resampling")
         resampler = ResamplingOperator(int(chunksize) * 60)
         input_id = os.path.basename(l1c).replace(".zip", "").replace(".SAFE", "")
         if not output:
@@ -175,4 +175,4 @@ def _run(
 
 
 if __name__ == "__main__":
-    sys.exit(run())
+    run()

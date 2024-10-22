@@ -3,6 +3,7 @@
 set -e
 
 s2wdir=$(dirname $(dirname $(realpath $0)))
+echo "Sen2Water 0.4.2 ($s2wdir)"
 
 # check whether we modify the software directory
 wd=$(realpath .)
