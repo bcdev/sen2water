@@ -1,3 +1,11 @@
+## Version 0.5.0 (TBD)
+
+### Fixes
+
+### Enhancements
+
+* Flag value OUT_OF_BOUNDS_SATURATED renamed to AC_OUT_OF_BOUNDS
+
 ## Version 0.4.2 (2024-09-24)
 
 ### Fixes

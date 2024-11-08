@@ -123,7 +123,7 @@ valids for pixel_class:
 6=CLOUD_OR_MOUNTAIN_SHADOW
 7=AMBIGUOUS_CLOUD
 8=CLOUD
-9=OUT_OF_BOUNDS_SATURATED
+9=AC_OUT_OF_BOUNDS
 """
 
 
@@ -333,7 +333,7 @@ class PixelClassification(Operator):
                 "long_name": "Pixel classification flags",
                 "flag_meanings": "NO_DATA CLEAR_LAND CLEAR_OCEAN_WATER "
                 + "CLEAR_INLAND_WATER SNOW_ICE CIRRUS CLOUD_OR_MOUNTAIN_SHADOW "
-                + "AMBIGUOUS_CLOUD CLOUD OUT_OF_BOUNDS_SATURATED",
+                + "AMBIGUOUS_CLOUD CLOUD AC_OUT_OF_BOUNDS",
                 "flag_values": [
                     np.uint8(0),
                     np.uint8(1),

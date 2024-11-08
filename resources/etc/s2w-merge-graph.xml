@@ -45,7 +45,7 @@
                 pixel_classif_flags &amp; 16384 != 0 ? 3 :
                 99
             </expression>
-            <description>Value-coded alternative flags for NO_DATA (0), CLEAR_LAND (1), CLEAR_OCEAN_WATER (2), CLEAR_INLAND_WATER (3), SNOW_ICE (4), CIRRUS (5), CLOUD_OR_MONTAIN_SHADOW (6), AMBIGUOUS_CLOUD (7), CLOUD (8), OUT_OF_BOUNDS_SATURATED (9)</description>
+            <description>Value-coded alternative flags for NO_DATA (0), CLEAR_LAND (1), CLEAR_OCEAN_WATER (2), CLEAR_INLAND_WATER (3), SNOW_ICE (4), CIRRUS (5), CLOUD_OR_MONTAIN_SHADOW (6), AMBIGUOUS_CLOUD (7), CLOUD (8), AC_OUT_OF_BOUNDS (9)</description>
             <noDataValue>0</noDataValue>
           </targetBand>
           <targetBand>
