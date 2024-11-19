@@ -3,7 +3,7 @@
 set -e
 
 s2wdir=$(dirname $(dirname $(realpath $0)))
-echo "Sen2Water 0.4.2 ($s2wdir)"
+echo "Sen2Water 0.5.0 ($s2wdir)"
 
 # check whether we modify the software directory
 wd=$(realpath .)
@@ -24,6 +24,7 @@ c2rccanc=
 acoliteanc=
 polymeranc=
 dem=
+withouttgc=false
 withdetfoofilter=
 chunksize=
 withcleanup=false
@@ -32,6 +33,7 @@ while [ "$1" != "" ]; do
     elif [ "$1" = "--acoliteanc" ]; then acoliteanc="$2"; shift 2
     elif [ "$1" = "--polymeranc" ]; then polymeranc="$2"; shift 2
     elif [ "$1" = "--dem" ]; then dem="$2"; shift 2
+    elif [ "$1" = "--withouttgc" ]; then withouttgc=true; shift 1
     elif [ "$1" = "--withdetfoofilter" ]; then withdetfoofilter="$1"; shift 1
     elif [ "$1" = "--withcleanup" ]; then withcleanup=true; shift 1
     elif [ "$1" = "--chunksize" ]; then chunksize="$1 $2"; shift 2
@@ -51,6 +53,7 @@ if [ "$input" = "" ]; then
     echo "--acoliteanc embedded | constant"
     echo "--polymeranc embedded | nasa | constant"
     echo "--dem 'Copernicus 90m Global DEM' | 'Copernicus 30m Global DEM'"
+    echo "--withouttgc"
     echo "--withdetfoofilter"
     echo "--withcleanup"
     echo "--chunksize 610 | 1830 | 915 | 366 | 305 | 183 | 122 | 61"
@@ -68,6 +71,7 @@ H=${base:20:2}
 M=${base:22:2}
 S=${base:24:2}
 resampled=${base}-resampled.nc
+destriped=${base}-resampled_TGC.nc
 idepix=${base}-idepix.nc
 c2rcc=${base}-c2rcc.nc
 acolite=${p}_MSI_${y}_${m}_${d}_${H}_${M}_${S}_S2R_L2R.nc
@@ -95,6 +99,24 @@ time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py \
 
 echo $resampled
 echo
+
+if $withouttgc; then
+    destriped=${resampled}
+else
+    echo "TOA glint correction"
+    time python $s2wdir/lib/acolite/tgcparameters.py ${base}
+    time python -u $s2wdir/lib/acolite/tgc2.py --acolite_path $s2wdir/lib/acolite --input ${resampled} --output . \
+           --glint_threshold 0.0 --scaling True --aot_min 0.1 --estimate False --grid_write True \
+           --grid_files ${base}-TGC-parameters.json --verbosity 2
+    if [ -e ${destriped} ]; then
+        echo $destriped
+    else
+        echo "*** no ${destriped} found, using resampled instead"
+        destriped=${resampled}
+    fi
+fi
+
+echo
 echo "Idepix cloud screening ..."
 
 if [ "$dem" = "" ]; then
@@ -107,7 +129,7 @@ else
 fi
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
     -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
-    $s2wdir/etc/idepix-graph.xml -Pdem="$dem" $resampled -t $idepix -f NetCDF4-BEAM
+    $s2wdir/etc/idepix-graph.xml -Pdem="$dem" $destriped -t $idepix -f NetCDF4-BEAM
 
 echo $idepix
 echo
@@ -120,7 +142,7 @@ else
 fi
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
     -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
-    $s2wdir/etc/c2rcc-graph.xml -Pdem="$dem" -PuseEcmwfAuxData="$useEcmwfAuxData" $resampled -t $c2rcc -f NetCDF4-BEAM
+    $s2wdir/etc/c2rcc-graph.xml -Pdem="$dem" -PuseEcmwfAuxData="$useEcmwfAuxData" $destriped -t $c2rcc -f NetCDF4-BEAM
 
 echo $c2rcc
 echo
@@ -133,7 +155,7 @@ else
 fi
 
 cat $s2wdir/etc/acolite.parameters | sed \
-    -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$resampled, \
+    -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$destriped, \
     -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
     > acolite.parameters
 time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
@@ -156,7 +178,7 @@ fi
 
 cat $s2wdir/etc/polymer.parameters | sed -e s/S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_mask.nc/$cloudmask/ > polymer.parameters
 rm -f $polymer
-time python $s2wdir/lib/polymer/run-polymer.py polymer.parameters "$polymeranc" "$s2wdir/auxdata/dem/$dem" $resampled $polymer
+time python -u $s2wdir/lib/polymer/run-polymer.py polymer.parameters "$polymeranc" "$s2wdir/auxdata/dem/$dem" $resampled $polymer
 
 echo $polymer
 echo
@@ -164,15 +186,16 @@ echo "Sen2Water switching and output formatting ..."
 
 time python -u $s2wdir/lib/msiresampling/sen2water/s2wswitching/main.py \
      $chunksize \
-     $resampled $idepix $c2rcc $acolite $polymer $staticmask $s2w
+     $destriped $idepix $c2rcc $acolite $polymer $staticmask $s2w
 newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
 mv $s2w $newname
 s2w=$newname
 
 if $withcleanup; then
-  rm $resampled $idepix $c2rcc $acolite ${acolite/L2R/L1R} ${polymer/polymer/mask} $polymer
-  rm acolite_run*txt ${resampled/resampled.nc/acolite.log} acolite.parameters polymer.parameters
-  rm libenvironment-variables.so
+    rm $resampled $idepix $c2rcc $acolite ${acolite/L2R/L1R} ${polymer/polymer/mask} $polymer
+    rm -f ${base}-TGC-parameters.json $destriped 
+    rm acolite_run*txt ${base}-acolite.log acolite.parameters polymer.parameters
+    rm libenvironment-variables.so
 fi
 
 echo $s2w

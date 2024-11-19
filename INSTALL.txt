@@ -34,10 +34,11 @@ git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/s3tbx.gi
 git clone --branch 9.x.calvalus --depth 1 https://github.com/senbox-org/probavbox.git
 git clone https://github.com/bcdev/calvalus2.git
 git clone --depth 1 https://github.com/bcdev/snap-idepix.git
-#git clone https://github.com/acolite/acolite.git
-#git clone https://github.com/hygeos/polymer.git
-git clone https://github.com/bcdev/acolite.git
-git clone -b mb-sen2water https://github.com/bcdev/polymer.git
+#git clone https://github.com/bcdev/acolite.git
+git clone https://github.com/acolite/acolite.git
+git clone https://github.com/acolite/acolite_tools.git
+#git clone -b mb-sen2water https://github.com/bcdev/polymer.git
+git clone https://github.com/hygeos/polymer.git
 # TODO determine versions/tags for all repos
 
 unzip zulu8.76.0.17-ca-jdk8.0.402-linux_x64.zip
@@ -144,6 +145,7 @@ make
 cd ..
 
 mv acolite/* sen2water-$version/lib/acolite
+cp acolite_tools/acolite/TGC/tgc2.py sen2water-$version/lib/acolite
 mv polymer/* sen2water-$version/lib/polymer
 
 cp snap-idepix/idepix-core/target/idepix-core-9.0.7-SNAPSHOT.jar sen2water-$version/lib/idepix/
