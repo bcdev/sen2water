@@ -208,3 +208,8 @@ cd conda
 tar xf ../../../conda-s2w.tar.gz
 cd ../../..
 tar czf sen2water-0.4-20240719.tar.gz sen2water-0.4/{bin,lib,etc,licenses,README}
+
+Windows installation
+====================
+
+conda install -c conda-forge libgdal-jp2openjpeg
