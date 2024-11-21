@@ -54,7 +54,20 @@ ACOLITE_BANDS_S2B = [
     "rhos_1610",
     "rhos_2186",
 ]
-CEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
+ACOLITE_BANDS_S2C = [
+    "rhos_444",
+    "rhos_489",
+    "rhos_561",
+    "rhos_667",
+    "rhos_707",
+    "rhos_741",
+    "rhos_785",
+    "rhos_835",
+    "rhos_866",
+    "rhos_1612",
+    "rhos_2191",
+]
+OCEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
 
 BANDS = [
     "B1",
@@ -233,7 +246,7 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
                     & ((c2rcc_flags & 0b1000) != 0)
                     & (
                         ((B2 - B4) / (B2 + B4) > 0.2)
-                        | (B11 * scale_factor + add_offset > 0.04)
+                        | (B11 * scale_factor + add_offset > 0.04)  # TODO times PI?
                         | ((pixel_classif_flags & 0b1000000000000) != 0)
                     )
                 )
@@ -284,7 +297,9 @@ class PixelClassification(Operator):
 
         dims = {"y": idepix.sizes["y"], "x": idepix.sizes["x"]}
 
-        acolite_bands = ACOLITE_BANDS_S2A if ACOLITE_BANDS_S2A[0] in acolite.variables else ACOLITE_BANDS_S2B
+        acolite_bands = ACOLITE_BANDS_S2A if ACOLITE_BANDS_S2A[0] in acolite.variables \
+            else ACOLITE_BANDS_S2B if ACOLITE_BANDS_S2B[0] in acolite.variables \
+            else ACOLITE_BANDS_S2C
         if "tecqua_mask" in resampled:
             pixel_class_data = PixelClassificationAlgorithm().apply(
                 idepix["pixel_classif_flags"].data,
