@@ -21,3 +21,4 @@ rasterio
 rioxarray
 scikit-image
 xarray=2024.1.1
+libgdal-jp2openjpeg
