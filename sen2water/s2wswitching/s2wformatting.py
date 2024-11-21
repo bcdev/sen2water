@@ -200,8 +200,8 @@ class S2wFormatting(Operator):
         target_attrs["parameters"] = f"{parameters}"
         target_attrs["product_version"] = f"{product_version[:2]}.{product_version[2:]}"
         target_attrs["history"] = (
-            "Sen2Water switching v{processor_version}; Polymer 4.17beta; Acolite "
-            + "20210203; C2RCC 9.0cv; Idepix 9.0cv; SNAP-9.0cv S2Resampling"
+            f"Sen2Water switching v{processor_version}; Polymer 4.17beta2; Acolite "
+            + f"20241112; C2RCC 9.0cv; Idepix 9.0cv; SNAP-9.0cv; msiresampling v{processor_version}"
         )
         #target_attrs["statistics"] = "TBD"
         target_attrs["references"] = (
