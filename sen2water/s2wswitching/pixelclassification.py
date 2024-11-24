@@ -246,7 +246,7 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
                     & ((c2rcc_flags & 0b1000) != 0)
                     & (
                         ((B2 - B4) / (B2 + B4) > 0.2)
-                        | (B11 * scale_factor + add_offset > 0.04)  # TODO times PI?
+                        | (B11 * scale_factor + add_offset > 0.04)
                         | ((pixel_classif_flags & 0b1000000000000) != 0)
                     )
                 )
