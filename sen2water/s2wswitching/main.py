@@ -125,6 +125,10 @@ def _run(
             input_id=input_id,
             with_copyinputs=with_copyinputs,
         )
+        try:
+            os.unlink(output)  # avoids deadlock in netcdf4 lib
+        except:
+            pass
         logger.info("starting computation")
         output_ds.to_netcdf(
             output,
