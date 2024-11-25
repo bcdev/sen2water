@@ -14,6 +14,7 @@ __status__ = "Development"
 
 import sys
 import click
+import warnings
 import traceback
 import os.path
 import dask
@@ -96,21 +97,23 @@ def _run(
     try:
         logger.info("opening inputs")
         input_id = os.path.basename(resampled).replace(".zip", "").replace(".SAFE", "")
-        resampled_ds = xr.open_dataset(
-            resampled, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
-        )
-        idepix_ds = xr.open_dataset(
-            idepix, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
-        )
-        c2rcc_ds = xr.open_dataset(
-            c2rcc, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
-        )
-        acolite_ds = xr.open_dataset(
-            acolite, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
-        )
-        polymer_ds = xr.open_dataset(
-            polymer, chunks={"height": blocksize, "width": blocksize}, mask_and_scale=True  # Polymer does not use NaN as fill value
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            resampled_ds = xr.open_dataset(
+                resampled, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
+            )
+            idepix_ds = xr.open_dataset(
+                idepix, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
+            )
+            c2rcc_ds = xr.open_dataset(
+                c2rcc, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
+            )
+            acolite_ds = xr.open_dataset(
+                acolite, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
+            )
+            polymer_ds = xr.open_dataset(
+                polymer, chunks={"height": blocksize, "width": blocksize}, mask_and_scale=True  # Polymer does not use NaN as fill value
+            )
         s2wmask_ds = rio.open_rasterio(
             s2wmask, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
         ).to_dataset(name="s2wmask")
@@ -132,6 +135,7 @@ def _run(
         logger.info("starting computation")
         output_ds.to_netcdf(
             output,
+            engine="h5netcdf",
             encoding={
                 **{
                     var: {
@@ -161,19 +165,14 @@ def _run(
 
 if __name__ == "__main__":
 
-    # import code, traceback, signal
-    # def debug(sig, frame):
-    #     """Interrupt running process, and provide a python prompt for
-    #     interactive debugging."""
-    #     d={'_frame':frame}         # Allow access to frame object.
-    #     d.update(frame.f_globals)  # Unless shadowed by global
-    #     d.update(frame.f_locals)
-    #     i = code.InteractiveConsole(d)
-    #     message  = "Signal received : entering python shell.\nTraceback:\n"
-    #     message += ''.join(traceback.format_stack(frame))
-    #     i.interact(message)
-    # def listen():
-    #     signal.signal(signal.SIGQUIT, debug)  # Register handler
-    # listen()
+    import threading, sys, traceback, signal
+    def thread_dump(_sig, _frame):
+        for th in threading.enumerate():
+            print(th)
+            traceback.print_stack(sys._current_frames()[th.ident])
+            print()
+    def listen():
+        signal.signal(signal.SIGQUIT, thread_dump)
+    listen()
 
     run()

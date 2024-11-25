@@ -184,9 +184,7 @@ echo $polymer
 echo
 echo "Sen2Water switching and output formatting ..."
 
-# synchronous to avoid deadlocks in NetCDF writer, not much slower
 time python -u $s2wdir/lib/msiresampling/sen2water/s2wswitching/main.py \
-     --scheduler synchronous \
      $chunksize \
      $destriped $idepix $c2rcc $acolite $polymer $staticmask $s2w
 newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)

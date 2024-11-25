@@ -11,6 +11,7 @@ gdal
 h5py
 lxml
 netcdf4
+h5netcdf
 numpy
 pyepr
 pyhdf

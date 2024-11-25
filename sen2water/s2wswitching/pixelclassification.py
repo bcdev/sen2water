@@ -210,7 +210,7 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
             np.dstack((Rrs443_a, Rrs492_a, Rrs560_a, Rrs665_a)), (*Rrs443_a.shape, 4)
         )
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter("ignore", category=RuntimeWarning)
             vis_a_mean = np.nanmean(vis_a, axis=-1)
             vis_a_max = np.nanmax(vis_a, axis=-1)
         del vis_a
@@ -246,7 +246,7 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
                     & ((c2rcc_flags & 0b1000) != 0)
                     & (
                         ((B2 - B4) / (B2 + B4) > 0.2)
-                        | (B11 * scale_factor + add_offset > 0.04)
+                        | (B11 * scale_factor + add_offset > 0.04)  # TODO times PI?
                         | ((pixel_classif_flags & 0b1000000000000) != 0)
                     )
                 )
