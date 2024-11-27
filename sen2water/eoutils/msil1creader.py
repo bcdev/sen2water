@@ -119,7 +119,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
         # TODO parse metadata file and convert into global attributes
 
         datasets = []
-        granule_dir = glob.glob(os.path.join(filename_or_obj, "GRANULE/*"))[0]
+        granule_dir = glob.glob(os.path.join(filename_or_obj, "GRANULE", "*"))[0]
 
         # read metadata from XML metadata
         mtd_path = os.path.join(filename_or_obj, "MTD_MSIL1C.xml")
@@ -149,7 +149,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UserWarning)
             # open reflectances
-            for refl_path in glob.glob(os.path.join(granule_dir, "IMG_DATA/*B??.jp2")):
+            for refl_path in glob.glob(os.path.join(granule_dir, "IMG_DATA", "*B??.jp2")):
                 filename = refl_path[refl_path.rfind("/") + 1 :]
                 variable = self.band_name_in_file[re.match(self.var_pattern, filename).group(1)]
                 band_index = self.band_names.index(variable)
@@ -161,7 +161,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                                             datasets)
             # open detector footprint
             for refl_path in glob.glob(
-                os.path.join(granule_dir, "QI_DATA/MSK_DETFOO_*.jp2")
+                os.path.join(granule_dir, "QI_DATA", "MSK_DETFOO_*.jp2")
             ):
                 filename = refl_path[refl_path.rfind("/") + 1 :]
                 variable = self.band_name_in_file[re.match(self.var_pattern, filename).group(1)]
@@ -170,7 +170,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                 self.open_detector_footprints(refl_path, variable, resolution, chunks, datasets)
             # open quality masks
             for refl_path in glob.glob(
-                os.path.join(granule_dir, "QI_DATA/MSK_QUALIT_*.jp2")
+                os.path.join(granule_dir, "QI_DATA", "MSK_QUALIT_*.jp2")
             ):
                 filename = refl_path[refl_path.rfind("/") + 1 :]
                 variable = self.band_name_in_file[re.match(self.var_pattern, filename).group(1)]
@@ -179,13 +179,13 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
                 self.open_quality_flags(refl_path, variable, resolution, chunks, merge_flags, datasets)
             # open cloud masks
             for refl_path in glob.glob(
-                os.path.join(granule_dir, "QI_DATA/MSK_CLASSI_B00.jp2")
+                os.path.join(granule_dir, "QI_DATA", "MSK_CLASSI_B00.jp2")
             ):
                 resolution = self.resolutions["B1"]
                 chunks = self.chunksize_in_meters // resolution
                 self.open_cloud_masks(refl_path, resolution, chunks, merge_flags, datasets)
             # open atmospheric ancillary data AUX_CAMSFO, AUX_ECMWFT
-            for auxpath in glob.glob(os.path.join(granule_dir, f"AUX_DATA/AUX_??????")):
+            for auxpath in glob.glob(os.path.join(granule_dir, "AUX_DATA", "AUX_??????")):
                 self.open_ancillary_files(auxpath, datasets)
             # read angles from XML metadata
             mtd_path = os.path.join(granule_dir, "MTD_TL.xml")
