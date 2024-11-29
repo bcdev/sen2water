@@ -15,20 +15,24 @@ three flag mask variables. The output data format is NetCDF4 with internal compr
 The processor is called with
 
     . <path-to-mys2w>
-    sen2water.sh <path-to-MSIL1C-SAFE-dir> <path-to-output>
+    sen2water.sh <path-to-MSIL1C-SAFE-dir>
 
 e.g.
 
     . /opt/sen2water-0.2/bin/mys2w
-    sen2water.sh S2A_MSIL1C_20230611T103631_N0509_R008_T32UME_20230611T142059.SAFE \
-                 S2A_MSIL2W_20230611T103631_N0509_R008_T32UME_20240213T113100.nc
+    sen2water.sh S2A_MSIL1C_20230611T103631_N0509_R008_T32UME_20230611T142059.SAFE
+
+It will generate an output with the actual time stamp at the end of the file name:
+
+    S2A_MSIL2W_20230611T103631_N0509_R008_T32UME_20240213T113100.nc
 
 The runtime structure of the installation package is
 
-    sen2water-0.2
+    sen2water-0.5
     ├── bin
     │   ├── mys2w
     │   └── sen2water.sh
+    │   └── sen2water.bat
     ├── etc
     ├── lib
     │   ├── acolite
@@ -36,13 +40,12 @@ The runtime structure of the installation package is
     │   ├── conda
     │   ├── idepix
     │   ├── jre
+    │   ├── msiresampling
     │   ├── polymer
-    │   ├── snap
-    │   ├── resampling
-    │   └── switching
+    │   └── snap
     ├── auxdata
     ├── licenses
-    └── README
+    └── README.md
 
 ## Installation
 

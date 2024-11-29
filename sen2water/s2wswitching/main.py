@@ -165,14 +165,17 @@ def _run(
 
 if __name__ == "__main__":
 
-    import threading, sys, traceback, signal
-    def thread_dump(_sig, _frame):
-        for th in threading.enumerate():
-            print(th)
-            traceback.print_stack(sys._current_frames()[th.ident])
-            print()
-    def listen():
-        signal.signal(signal.SIGQUIT, thread_dump)
-    listen()
-
+    try:
+        import threading, sys, traceback, signal
+        def thread_dump(_sig, _frame):
+            for th in threading.enumerate():
+                print(th)
+                traceback.print_stack(sys._current_frames()[th.ident])
+                print()
+        def listen():
+            signal.signal(signal.SIGQUIT, thread_dump)
+        listen()
+    except:
+        pass
+    
     run()

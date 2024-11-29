@@ -5,6 +5,9 @@
 ### Enhancements
 
 * Flag value OUT_OF_BOUNDS_SATURATED renamed to AC_OUT_OF_BOUNDS
+* TOA Glint Correction added
+* Windows support (with single-threaded POLYMER)
+* Prepared for deployment as Sentinel Toolbox extension
 
 ## Version 0.4.2 (2024-09-24)
 
