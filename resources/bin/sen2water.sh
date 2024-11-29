@@ -13,9 +13,16 @@ if [ "$s2wdir" = "${wd:0:${#s2wdir}}" ]; then
     exit 1
 fi
 if [ "$(which gpt)" != "$s2wdir/lib/snap/bin/gpt" ]; then
-    echo "Environment not set up. Please source mys2w once with"
-    echo ". $s2wdir/bin/mys2w"
-    exit 1
+    echo "setting up environment ..."
+#    export INSTALL4J_JAVA_HOME=${s2wdir}/lib/jre
+#    export INSTALL4J_JAVA_HOME_OVERRIDE=$s2wdir/lib/jre
+#    export LD_LIBRARY_PATH="${s2wdir}/lib/snap/snap/modules/lib/amd64:$LD_LIBRARY_PATH"
+#    export PYTHONPATH=${s2wdir}/lib/polymer:${s2wdir}/lib/msiresampling:$PYTHONPATH
+#    export PATH="${s2wdir}/bin:${s2wdir}/lib/snap/bin:$PATH"
+#    export GPT_ADD_CLASSPATH=$s2wdir/lib/snap/snap/modules:$s2wdir/lib/snap/snap/modules/s2tbx-gdal-reader-9.0.2.1cv.jar:$s2wdir/lib/snap/snap/modules/lib-gdal-9.0.6.1cv.jar
+#    . ${s2wdir}/lib/conda/bin/activate
+#    export ECCODES_DEFINITION_PATH=${s2wdir}/lib/conda/share/eccodes/definitions
+    . $s2wdir/bin/mys2w
 fi
 
 # parse parameters
@@ -61,6 +68,7 @@ if [ "$input" = "" ]; then
 fi
 
 # S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112.SAFE
+if [[ "$input" =~ ".xml" ]]; then input=$(dirname $input); fi
 base=$(basename ${input%.SAFE})
 granule=${base:39:5}
 p=${base:0:3}
@@ -159,6 +167,18 @@ cat $s2wdir/etc/acolite.parameters | sed \
     -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
     > acolite.parameters
 time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
+if [ ! -e $acolite ]; then
+    echo "ACOLITE failed, retrying without TGC ..."
+    cat $s2wdir/etc/acolite.parameters | sed \
+        -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$resampled, \
+        -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
+        > acolite.parameters
+    time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
+    if [ ! -e $acolite ]; then
+        echo "ACOLITE failed"
+        exit 1
+    fi
+fi
 
 echo $acolite
 echo
