@@ -267,7 +267,7 @@ mv $s2w $newname
 if $withtoolbox; then
     rm -f /tmp/s2woutput/*
     mkdir -p /tmp/s2woutput
-    ln -s $pwd/$newname /tmp/s2woutput/$newname
+    ln -s $(pwd)/$newname /tmp/s2woutput/$newname
 fi
 
 if [ "$withoutcleanup" != "true" ]; then
