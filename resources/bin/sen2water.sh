@@ -5,13 +5,6 @@ set -e
 s2wdir=$(dirname $(dirname $(realpath $0)))
 echo "Sen2Water 0.5.0 ($s2wdir)"
 
-# check whether we modify the software directory
-wd=$(realpath .)
-if [ "$s2wdir" = "${wd:0:${#s2wdir}}" ]; then
-    echo "$(basename $0) must not be started from within software dir $s2wdir."
-    echo "cd to some working directory outside the software installation, please."
-    exit 1
-fi
 if [ "$(which gpt)" != "$s2wdir/lib/snap/bin/gpt" ]; then
     echo "setting up environment ..."
 #    export INSTALL4J_JAVA_HOME=${s2wdir}/lib/jre
@@ -34,7 +27,9 @@ dem=
 withouttgc=false
 withdetfoofilter=
 chunksize=
-withcleanup=false
+withoutcleanup=
+withtoolbox=false
+outputdir=
 while [ "$1" != "" ]; do
     if [ "$1" = "--c2rccanc" ]; then c2rccanc="$2"; shift 2
     elif [ "$1" = "--acoliteanc" ]; then acoliteanc="$2"; shift 2
@@ -42,7 +37,9 @@ while [ "$1" != "" ]; do
     elif [ "$1" = "--dem" ]; then dem="$2"; shift 2
     elif [ "$1" = "--withouttgc" ]; then withouttgc=true; shift 1
     elif [ "$1" = "--withdetfoofilter" ]; then withdetfoofilter="$1"; shift 1
-    elif [ "$1" = "--withcleanup" ]; then withcleanup=true; shift 1
+    elif [ "$1" = "--withoutcleanup" ]; then withoutcleanup=true; shift 1
+    elif [ "$1" = "--withtoolbox" ]; then withtoolbox=true; shift 1
+    elif [ "$1" = "--outputdir" ]; then outputdir="$2"; shift 2
     elif [ "$1" = "--chunksize" ]; then chunksize="$1 $2"; shift 2
     elif [ "$1" = "--help" ]; then shift 1
     elif [ "${1:0:1}" = "-" ]; then echo unknown parameter $1; exit 1
@@ -62,7 +59,7 @@ if [ "$input" = "" ]; then
     echo "--dem 'Copernicus 90m Global DEM' | 'Copernicus 30m Global DEM'"
     echo "--withouttgc"
     echo "--withdetfoofilter"
-    echo "--withcleanup"
+    echo "--withoutcleanup"
     echo "--chunksize 610 | 1830 | 915 | 366 | 305 | 183 | 122 | 61"
     exit 1
 fi
@@ -97,9 +94,33 @@ if [ ! -e $staticmask ]; then
     fi
 fi
 
-ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .
+if $withtoolbox; then
+    if [ "$outputdir" == "" ]; then
+        cd $(dirname $input)
+    else
+        mkdir -p $outputdir
+        cd $outputdir
+    fi
+fi
+echo "working directory $(pwd)"
 
-echo "resampling to 60m ..."
+# check whether we modify the software directory
+wd=$(realpath .)
+if [ "$s2wdir" = "${wd:0:${#s2wdir}}" ]; then
+    echo "$(basename $0) must not be started from within software dir $s2wdir."
+    echo "cd to some working directory outside the software installation, please."
+    exit 1
+fi
+
+if ! ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .; then
+    cp ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .
+fi
+
+if $withtoolbox; then
+    echo 'Progress[%]: 5.0 : resampling to 60m ...'
+else
+    echo "resampling to 60m ..."
+fi
 
 time python -u $s2wdir/lib/msiresampling/sen2water/msiresampling/main.py \
      --ancillary msl --ancillary tco3 --ancillary tcwv --ancillary u10 --ancillary v10 \
@@ -111,8 +132,13 @@ echo
 if $withouttgc; then
     destriped=${resampled}
 else
-    echo "TOA glint correction"
-    time python $s2wdir/lib/acolite/tgcparameters.py ${base}
+    if $withtoolbox; then
+        echo 'Progress[%]: 25.0 : TOA glint correction ...'
+    else
+        echo "TOA glint correction"
+    fi
+
+    time python $s2wdir/lib/acolite/tgcparameters.py ${input}
     time python -u $s2wdir/lib/acolite/tgc2.py --acolite_path $s2wdir/lib/acolite --input ${resampled} --output . \
            --glint_threshold 0.0 --scaling True --aot_min 0.1 --estimate False --grid_write True \
            --grid_files ${base}-TGC-parameters.json --verbosity 2
@@ -122,10 +148,48 @@ else
         echo "*** no ${destriped} found, using resampled instead"
         destriped=${resampled}
     fi
+    echo
 fi
 
+if $withtoolbox; then
+    echo 'Progress[%]: 45.0: ACOLITE atmospheric correction ...'
+else
+    echo "ACOLITE atmospheric correction ..."
+fi
+
+if [ "$acoliteanc" == "constant" ]; then
+    s2auxiliarydefault=False
+else
+    s2auxiliarydefault=True
+fi
+
+cat $s2wdir/etc/acolite.parameters | sed \
+    -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$destriped, \
+    -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
+    > acolite.parameters
+time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
+if [ ! -e $acolite ]; then
+    echo "*** ACOLITE failed, retrying without TGC ..."
+    cat $s2wdir/etc/acolite.parameters | sed \
+        -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$resampled, \
+        -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
+        > acolite.parameters
+    time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
+    if [ ! -e $acolite ]; then
+        echo "*** ACOLITE failed"
+        exit 1
+    fi
+    destriped=$resampled
+fi
+
+echo $acolite
 echo
-echo "Idepix cloud screening ..."
+
+if $withtoolbox; then
+    echo 'Progress[%]: 55.0 : Idepix cloud screening ...'
+else
+    echo "Idepix cloud screening ..."
+fi
 
 if [ "$dem" = "" ]; then
     dem="Copernicus 90m Global DEM"
@@ -141,7 +205,12 @@ time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsn
 
 echo $idepix
 echo
-echo "C2RCC atmospheric correction ..."
+
+if $withtoolbox; then
+    echo 'Progress[%]: 65.0 : C2RCC atmospheric correction ...'
+else
+    echo "C2RCC atmospheric correction ..."
+fi
 
 if [ "$c2rccanc" == "embedded" ]; then
     useEcmwfAuxData=true
@@ -154,43 +223,16 @@ time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsn
 
 echo $c2rcc
 echo
-echo "ACOLITE atmospheric correction ..."
 
-if [ "$acoliteanc" == "constant" ]; then
-    s2auxiliarydefault=False
+if $withtoolbox; then
+    echo 'Progress[%]: 75.0 : POLYMER atmospheric correction ...'
 else
-    s2auxiliarydefault=True
+    echo "POLYMER atmospheric correction ..."
 fi
-
-cat $s2wdir/etc/acolite.parameters | sed \
-    -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$destriped, \
-    -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
-    > acolite.parameters
-time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
-if [ ! -e $acolite ]; then
-    echo "ACOLITE failed, retrying without TGC ..."
-    cat $s2wdir/etc/acolite.parameters | sed \
-        -e s,S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc,$resampled, \
-        -e s,s2_auxiliary_default=True,s2_auxiliary_default=${s2auxiliarydefault}, \
-        > acolite.parameters
-    time python -u $s2wdir/lib/acolite/launch_acolite.py --nogfx --cli --settings=acolite.parameters > ${base}-acolite.log
-    if [ ! -e $acolite ]; then
-        echo "ACOLITE failed"
-        exit 1
-    fi
-fi
-
-echo $acolite
-echo
-echo "POLYMER reformatting of cloud mask ..."
 
 time gpt -J-Xmx6G -Dsnap.userdir=${s2wdir} -Dsnap.cachedir=$(pwd)/.snap/var -Dsnap.log.level=ERROR -c 4096M -q 4 -e \
     -Dsnap.dataio.reader.tileHeight=$blocksize -Dsnap.dataio.reader.tileWidth=$blocksize \
     $s2wdir/etc/polymer-mask-graph.xml $idepix -t $cloudmask -f NetCDF4-BEAM
-
-echo $cloudmask
-echo
-echo "POLYMER atmospheric correction ..."
 
 if [ "$polymeranc" == "" ]; then
     polymeranc=embedded
@@ -202,21 +244,43 @@ time python -u $s2wdir/lib/polymer/run-polymer.py polymer.parameters "$polymeran
 
 echo $polymer
 echo
-echo "Sen2Water switching and output formatting ..."
+
+if $withtoolbox; then
+    echo 'Progress[%]: 85.0 : Sen2Water switching and output formatting ...'
+else
+    echo "Sen2Water switching and output formatting ..."
+fi
 
 time python -u $s2wdir/lib/msiresampling/sen2water/s2wswitching/main.py \
      $chunksize \
      $destriped $idepix $c2rcc $acolite $polymer $staticmask $s2w
+
+if $withtoolbox; then
+    echo 'Progress[%]: 95.0 : renaming output ...'
+else
+    echo "renaming output ..."
+fi
+
 newname=$(ncdump -h $s2w | grep ':id' | cut -d '"' -f 2)
 mv $s2w $newname
-s2w=$newname
 
-if $withcleanup; then
+if $withtoolbox; then
+    rm -f /tmp/s2woutput/*
+    mkdir -p /tmp/s2woutput
+    ln -s $pwd/$newname /tmp/s2woutput/$newname
+fi
+
+if [ "$withoutcleanup" != "true" ]; then
     rm $resampled $idepix $c2rcc $acolite ${acolite/L2R/L1R} ${polymer/polymer/mask} $polymer
     rm -f ${base}-TGC-parameters.json $destriped 
     rm acolite_run*txt ${base}-acolite.log acolite.parameters polymer.parameters
     rm libenvironment-variables.so
 fi
 
-echo $s2w
+if $withtoolbox; then
+    echo Progress[%%]: 100.0 : done
+    echo $(pwd)/$newname
+else
+    echo $newname
+fi
 echo "done"

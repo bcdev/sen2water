@@ -2,26 +2,21 @@
 :: that generates an MSI L2W from an MSI L1C.
 
 @echo off
-setlocal enableDelayedExpansion enableextensions
+setlocal enableDelayedExpansion enableExtensions
 
-set wd=%cd%
+set wd1=%cd%
 cd %~dp0..%
 set s2wdir=%cd%
-cd %wd%
+cd %wd1%
 
 echo "Sen2Water 0.5.0 (%s2wdir%)"
 
-:: check whether we modify the software directory
-echo.%wd% | find "%s2wdir%" > Nul && ( 
-    echo "%~f0%" must not be started from within software dir "%s2wdir%"
-    echo "cd to some working directory outside the software installation, please."
-    exit /b 1
-)
 where /q sen2water.bat > Nul
 if %ERRORLEVEL% neq 0 (
-    echo "setting up environment ..."
+    echo setting up environment ...
     set PYTHONPATH=%s2wdir%\lib\msiresampling
     set PATH=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64;%PATH%
+    set ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions
     call %s2wdir%\lib\conda\condabin\activate.bat
 )
 
@@ -31,10 +26,12 @@ set c2rccanc=
 set acoliteanc=
 set polymeranc=
 set dem=
-set withouttgc=false
+set withouttgc=
 set withdetfoofilter=
 set chunksize=
-set withcleanup=false
+set withoutcleanup=
+set withtoolbox=false
+set outputdir=
 
 :loop
 if "%1" NEQ "" (
@@ -60,9 +57,16 @@ if "%1" NEQ "" (
    ) else ( if "%1" == "--withdetfoofilter" (
        shift
        set withdetfoofilter=true
-   ) else ( if "%1" == "--withcleanup" (
+   ) else ( if "%1" == "--withoutcleanup" (
        shift
-       set withcleanup=true
+       set withoutcleanup=true
+   ) else ( if "%1" == "--withtoolbox" (
+       shift
+       set withtoolbox=true
+   ) else ( if "%1" == "--outputdir" (
+       set outputdir=%2
+       shift
+       shift
    ) else ( if "%1" == "--chunksize" (
        set chunksize=%2
        shift
@@ -78,7 +82,7 @@ if "%1" NEQ "" (
    ) else (
        echo unknown parameter %1
        exit /b 1
-   )))))))))))
+   )))))))))))))
    goto loop
 )
 
@@ -93,18 +97,22 @@ if "!input!" == "" (
     echo "--dem 'Copernicus 90m Global DEM' | 'Copernicus 30m Global DEM'"
     echo "--withouttgc"
     echo "--withdetfoofilter"
-    echo "--withcleanup"
+    echo "--withoutcleanup"
     echo "--chunksize 610 | 1830 | 915 | 366 | 305 | 183 | 122 | 61"
     exit /b 1
 )
 
 :: S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112.SAFE
-if "%input:~-4%" == ".xml" (
-    call :dirname "%input%" input
-    call :basename "!input!" base
-) else (
-    set base=%~n1%
+if "!input:~-4!" == ".xml" (
+    call :dirname "!input!" input
 )
+call :basename "!input!" base0
+if "%base0:~-5%" == ".SAFE" (
+    set base=%base0:~0,-5%
+) else (
+    set base=%base0%
+)
+
 set granule=%base:~39,5%
 set zone=%base:~39,2%
 set p=%base:~0,3%
@@ -133,9 +141,30 @@ if not exist !staticmask! (
     )
 )
 
+if "!withtoolbox!" == "true" (
+    if "!outputdir!" == "" (
+        call :dirname !input! outputdir
+    )
+    cd !outputdir!
+) else (
+    set outputdir=%cd%
+)
+echo working directory !outputdir!
+
+:: check whether we modify the software directory
+echo.%cd% | find "%s2wdir%" > Nul && ( 
+    echo "%~f0%" must not be started from within software dir "%s2wdir%"
+    echo cd to some working directory outside the software installation, please
+    exit /b 1
+)
+
 ::ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .
 
-echo "resampling to 60m ..."
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 5.0 : resampling to 60m ...
+) else (
+    echo resampling to 60m ...
+)
 
 python -u %s2wdir%\lib\msiresampling\sen2water\msiresampling\main.py ^
      --ancillary msl --ancillary tco3 --ancillary tcwv --ancillary u10 --ancillary v10 ^
@@ -147,21 +176,59 @@ echo:
 if "!withouttgc!" == "true" (
     set destriped=%resampled%
 ) else (
-    echo "TOA glint correction"
+    if "!withtoolbox!" == "true" (
+        echo Progress[%%]: 25.0 : TOA glint correction ...
+    ) else (
+        echo TOA glint correction ...
+    )
     python %s2wdir%\lib\acolite\tgcparameters.py %input%
     python -u %s2wdir%\lib\acolite\tgc2.py --acolite_path %s2wdir%\lib\acolite --input %resampled% --output . ^
            --glint_threshold 0.0 --scaling True --aot_min 0.1 --estimate False --grid_write True ^
            --grid_files %base%-TGC-parameters.json --verbosity 2
     if exist %destriped% (
         echo %destriped%
+        echo:
     ) else (
         echo "*** no %destriped% found, using resampled instead"
         set destriped=%resampled%
     )
 )
 
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 45.0 : ACOLITE atmospheric correction ...
+) else (
+    echo ACOLITE atmospheric correction ...
+)
+
+if "!acoliteanc!" == "constant" (
+    set s2auxiliarydefault=False
+) else (
+    set s2auxiliarydefault=True
+)
+
+powershell -Command "(gc %s2wdir%\etc\acolite.parameters) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!destriped!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
+
+python -u %s2wdir%\lib\acolite\launch_acolite.py --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
+
+if not exist %acolite% (
+    echo *** ACOLITE failed, retrying without TGC ...
+    powershell -Command "(gc %s2wdir%\etc\acolite.parameters) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!resampled!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
+    python -u %s2wdir%\lib\acolite\launch_acolite.py --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
+    if not exist %acolite% (
+        echo *** ACOLITE failed
+        exit /b 1
+    )
+    set destriped=%resampled%
+)
+
+echo %acolite%
 echo:
-echo "Idepix cloud screening ..."
+
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 55.0 : Idepix cloud screening ...
+) else (
+    echo Idepix cloud screening ...
+)
 
 if "!dem!" == "" (
     set dem="Copernicus 90m Global DEM"
@@ -174,7 +241,7 @@ if "!chunksize!" == "" (
 )
 
 :: -J-Xmx6G -Dsnap.userdir=%s2wdir% -Dsnap.cachedir=%cd%\.snap\var -Dsnap.log.level=ERROR
-::    
+
 call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
     -c 4096M -q 4 -e ^
     %s2wdir%\etc\idepix-graph.xml -Pdem=!dem! !destriped! ^
@@ -182,7 +249,12 @@ call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.ti
 
 echo %idepix%
 echo:
-echo "C2RCC atmospheric correction ..."
+
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 65.0 : C2RCC atmospheric correction ...
+) else (
+    echo C2RCC atmospheric correction ...
+)
 
 if "!c2rccanc!" == "embedded" (
     set useEcmwfAuxData=true
@@ -196,31 +268,12 @@ call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.ti
 
 echo %c2rcc%
 echo:
-echo "ACOLITE atmospheric correction ..."
 
-if "!acoliteanc!" == "constant" (
-    set s2auxiliarydefault=False
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 75.0 : POLYMER atmospheric correction ...
 ) else (
-    set s2auxiliarydefault=True
+    echo POLYMER atmospheric correction ...
 )
-
-powershell -Command "(gc %s2wdir%\etc\acolite.parameters) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!destriped!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
-
-python -u %s2wdir%\lib\acolite\launch_acolite.py --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
-
-if not exist %acolite% (
-    echo "*** ACOLITE failed, retrying without TGC ..."
-    powershell -Command "(gc %s2wdir%\etc\acolite.parameters) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!resampled!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
-    python -u %s2wdir%\lib\acolite\launch_acolite.py --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
-    if not exist %acolite% (
-        echo "ACOLITE failed"
-        exit /b 1
-    )
-)
-
-echo %acolite%
-echo:
-echo "POLYMER reformatting of cloud mask ..."
 
 call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
    -c 4096M -q 4 -e ^
@@ -228,40 +281,64 @@ call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.ti
    -t %cloudmask% -f NetCDF4-BEAM
 
 echo %cloudmask%
-echo:
-echo "POLYMER atmospheric correction ..."
+
+cd %s2wdir%\lib\polymer
+python setup.py build_ext --inplace
+cd !outputdir!
 
 if "!polymeranc!" == "" (
     set polymeranc=embedded
 )
-
 powershell -Command "(gc %s2wdir%\etc\polymer.parameters.windows) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_mask.nc', '%cloudmask%' | Out-File -encoding ASCII polymer.parameters"
+
 if exist %polymer% del %polymer%
 python -u %s2wdir%\lib\polymer\run-polymer.py polymer.parameters !polymeranc! "%s2wdir%\auxdata\dem\!dem:~1,-1!" %resampled% %polymer%
 
 echo %polymer%
 echo:
-echo "Sen2Water switching and output formatting ..."
+
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 85.0 : Sen2Water switching and output formatting ...
+) else (
+    echo Sen2Water switching and output formatting ...
+)
 
 python -u %s2wdir%\lib\msiresampling\sen2water\s2wswitching\main.py ^
      !chunksize! ^
      !destriped! %idepix% %c2rcc% %acolite% %polymer% !staticmask! %s2w%
+
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 95.0 : renaming output ...
+) else (
+    echo renaming output ...
+)
 
 for /f "tokens=* USEBACKQ" %%f in (`ncdump -h %s2w% ^| find ":id"`) do (
     set "fid=%%f"
 )
 set "newname=%fid:~7,-3%"
 ren %s2w% %newname%
-set s2w=%newname%
 
-if "!withcleanup!" == "true" (
+if "!withtoolbox!" == "true" (
+    mkdir %temp%\s2w-output
+    del %temp%\s2w-output\S2*
+    copy %newname% %temp%\s2w-output
+)
+
+if not "!withoutcleanup!" == "true" (
     del %resampled% %idepix% %c2rcc% %acolite% %acolite:L2R=L1R% %polymer:polymer=mask% %polymer%
     del %base%-TGC-parameters.json !destriped! 
     del acolite_run*txt %base%-acolite.log acolite.parameters polymer.parameters
 )
 
-echo !s2w!
-echo "done"
+echo !newname!
+if "!withtoolbox!" == "true" (
+    echo Progress[%%]: 100.0 : done
+    echo %cd%\%newname%
+) else (
+    echo %newname%
+)
+echo done
 
 exit /b 0
 
