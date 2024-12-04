@@ -21,7 +21,7 @@
   <variables>
     <osvariable>
       <key>HOME</key>
-      <value></value>
+      <value>/home/martin</value>
       <isShared>false</isShared>
       <windows>c:\users\martin</windows>
       <linux>/home/martin</linux>
@@ -29,7 +29,7 @@
     </osvariable>
     <osvariable>
       <key>TEMP</key>
-      <value></value>
+      <value>/tmp</value>
       <isShared>false</isShared>
       <windows>$HOME\appdata\local\temp</windows>
       <linux>/tmp</linux>
@@ -37,15 +37,16 @@
     </osvariable>
     <osvariable>
       <key>S2WDIR</key>
-      <value></value>
+      <value>$HOME/.snap/auxdata/sen2water-0.5.0-linux</value>
       <isShared>false</isShared>
       <windows>$HOME/.snap/auxdata/sen2water-0.5.0-win64</windows>
       <linux>$HOME/.snap/auxdata/sen2water-0.5.0-linux</linux>
+      <macosx></macosx>
       <isTransient>false</isTransient>
     </osvariable>
     <osvariable>
       <key>S2WSCRIPT</key>
-      <value></value>
+      <value>sen2water.sh</value>
       <isShared>false</isShared>
       <windows>sen2water.bat</windows>
       <linux>sen2water.sh</linux>
@@ -147,8 +148,8 @@
   <isHandlingOutputName>true</isHandlingOutputName>
   <windowsBundle>
     <bundleType>ZIP</bundleType>
-    <bundleLocation>LOCAL</bundleLocation>
-    <source>c:\Users\Martin\projects\sen2water\software\sen2water-0.5.0-win64.zip</source>
+    <bundleLocation>REMOTE</bundleLocation>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.5.0-win64.zip</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -180,8 +181,8 @@
   </windowsBundle>
   <linuxBundle>
     <bundleType>INSTALLER</bundleType>
-    <bundleLocation>LOCAL</bundleLocation>
-    <source>\windows\projects\sen2water\software\sen2water-0.5.0-linux.run</source>
+    <bundleLocation>REMOTE</bundleLocation>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.5.0-linux.run</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -193,9 +194,9 @@
       <parameterType>TemplateParameter</parameterType>
       <parameters>
         <parameter>
-          <name>target</name>
+          <name>targetLocation</name>
           <dataType>java.lang.String</dataType>
-          <defaultValue>$HOME/.snap/auxdata/sen2water-0.5.0-linux</defaultValue>
+          <defaultValue>$HOME/.snap/auxdata</defaultValue>
           <valueSet/>
           <notNull>false</notNull>
           <notEmpty>false</notEmpty>
@@ -203,7 +204,7 @@
         </parameter>
       </parameters>
       <template type="simple">
-        <contents></contents>
+        <contents>--keep</contents>
       </template>
       <outputFile>Command Template</outputFile>
     </templateparameter>
