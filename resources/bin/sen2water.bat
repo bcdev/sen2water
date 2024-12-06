@@ -9,7 +9,7 @@ cd %~dp0..%
 set s2wdir=%cd%
 cd %wd1%
 
-echo "Sen2Water 0.5.0 (%s2wdir%)"
+echo "Sen2Water 0.6.0 (%s2wdir%)"
 
 where /q sen2water.bat > Nul
 if %ERRORLEVEL% neq 0 (

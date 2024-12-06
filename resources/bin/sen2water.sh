@@ -3,7 +3,7 @@
 set -e
 
 s2wdir=$(dirname $(dirname $(realpath $0)))
-echo "Sen2Water 0.5.0 ($s2wdir)"
+echo "Sen2Water 0.6.0 ($s2wdir)"
 
 if [ "$(which gpt)" != "$s2wdir/lib/snap/bin/gpt" ]; then
     echo "setting up environment ..."
