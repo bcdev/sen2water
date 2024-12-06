@@ -17,6 +17,7 @@ import xarray as xr
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import Operator, BlockAlgorithm
 from sen2water.eoutils.eoutils import copy_variable
+from sen2water.s2wswitching.acolitebands import AcoliteDataset
 
 C2RCC_BANDS = [
     "rhow_B1",
@@ -28,45 +29,7 @@ C2RCC_BANDS = [
     "rhow_B7",
     "rhow_B8A",
 ]
-ACOLITE_BANDS_S2A = [
-    "rhos_443",
-    "rhos_492",
-    "rhos_560",
-    "rhos_665",
-    "rhos_704",
-    "rhos_740",
-    "rhos_783",
-    "rhos_833",
-    "rhos_865",
-    "rhos_1614",
-    "rhos_2202",
-]
-ACOLITE_BANDS_S2B = [
-    "rhos_442",
-    "rhos_492",
-    "rhos_559",
-    "rhos_665",
-    "rhos_704",
-    "rhos_739",
-    "rhos_780",
-    "rhos_833",
-    "rhos_864",
-    "rhos_1610",
-    "rhos_2186",
-]
-ACOLITE_BANDS_S2C = [
-    "rhos_444",
-    "rhos_489",
-    "rhos_561",
-    "rhos_667",
-    "rhos_707",
-    "rhos_741",
-    "rhos_785",
-    "rhos_835",
-    "rhos_866",
-    "rhos_1612",
-    "rhos_2191",
-]
+
 OCEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
 
 BANDS = [
@@ -239,7 +202,7 @@ class PixelClassificationAlgorithm(BlockAlgorithm):
         pixel_class[((pixel_classif_flags & 0b11000) != 0)] = 8
         # only apply additional HR-OC cloud test to ocean
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.simplefilter("ignore", category=RuntimeWarning)
             pixel_class[
                 (
                     (pixel_class == 2)
@@ -270,7 +233,7 @@ class PixelClassification(Operator):
         resampled: xr.Dataset,
         idepix: xr.Dataset,
         c2rcc: xr.Dataset,
-        acolite: xr.Dataset,
+        acolite: AcoliteDataset,
         s2wmask: xr.Dataset,
     ) -> xr.Dataset:
         """
@@ -297,9 +260,7 @@ class PixelClassification(Operator):
 
         dims = {"y": idepix.sizes["y"], "x": idepix.sizes["x"]}
 
-        acolite_bands = ACOLITE_BANDS_S2A if ACOLITE_BANDS_S2A[0] in acolite.variables \
-            else ACOLITE_BANDS_S2B if ACOLITE_BANDS_S2B[0] in acolite.variables \
-            else ACOLITE_BANDS_S2C
+        acolite_bands = acolite.acolite_bands()
         if "tecqua_mask" in resampled:
             pixel_class_data = PixelClassificationAlgorithm().apply(
                 idepix["pixel_classif_flags"].data,
@@ -367,3 +328,4 @@ class PixelClassification(Operator):
         )
         target_attrs = {}
         return xr.Dataset(target_bands, coordinate_bands, target_attrs)
+

@@ -15,13 +15,55 @@ __status__ = "Development"
 from datetime import datetime
 from typing import Any, Dict
 import xarray as xr
+import numpy as np
+import dask.array as da
 from sen2water.eoutils.eologging import logger
 from sen2water.eoutils.eoprocessingifc import Operator
+from sen2water.s2wswitching.acolitebands import AcoliteDataset
 from sen2water.s2wswitching.pixelclassification import PixelClassification
 from sen2water.s2wswitching.coastalswitching import CoastalWaterSwitching
 from sen2water.s2wswitching.inlandwaterswitching import InlandWaterSwitching
 from sen2water.s2wswitching.s2wformatting import S2wFormatting
 
+ACOLITE_BANDS_S2A = [
+    "rhos_443",
+    "rhos_492",
+    "rhos_560",
+    "rhos_665",
+    "rhos_704",
+    "rhos_740",
+    "rhos_783",
+    "rhos_833",
+    "rhos_865",
+    "rhos_1614",
+    "rhos_2202",
+]
+ACOLITE_BANDS_S2B = [
+    "rhos_442",
+    "rhos_492",
+    "rhos_559",
+    "rhos_665",
+    "rhos_704",
+    "rhos_739",
+    "rhos_780",
+    "rhos_833",
+    "rhos_864",
+    "rhos_1610",
+    "rhos_2186",
+]
+ACOLITE_BANDS_S2C = [
+    "rhos_444",
+    "rhos_489",
+    "rhos_561",
+    "rhos_667",
+    "rhos_707",
+    "rhos_741",
+    "rhos_785",
+    "rhos_835",
+    "rhos_866",
+    "rhos_1612",
+    "rhos_2191",
+]
 
 class SwitchingProcessor(Operator):
     """
@@ -33,7 +75,7 @@ class SwitchingProcessor(Operator):
         resampled: xr.Dataset,
         idepix: xr.Dataset,
         c2rcc: xr.Dataset,
-        acolite: xr.Dataset,
+        acolite: AcoliteDataset,
         polymer: xr.Dataset,
         s2wmask: xr.Dataset,
         input_id: str,
@@ -93,3 +135,4 @@ class SwitchingProcessor(Operator):
         )
         logger.info("output formatting prepared")
         return output
+

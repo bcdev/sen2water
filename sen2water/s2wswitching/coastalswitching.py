@@ -16,7 +16,7 @@ import xarray as xr
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import Operator, BlockAlgorithm
 from sen2water.eoutils.eoutils import copy_variable
-
+from sen2water.s2wswitching.acolitebands import AcoliteDataset
 
 C2RCC_BANDS = [
     "rhow_B1",
@@ -27,45 +27,6 @@ C2RCC_BANDS = [
     "rhow_B6",
     "rhow_B7",
     "rhow_B8A",
-]
-ACOLITE_BANDS_S2A = [
-    "rhos_443",
-    "rhos_492",
-    "rhos_560",
-    "rhos_665",
-    "rhos_704",
-    "rhos_740",
-    "rhos_783",
-    "rhos_833",
-    "rhos_865",
-    "rhos_1614",
-    "rhos_2202",
-]
-ACOLITE_BANDS_S2B = [
-    "rhos_442",
-    "rhos_492",
-    "rhos_559",
-    "rhos_665",
-    "rhos_704",
-    "rhos_739",
-    "rhos_780",
-    "rhos_833",
-    "rhos_864",
-    "rhos_1610",
-    "rhos_2186",
-]
-ACOLITE_BANDS_S2C = [
-    "rhos_444",
-    "rhos_489",
-    "rhos_561",
-    "rhos_667",
-    "rhos_707",
-    "rhos_741",
-    "rhos_785",
-    "rhos_835",
-    "rhos_866",
-    "rhos_1612",
-    "rhos_2191",
 ]
 
 OCEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
@@ -218,7 +179,7 @@ class CoastalWaterSwitching(Operator):
     """
 
     def run(
-        self, c2rcc: xr.Dataset, acolite: xr.Dataset, pixelclass: xr.Dataset
+        self, c2rcc: xr.Dataset, acolite: AcoliteDataset, pixelclass: xr.Dataset
     ) -> xr.Dataset:
         """
         Creates ocean Dataset with Rw* and sen2water_flags
@@ -241,10 +202,7 @@ class CoastalWaterSwitching(Operator):
         block_shape = c2rcc["c2rcc_flags"].data.shape
         ocean_bands_stack = CoastalWaterSwitchingAlgorithm().apply(
             *[c2rcc[b].data for b in C2RCC_BANDS],
-            *[acolite[b].data for b in (ACOLITE_BANDS_S2A
-                                        if ACOLITE_BANDS_S2A[0] in acolite.variables
-                                        else ACOLITE_BANDS_S2B if ACOLITE_BANDS_S2B[0] in acolite.variables
-                                        else ACOLITE_BANDS_S2C)],
+            *[acolite[b].data for b in acolite.acolite_bands()],
             c2rcc["c2rcc_flags"].data,
             pixelclass["pixel_class"].data,
             dtype=np.float32,

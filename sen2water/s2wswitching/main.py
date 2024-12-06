@@ -5,17 +5,21 @@
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
 __license__ = "TBD"
-__version__ = "0.51"
+__version__ = "0.53"
 __email__ = "info@brockmann-consult.de"
 __status__ = "Development"
 
 # changes in 0.51:
 # separate to_netcdf from computation of statistics, attempt to avoid infinite run of compute
+# changes in 0.52
+# use h5netcdf engine for writing to avoid deadlock with reading in netcdf4
+# changes in 0.53
+# add dummy band to acolite in case a band is missing
 
 import sys
+import traceback
 import click
 import warnings
-import traceback
 import os.path
 import dask
 import xarray as xr
@@ -25,6 +29,7 @@ from sen2water.eoutils.eoscheduler import Scheduler
 from sen2water.eoutils.eoprofiling import Profiling
 from sen2water.s2wswitching.switchingoperator import SwitchingProcessor
 from sen2water.s2wswitching.statistics import S2wStatistics
+from sen2water.s2wswitching.acolitebands import AcoliteDataset
 
 
 @click.command()
@@ -111,6 +116,7 @@ def _run(
             acolite_ds = xr.open_dataset(
                 acolite, chunks={"y": blocksize, "x": blocksize}, mask_and_scale=False
             )
+            acolite_ds = AcoliteDataset(acolite_ds)
             polymer_ds = xr.open_dataset(
                 polymer, chunks={"height": blocksize, "width": blocksize}, mask_and_scale=True  # Polymer does not use NaN as fill value
             )
@@ -165,8 +171,8 @@ def _run(
 
 if __name__ == "__main__":
 
-    try:
-        import threading, sys, traceback, signal
+    try:  # only valid in Linux
+        import threading, signal
         def thread_dump(_sig, _frame):
             for th in threading.enumerate():
                 print(th)

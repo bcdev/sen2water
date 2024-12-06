@@ -18,6 +18,7 @@ from datetime import datetime
 import xarray as xr
 from sen2water.eoutils.eoprocessingifc import Operator
 from sen2water.eoutils.eoutils import copy_variable
+from sen2water.s2wswitching.acolitebands import AcoliteDataset
 
 OCEAN_WAVELENGTHS = [443, 490, 560, 665, 705, 740, 783, 842, 865, 945, 1375, 1610, 2190]
 C2RCC_BANDS = [
@@ -73,7 +74,7 @@ class S2wFormatting(Operator):
         pixelclass: xr.Dataset,
         ocean: xr.Dataset,
         c2rcc: xr.Dataset,
-        acolite: xr.Dataset,
+        acolite: AcoliteDataset,
         polymer: xr.Dataset,
         input_id: str,
         with_copyinputs: bool = False,
@@ -96,7 +97,7 @@ class S2wFormatting(Operator):
             sen2water_flags after HR-OC switching
         c2rcc:
             C2RCC output with rhow_B1, .., rhow_B8A, c2rcc_flags
-        acolite: str
+        acolite:
             ACOLITE output with rhos_443, .., rhos_2202
         polymer:
             POLYMER output with Rw443, .., Rw2190, bitmask
@@ -147,7 +148,7 @@ class S2wFormatting(Operator):
                 target_bands[f"{bandname}_c"].attrs["wavelength_unit"] = "nm"
                 del target_bands[f"{bandname}_c"].attrs["valid_pixel_expression"]
             target_bands["c2rcc_flags_c"] = copy_variable(c2rcc["c2rcc_flags"])
-            for bandname in ACOLITE_BANDS:
+            for bandname in acolite.acolite_bands():
                 target_bands[f"{bandname}_a"] = copy_variable(acolite[bandname])
                 target_bands[f"{bandname}_a"].attrs["radiation_wavelength"] = acolite[
                     bandname

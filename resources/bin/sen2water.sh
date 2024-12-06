@@ -140,8 +140,8 @@ else
 
     time python $s2wdir/lib/acolite/tgcparameters.py ${input}
     time python -u $s2wdir/lib/acolite/tgc2.py --acolite_path $s2wdir/lib/acolite --input ${resampled} --output . \
-           --glint_threshold 0.0 --scaling True --aot_min 0.1 --estimate False --grid_write True \
-           --grid_files ${base}-TGC-parameters.json --verbosity 2
+           --glint_threshold 0.0 --scaling True --aot_min 0.1 --process_high_sza False --estimate False \
+           --grid_write True --grid_files ${base}-TGC-parameters.json --verbosity 2
     if [ -e ${destriped} ]; then
         echo $destriped
     else

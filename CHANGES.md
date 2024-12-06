@@ -1,4 +1,4 @@
-## Version 0.5.0 (TBD)
+## Version 0.5.0 (2024-12-06)
 
 ### Fixes
 
@@ -6,6 +6,7 @@
 
 * Flag value OUT_OF_BOUNDS_SATURATED renamed to AC_OUT_OF_BOUNDS
 * TOA Glint Correction added
+* Switching made robust against missing bands in ACOLITE output due to low gas transmittance
 * Windows support (with single-threaded POLYMER)
 * Prepared for deployment as Sentinel Toolbox extension
 
