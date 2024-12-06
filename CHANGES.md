@@ -1,4 +1,10 @@
+## Version 0.6.0 (2024-12-06)
+
+Version for OPT-MPC verification
+
 ## Version 0.5.0 (2024-12-06)
+
+BC Development version
 
 ### Fixes
 

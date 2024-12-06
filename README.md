@@ -28,7 +28,7 @@ It will generate an output with the actual time stamp at the end of the file nam
 
 The runtime structure of the installation package is
 
-    sen2water-0.5
+    sen2water-0.6
     ├── bin
     │   ├── mys2w
     │   └── sen2water.sh
@@ -49,9 +49,19 @@ The runtime structure of the installation package is
 
 ## Installation
 
-Sen2Water can be installed as stand-alone data processor. It is composed of elements that are 
-downloaded from different sites and installed in an installation process. This makes sure that 
-the individual licenses are recognised during installation. Ancillary data is provided as a 
-separate package and installed either during installation or at runtime when needed.
+Sen2Water can be installed as stand-alone data processor or as tool
+extension module in SNAP.
 
+Ancillary data is provided as part of the package and installed either
+during installation or at runtime when needed.
 
+There is an installer for Linux and a zip for Windows. The Windows
+version is experimental because POLYMER does not support Windows
+out-of-the-box. It requires that the Microsoft C++ compiler runtime is
+installed.
+
+## Licences
+
+Licences of the different contributions are included in the package in
+the licenses sub-folder. Hygeos has granted the distribution of POLYMER
+with the stand-alone version of Sen2Water.
