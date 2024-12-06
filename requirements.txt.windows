@@ -9,6 +9,7 @@ dask-gateway=2024.1.0
 distributed=2024.2.0
 fsspec=2024.2.0
 gdal
+h5netcdf
 h5py
 libgdal-jp2openjpeg
 lxml

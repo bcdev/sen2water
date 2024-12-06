@@ -16,7 +16,7 @@ if %ERRORLEVEL% neq 0 (
     echo setting up environment ...
     set PYTHONPATH=%s2wdir%\lib\msiresampling
     set PATH=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64;%PATH%
-    set ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions
+    set ECCODES_DEFINITION_PATH="%s2wdir%\lib\conda\share\eccodes\definitions"
     call %s2wdir%\lib\conda\condabin\activate.bat
 )
 
@@ -316,7 +316,8 @@ if "!withtoolbox!" == "true" (
 for /f "tokens=* USEBACKQ" %%f in (`ncdump -h %s2w% ^| find ":id"`) do (
     set "fid=%%f"
 )
-set "newname=%fid:~7,-3%"
+#set "newname=%fid:~7,-3%" # netcdf4 instead of h5netcdf
+set "newname=%fid:~14,-3%"
 ren %s2w% %newname%
 
 if "!withtoolbox!" == "true" (
