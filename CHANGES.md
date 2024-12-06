@@ -2,11 +2,13 @@
 
 ### Fixes
 
+* s2wswitching main modified again to use different lib for writing than for reading to avoid sporadic deadlock
+* Switching made robust against missing bands in ACOLITE output due to low gas transmittance
+
 ### Enhancements
 
 * Flag value OUT_OF_BOUNDS_SATURATED renamed to AC_OUT_OF_BOUNDS
 * TOA Glint Correction added
-* Switching made robust against missing bands in ACOLITE output due to low gas transmittance
 * Windows support (with single-threaded POLYMER)
 * Prepared for deployment as Sentinel Toolbox extension
 
