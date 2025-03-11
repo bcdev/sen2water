@@ -1,9 +1,9 @@
 <operator>
-  <name>Sen2Water-000500</name>
+  <name>Sen2Water-000610</name>
   <operatorClass>org.esa.snap.core.gpf.operators.tooladapter.ToolAdapterOp</operatorClass>
-  <alias>Sen2Water-000500</alias>
+  <alias>Sen2Water-000610</alias>
   <label>Sen2Water Atmospheric Correction over ocean and inland water</label>
-  <version>0.5.0</version>
+  <version>0.6.1</version>
   <description>Atmospheric Correction over ocean and inland water, retrieves water-leaving reflectances</description>
   <authors>Brockmann Consult GmbH, developed for ESA OPT-MPC</authors>
   <copyright>Brockmann Consult GmbH, includes POLYMER (Hygeos), ACOLITE (RBINS), C2RCC, Idepix, msiresampling (BC)</copyright>
@@ -15,7 +15,7 @@
   <mainToolFileLocation>$S2WDIR/bin/$S2WSCRIPT</mainToolFileLocation>
   <workingDir>$HOME</workingDir>
   <template type="file">
-    <file>Sen2Water-000500-template.vm</file>
+    <file>Sen2Water-000610-template.vm</file>
   </template>
   <progressPattern>Progress\[%\]: (\d{1,3})\.(?:.+)</progressPattern>
   <variables>
@@ -37,10 +37,10 @@
     </osvariable>
     <osvariable>
       <key>S2WDIR</key>
-      <value>$HOME/.snap/auxdata/sen2water-0.5.0-linux</value>
+      <value>$HOME/.snap/auxdata/sen2water-0.6.1-linux</value>
       <isShared>false</isShared>
-      <windows>$HOME/.snap/auxdata/sen2water-0.5.0-win64</windows>
-      <linux>$HOME/.snap/auxdata/sen2water-0.5.0-linux</linux>
+      <windows>$HOME/.snap/auxdata/sen2water-0.6.1-win64</windows>
+      <linux>$HOME/.snap/auxdata/sen2water-0.6.1-linux</linux>
       <macosx></macosx>
       <isTransient>false</isTransient>
     </osvariable>
@@ -149,7 +149,7 @@
   <windowsBundle>
     <bundleType>ZIP</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.5.0-win64.zip</downloadURL>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.6.1-win64.zip</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -163,7 +163,7 @@
         <parameter>
           <name>target</name>
           <dataType>java.lang.String</dataType>
-          <defaultValue>$HOME\.snap\auxdata\sen2water-0.5.0-win64</defaultValue>
+          <defaultValue>$HOME\.snap\auxdata\sen2water-0.6.1-win64</defaultValue>
           <valueSet/>
           <notNull>false</notNull>
           <notEmpty>false</notEmpty>
@@ -176,13 +176,13 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$HOME/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-0.5.0-win64.zip</entryPoint>
+    <entryPoint>sen2water-0.6.1-win64.zip</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </windowsBundle>
   <linuxBundle>
     <bundleType>INSTALLER</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.5.0-linux.run</downloadURL>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.6.1-linux.run</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -209,7 +209,7 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$HOME/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-0.5.0-linux.run</entryPoint>
+    <entryPoint>sen2water-0.6.1-linux.run</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </linuxBundle>
   <macosxBundle>
