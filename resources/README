@@ -7,6 +7,7 @@ Sen2Water README
 2024-09-24 0.4.2 fixes after validation report (ante-meridian, C2RCC cloud risk thresholds)
 2024-11-24 0.5.0 sporadic deadlock in merging step avoided, S2C tested, TGC added, SNAP deployment prepared
 2024-12-06 0.6.0 version for verification
+2025-03-11 0.6.1 enhancements suggested during prototype final meeting
 
 This is the Sen2Water processor distributed to partners
 of the OPT-MPC Sen2Water project for verification. This version and its
@@ -51,11 +52,11 @@ Install this package and the corresponding auxiliary package on a
 Linux machine in the same folder.
 
 cd /some/software/folder/
-chmod 755 sen2water-0.6.0-linux.run
-./sen2water-0.6.0-linux.run
+chmod 755 sen2water-0.6.1-linux.run
+./sen2water-0.6.1-linux.run
 
 If the Copernicus 90m DEM tile for an input granule is not yet
-installed in the sen2water-0.6.0-linux/auxdata/dem/ folder it will be
+installed in the sen2water-0.6.1-linux/auxdata/dem/ folder it will be
 automatically downloaded. For this purpose the auxdata folder must be
 writeable by the user executing the processor.
 
@@ -63,10 +64,10 @@ To avoid automated download of the DEM a directory with the Copernicus
 DEM can be provided. It needs to be linked into sen2water-0.5/auxdata
 with the correct name:
 
-rm -r sen2water-0.6.0-linux/auxdata/dem/'Copernicus 90m Global DEM'
-ln -s /path/to/Copernicus90mGlobalDEM sen2water-0.6.0-linux/auxdata/dem/'Copernicus 90m Global DEM'
-#rm -r sen2water-0.6.0-linux/auxdata/'Copernicus 30m Global DEM'
-#ln -s /path/to/Copernicus30mGlobalDEM sen2water-0.6.0-linux/auxdata/dem/'Copernicus 30m Global DEM'
+rm -r sen2water-0.6.1-linux/auxdata/dem/'Copernicus 90m Global DEM'
+ln -s /path/to/Copernicus90mGlobalDEM sen2water-0.6.1-linux/auxdata/dem/'Copernicus 90m Global DEM'
+#rm -r sen2water-0.6.1-linux/auxdata/'Copernicus 30m Global DEM'
+#ln -s /path/to/Copernicus30mGlobalDEM sen2water-0.6.1-linux/auxdata/dem/'Copernicus 30m Global DEM'
 
 Create a working directory on a partition with space for input,
 intermediates, and output. Extract an input into this working
@@ -78,7 +79,7 @@ unzip S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.zip
 
 Set the shell environment and start the processor.
 
-. ../sen2water-0.6.0-linux/bin/mys2w
+. ../sen2water-0.6.1-linux/bin/mys2w
 sen2water.sh S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE
 
 The processor will run for about 10 minutes and generate an output file

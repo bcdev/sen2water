@@ -3,7 +3,7 @@
 set -e
 
 s2wdir=$(dirname $(dirname $(realpath $0)))
-echo "Sen2Water 0.6.0 ($s2wdir)"
+echo "Sen2Water 0.6.1 ($s2wdir)"
 
 if [ "$(which gpt)" != "$s2wdir/lib/snap/bin/gpt" ]; then
     echo "setting up environment ..."
@@ -65,6 +65,7 @@ if [ "$input" = "" ]; then
 fi
 
 # S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112.SAFE
+if [ ${input:(-1)} = "/" ]; then input=${input:0:(-1)}; fi
 if [[ "$input" =~ ".xml" ]]; then input=$(dirname $input); fi
 base=$(basename ${input%.SAFE})
 granule=${base:39:5}
@@ -112,7 +113,7 @@ if [ "$s2wdir" = "${wd:0:${#s2wdir}}" ]; then
     exit 1
 fi
 
-if ! ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .; then
+if ! ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so . 2> /dev/null; then
     cp ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .
 fi
 

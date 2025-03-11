@@ -1,3 +1,13 @@
+## Version 0.6.1 (2025-03-11)
+
+Version after Sen2Water prototype final meeting
+
+### Enhancements
+
+* Flag value CLEAR_LAND renamed to CLEAR_LAND_OR_VEGETATION 
+  to include pixels in ocean not recognised as clear water
+* Allow input specified as ...SAFE/ with slash at the end on the command line
+
 ## Version 0.6.0 (2024-12-06)
 
 Version for OPT-MPC verification

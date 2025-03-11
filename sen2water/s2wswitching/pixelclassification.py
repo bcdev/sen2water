@@ -91,7 +91,7 @@ val binary   zone (colour)
 
 valids for pixel_class:
 0=NO_DATA
-1=CLEAR_LAND
+1=CLEAR_LAND_OR_VEGETATION
 2=CLEAR_OCEAN_WATER
 3=CLEAR_INLAND_WATER
 4=SNOW_ICE
@@ -307,7 +307,7 @@ class PixelClassification(Operator):
             pixel_class_data,
             attrs={
                 "long_name": "Pixel classification flags",
-                "flag_meanings": "NO_DATA CLEAR_LAND CLEAR_OCEAN_WATER "
+                "flag_meanings": "NO_DATA CLEAR_LAND_OR_VEGETATION CLEAR_OCEAN_WATER "
                 + "CLEAR_INLAND_WATER SNOW_ICE CIRRUS CLOUD_OR_MOUNTAIN_SHADOW "
                 + "AMBIGUOUS_CLOUD CLOUD AC_OUT_OF_BOUNDS",
                 "flag_values": [

@@ -9,7 +9,7 @@ cd %~dp0..%
 set s2wdir=%cd%
 cd %wd1%
 
-echo "Sen2Water 0.6.0 (%s2wdir%)"
+echo Sen2Water 0.6.1 (%s2wdir%)
 
 where /q sen2water.bat > Nul
 if %ERRORLEVEL% neq 0 (
@@ -103,6 +103,9 @@ if "!input!" == "" (
 )
 
 :: S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112.SAFE
+if "!input:~-1!" == "/" (
+    set input=!input:~0,-1!"
+)
 if "!input:~-4!" == ".xml" (
     call :dirname "!input!" input
 )
@@ -112,6 +115,7 @@ if "%base0:~-5%" == ".SAFE" (
 ) else (
     set base=%base0%
 )
+set dummy=dummytoavoiderrormessage
 
 set granule=%base:~39,5%
 set zone=%base:~39,2%
