@@ -320,7 +320,7 @@ if "!withtoolbox!" == "true" (
 for /f "tokens=* USEBACKQ" %%f in (`ncdump -h %s2w% ^| find ":id"`) do (
     set "fid=%%f"
 )
-#set "newname=%fid:~7,-3%" # netcdf4 instead of h5netcdf
+:: set "newname=%fid:~7,-3%" # netcdf4 instead of h5netcdf
 set "newname=%fid:~14,-3%"
 ren %s2w% %newname%
 

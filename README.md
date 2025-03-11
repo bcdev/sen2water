@@ -19,7 +19,7 @@ The processor is called with
 
 e.g.
 
-    . /opt/sen2water-0.2/bin/mys2w
+    . /opt/sen2water-0.6.1-linux/bin/mys2w
     sen2water.sh S2A_MSIL1C_20230611T103631_N0509_R008_T32UME_20230611T142059.SAFE
 
 It will generate an output with the actual time stamp at the end of the file name:
@@ -28,7 +28,7 @@ It will generate an output with the actual time stamp at the end of the file nam
 
 The runtime structure of the installation package is
 
-    sen2water-0.6
+    sen2water-0.6.1-linux
     ├── bin
     │   ├── mys2w
     │   └── sen2water.sh
