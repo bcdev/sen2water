@@ -1,3 +1,7 @@
+# This is a collection of instructions used during development to compile
+# the installation package of Sen2Water. It is not a verified set of
+# instructions for users.
+
 # create directory tree
 # copy parts provided as resource
 # download java jdk

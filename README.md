@@ -60,6 +60,8 @@ version is experimental because POLYMER does not support Windows
 out-of-the-box. It requires that the Microsoft C++ compiler runtime is
 installed.
 
+The installers will be made available on an ESA website.
+
 ## Licences
 
 Licences of the different contributions are included in the package in
