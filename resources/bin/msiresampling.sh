@@ -2,6 +2,8 @@
 #set -x
 set -e
 
+# Linux script to run msiresampling to generate a Level 1 with homogeneous resolution
+
 s2wdir=$(dirname $(dirname $(realpath $0)))
 
 # check whether we modify the software directory

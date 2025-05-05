@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 
-"""Command line client of Sen2Water's switching processor that combines AC results into L2W"""
+"""
+Command line client of the msiresampling processor.
+msiresampling obeys detectors when interpolating viewing angles
+and interpolates atmospheric auxiliary data using the correct coarse grid.
+It uses dask threads for parallelisation and memory management.
+"""
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
-__license__ = "TBD"
-__version__ = "0.5"
+__license__ = "MIT"
+__version__ = "0.6"
 __email__ = "info@brockmann-consult.de"
-__status__ = "Development"
+__status__ = "Production"
 
 # changes in 1.1:
 # ...
-
-"""
-Open points
-- find out how to split a stacked map_blocks output to avoid repeated detector majority computation
-- check chunking parameter in some calls
-"""
 
 import sys
 import warnings

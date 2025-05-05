@@ -4,15 +4,15 @@
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
-__license__ = "TBD"
-__version__ = "0.5"
+__license__ = "MIT"
+__version__ = "0.6"
 __email__ = "info@brockmann-consult.de"
-__status__ = "Development"
+__status__ = "Production"
 
 # changes in 1.1:
 # ...
-import warnings
 
+import warnings
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
 

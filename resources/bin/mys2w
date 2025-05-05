@@ -1,4 +1,6 @@
-#
+# environment setup script of Sen2Water
+# can be sourced on Linux before sen2water.sh is called
+
 s2wdir=$(dirname $(dirname $(realpath $BASH_SOURCE)))
 
 export INSTALL4J_JAVA_HOME=${s2wdir}/lib/jre

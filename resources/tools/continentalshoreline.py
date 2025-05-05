@@ -1,4 +1,18 @@
-from glob import glob
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Converts GSHHS into the WorldCover raster"""
+
+__author__ = "Martin Böttcher, Brockmann Consult GmbH"
+__copyright__ = "Copyright 2023, Brockmann Consult GmbH"
+__license__ = "proprietary, TBD"
+__version__ = "0.6"
+__email__ = "info@brockmann-consult.de"
+__status__ = "Development"
+
+# changes in 1.1:
+# ...
+
 import json
 from pmonitor import PMonitor
 

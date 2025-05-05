@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-Tool to ...
-"""
+""" Control script to rasterize GlobalIslands"""
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2024, Brockmann Consult GmbH"

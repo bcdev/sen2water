@@ -4,10 +4,10 @@
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
-__license__ = "TBD"
-__version__ = "0.53"
+__license__ = "MIT"
+__version__ = "0.6"
 __email__ = "info@brockmann-consult.de"
-__status__ = "Development"
+__status__ = "Production"
 
 # changes in 0.51:
 # separate to_netcdf from computation of statistics, attempt to avoid infinite run of compute
@@ -15,6 +15,8 @@ __status__ = "Development"
 # use h5netcdf engine for writing to avoid deadlock with reading in netcdf4
 # changes in 0.53
 # add dummy band to acolite in case a band is missing
+# changes in 0.6
+# license header
 
 import sys
 import traceback

@@ -4,13 +4,15 @@
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
-__license__ = "TBD"
-__version__ = "0.51"
+__license__ = "MIT"
+__version__ = "0.6"
 __email__ = "info@brockmann-consult.de"
-__status__ = "Development"
+__status__ = "Production"
 
 # changes in 0.51:
 # remove statistics attribute, there are individual ones
+# changes in 0.6
+# license header
 
 import uuid
 import re

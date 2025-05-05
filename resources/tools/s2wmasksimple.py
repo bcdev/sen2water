@@ -1,4 +1,17 @@
-#!/data/opt/miniforge3/envs/xcube/bin/python -u
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Generate Sen2Water mask from HROC mask"""
+
+__author__ = "Martin Böttcher, Brockmann Consult GmbH"
+__copyright__ = "Copyright 2023, Brockmann Consult GmbH"
+__license__ = "proprietary, TBD"
+__version__ = "0.6"
+__email__ = "info@brockmann-consult.de"
+__status__ = "Development"
+
+# changes in 1.1:
+# ...
 
 """
 ssh boe@cate

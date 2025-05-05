@@ -4,13 +4,16 @@
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
-__license__ = "TBD"
-__version__ = "0.51"
+__license__ = "MIT"
+__version__ = "0.6"
 __email__ = "info@brockmann-consult.de"
-__status__ = "Development"
+__status__ = "Production"
 
 # changes in 0.51:
-# add parameters scale_factor and add_offset and apply before comparing against thresholds, fixes misclassification of
+# add parameters scale_factor and add_offset and apply before comparing against thresholds, fixes misclassification
+# changes in 0.6
+# license header
+
 import warnings
 
 import xarray as xr
