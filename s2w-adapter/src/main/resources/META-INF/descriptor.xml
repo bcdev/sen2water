@@ -1,0 +1,228 @@
+<operator>
+  <name>Sen2Water</name>
+  <operatorClass>org.esa.snap.core.gpf.operators.tooladapter.ToolAdapterOp</operatorClass>
+  <alias>Sen2Water</alias>
+  <label>Sen2Water Atmospheric Correction over ocean and inland water</label>
+  <version>${project.version}</version>
+  <description>${project.description}</description>
+  <authors>Brockmann Consult GmbH, developed for ESA OPT-MPC</authors>
+  <copyright>Brockmann Consult GmbH (C2RCC, Idepix, msiresampling, sen2water wrapper), Hygeos (POLYMER), RBINS (ACOLITE)</copyright>
+  <helpID>s2w_overview</helpID>
+  <internal>false</internal>
+  <autoWriteSuppressed>false</autoWriteSuppressed>
+  <menuLocation>Menu/Optical/Thematic Water Processing</menuLocation>
+  <preprocessTool>false</preprocessTool>
+  <writeForProcessing>false</writeForProcessing>
+  <mainToolFileLocation>$S2WDIR/bin/$S2WSCRIPT</mainToolFileLocation>
+  <workingDir>$HOME</workingDir>
+  <template type="file">
+    <file>Sen2Water-template.vm</file>
+  </template>
+  <progressPattern>Progress\[%\]: (\d{1,3})\.(?:.+)</progressPattern>
+  <variables>
+    <osvariable>
+      <key>HOME</key>
+      <value/>
+      <isShared>false</isShared>
+      <windows>$HOME</windows>
+      <linux>$HOME</linux>
+      <isTransient>false</isTransient>
+    </osvariable>
+    <osvariable>
+      <key>TEMP</key>
+      <value>/tmp</value>
+      <isShared>false</isShared>
+      <windows>$HOME\appdata\local\temp</windows>
+      <linux>/tmp</linux>
+      <isTransient>false</isTransient>
+    </osvariable>
+    <osvariable>
+      <key>S2WDIR</key>
+      <value>$HOME/.snap/auxdata/sen2water-0.6.1-linux</value>
+      <isShared>false</isShared>
+      <windows>$HOME/.snap/auxdata/sen2water-0.6.1-win64</windows>
+      <linux>$HOME/.snap/auxdata/sen2water-0.6.1-linux</linux>
+      <isTransient>false</isTransient>
+    </osvariable>
+    <osvariable>
+      <key>S2WSCRIPT</key>
+      <value>sen2water.sh</value>
+      <isShared>false</isShared>
+      <windows>sen2water.bat</windows>
+      <linux>sen2water.sh</linux>
+      <isTransient>false</isTransient>
+    </osvariable>
+  </variables>
+  <parameters>
+    <parameter>
+      <name>outputdir</name>
+      <alias>&lt;html&gt;&lt;body&gt;Output directory:&lt;br&gt;(If not specified,&lt;br&gt;the input product&lt;br&gt;location is used)&lt;/body&gt;&lt;/html&gt;</alias>
+      <dataType>java.io.File</dataType>
+      <defaultValue/>
+      <description>Output directory</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>FolderParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>withoutcleanup</name>
+      <dataType>java.lang.Boolean</dataType>
+      <description>Optionally preserves intermediate files</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>withdetfoofilter</name>
+      <dataType>java.lang.Boolean</dataType>
+      <description>Optionally sets pixels with mixed detector contributions to invalid</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>withouttgc</name>
+      <dataType>java.lang.Boolean</dataType>
+      <description>Optionally switches off TOA Glint Correction</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>dem</name>
+      <dataType>java.lang.String</dataType>
+      <defaultValue>Copernicus 90m Global DEM</defaultValue>
+      <description>Name of DEM collection, Copernicus 90m Global DEM or Copernicus 30m Global DEM</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>acoliteanc</name>
+      <dataType>java.lang.String</dataType>
+      <defaultValue>embedded</defaultValue>
+      <description>Name of ancillary data for ACOLITE, embedded or constant</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>c2rccanc</name>
+      <dataType>java.lang.String</dataType>
+      <defaultValue>constant</defaultValue>
+      <description>Name of ancillary data for C2RCC, constant or embedded</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>polymeranc</name>
+      <dataType>java.lang.String</dataType>
+      <defaultValue>embedded</defaultValue>
+      <description>Name of ancillary data for POLYMER, embedded or nasa</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+    <parameter>
+      <name>targetProductFile</name>
+      <dataType>java.io.File</dataType>
+      <defaultValue>$TEMP/s2w-output</defaultValue>
+      <description>Output file</description>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <parameterType>RegularParameter</parameterType>
+    </parameter>
+  </parameters>
+  <source>user</source>
+  <isSystem>false</isSystem>
+  <isHandlingOutputName>true</isHandlingOutputName>
+  <windowsBundle>
+    <bundleType>ZIP</bundleType>
+    <bundleLocation>REMOTE</bundleLocation>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.6.1-win64.zip</downloadURL>
+    <templateparameter>
+      <name>arguments</name>
+      <dataType>java.io.File</dataType>
+      <defaultValue>Command Template</defaultValue>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <deprecated>false</deprecated>
+      <parameterType>TemplateParameter</parameterType>
+      <parameters>
+        <parameter>
+          <name>target</name>
+          <dataType>java.lang.String</dataType>
+          <defaultValue>$HOME\.snap\auxdata\sen2water-0.6.1-win64</defaultValue>
+          <valueSet/>
+          <notNull>false</notNull>
+          <notEmpty>false</notEmpty>
+          <parameterType>RegularParameter</parameterType>
+        </parameter>
+      </parameters>
+      <template type="simple">
+        <contents/>
+      </template>
+      <outputFile>Command Template</outputFile>
+    </templateparameter>
+    <targetLocation>$HOME/.snap/auxdata</targetLocation>
+    <entryPoint>sen2water-0.6.1-win64.zip</entryPoint>
+    <updateVariable>S2WDIR</updateVariable>
+  </windowsBundle>
+  <linuxBundle>
+    <bundleType>INSTALLER</bundleType>
+    <bundleLocation>REMOTE</bundleLocation>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.6.1-linux.run</downloadURL>
+    <templateparameter>
+      <name>arguments</name>
+      <dataType>java.io.File</dataType>
+      <defaultValue>Command Template</defaultValue>
+      <valueSet/>
+      <notNull>false</notNull>
+      <notEmpty>false</notEmpty>
+      <deprecated>false</deprecated>
+      <parameterType>TemplateParameter</parameterType>
+      <parameters>
+        <parameter>
+          <name>targetLocation</name>
+          <dataType>java.lang.String</dataType>
+          <defaultValue>$HOME/.snap/auxdata</defaultValue>
+          <valueSet/>
+          <notNull>false</notNull>
+          <notEmpty>false</notEmpty>
+          <parameterType>RegularParameter</parameterType>
+        </parameter>
+      </parameters>
+      <template type="simple">
+        <contents>--keep</contents>
+      </template>
+      <outputFile>Command Template</outputFile>
+    </templateparameter>
+    <targetLocation>$HOME/.snap/auxdata</targetLocation>
+    <entryPoint>sen2water-0.6.1-linux.run</entryPoint>
+    <updateVariable>S2WDIR</updateVariable>
+  </linuxBundle>
+  <macosxBundle>
+    <bundleType>NONE</bundleType>
+    <bundleLocation>REMOTE</bundleLocation>
+    <updateVariable>S2WDIR</updateVariable>
+  </macosxBundle>
+  <sourceProductDescriptors>
+    <org.esa.snap.core.gpf.descriptor.SimpleSourceProductDescriptor>
+      <name>sourceProduct</name>
+    </org.esa.snap.core.gpf.descriptor.SimpleSourceProductDescriptor>
+  </sourceProductDescriptors>
+  <targetPropertyDescriptors/>
+  <numSourceProducts>1</numSourceProducts>
+  <templateType>VELOCITY</templateType>
+</operator>

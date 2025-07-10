@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Specification-Version: ${project.nbmVersion}
+OpenIDE-Module-Implementation-Version: ${project.nbmVersion}
+OpenIDE-Module-Name: Sen2Water Processor
+OpenIDE-Module-Display-Category: SNAP Supported Plugins
+OpenIDE-Module-Java-Dependencies: Java > ${jvm.version}
+OpenIDE-Module-Type: STA
+OpenIDE-Module-Alias: Sen2Water
