@@ -28,6 +28,7 @@ set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
 set "PYTHONPATH=%s2wdir%\lib\msiresampling"
 call %s2wdir%\lib\conda\condabin\activate.bat
 
+set "GPTPATH=%s2wdir%\lib\snap\bin"
 
 :: parse parameters
 set input=
@@ -255,7 +256,7 @@ if "!chunksize!" == "" (
 
 :: -J-Xmx6G -Dsnap.userdir=%s2wdir% -Dsnap.cachedir=%cd%\.snap\var -Dsnap.log.level=ERROR
 
-call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
+call %GPTPATH%\gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
     -c 4096M -q 4 -e ^
     %s2wdir%\etc\idepix-graph.xml -Pdem=!dem! !destriped! ^
     -t %idepix% -f NetCDF4-BEAM
@@ -274,7 +275,7 @@ if "!c2rccanc!" == "embedded" (
 ) else (
     set useEcmwfAuxData=false
 )
-call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
+call %GPTPATH%\gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
     -c 4096M -q 4 -e ^
     %s2wdir%\etc\c2rcc-graph.xml -Pdem=!dem! -PuseEcmwfAuxData=!useEcmwfAuxData! !destriped! ^
     -t %c2rcc% -f NetCDF4-BEAM
@@ -288,7 +289,7 @@ if "!withtoolbox!" == "true" (
     echo POLYMER atmospheric correction ...
 )
 
-call gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
+call %GPTPATH%\gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
    -c 4096M -q 4 -e ^
    %s2wdir%\etc\polymer-mask-graph.xml %idepix% ^
    -t %cloudmask% -f NetCDF4-BEAM
