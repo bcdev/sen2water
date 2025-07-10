@@ -15,7 +15,7 @@ where /q sen2water.bat > Nul
 if %ERRORLEVEL% neq 0 (
     echo setting up environment ...
     set PYTHONPATH=%s2wdir%\lib\msiresampling
-    set PATH=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64;%PATH%
+    setx PATH %s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64;%PATH%"
     set ECCODES_DEFINITION_PATH="%s2wdir%\lib\conda\share\eccodes\definitions"
     call %s2wdir%\lib\conda\condabin\activate.bat
 )
