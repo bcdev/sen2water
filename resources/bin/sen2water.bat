@@ -11,14 +11,23 @@ cd %wd1%
 
 echo Sen2Water 0.6.1 (%s2wdir%)
 
-where /q sen2water.bat > Nul
-if %ERRORLEVEL% neq 0 (
-    echo setting up environment ...
-    set PYTHONPATH=%s2wdir%\lib\msiresampling
-    setx PATH %s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64;%PATH%"
-    set ECCODES_DEFINITION_PATH="%s2wdir%\lib\conda\share\eccodes\definitions"
-    call %s2wdir%\lib\conda\condabin\activate.bat
+:: check if the bin folder is already in the PATH?
+set "s2wPath=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64"
+echo %PATH% | find /I "%s2wdir%\bin" >nul
+if errorlevel 1 (
+    echo Setting up environment, extending the PATH
+    REM Not found, so extend the user PATH
+    setx PATH "%s2wPath%;%PATH%"
+) else (
+    echo PATH already contains entries, skipping update.
 )
+
+set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
+
+:: echo Activating Conda environment ...
+set "PYTHONPATH=%s2wdir%\lib\msiresampling"
+call %s2wdir%\lib\conda\condabin\activate.bat
+
 
 :: parse parameters
 set input=
@@ -156,7 +165,7 @@ if "!withtoolbox!" == "true" (
 echo working directory !outputdir!
 
 :: check whether we modify the software directory
-echo.%cd% | find "%s2wdir%" > Nul && ( 
+echo.%cd% | find "%s2wdir%" > Nul && (
     echo "%~f0%" must not be started from within software dir "%s2wdir%"
     echo cd to some working directory outside the software installation, please
     exit /b 1
@@ -332,7 +341,7 @@ if "!withtoolbox!" == "true" (
 
 if not "!withoutcleanup!" == "true" (
     del %resampled% %idepix% %c2rcc% %acolite% %acolite:L2R=L1R% %polymer:polymer=mask% %polymer%
-    del %base%-TGC-parameters.json !destriped! 
+    del %base%-TGC-parameters.json !destriped!
     del acolite_run*txt %base%-acolite.log acolite.parameters polymer.parameters
 )
 
