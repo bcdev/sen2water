@@ -97,9 +97,9 @@ if "%1" NEQ "" (
 )
 
 if "!input!" == "" (
-    echo "sen2water.sh <options> <l1cpath>"
+    echo "sen2water.bat <options> <l1cpath>"
     echo "e.g."
-    echo "sen2water.sh S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE"
+    echo "sen2water.bat S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE"
     echo "options"
     echo "--c2rccanc embedded | constant"
     echo "--acoliteanc embedded | constant"
