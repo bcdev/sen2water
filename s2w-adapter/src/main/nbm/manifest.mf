@@ -7,9 +7,8 @@ OpenIDE-Module-Java-Dependencies: Java > ${jvm.version}
 OpenIDE-Module-Type: STA
 OpenIDE-Module-Alias: Sen2Water
 OpenIDE-Module-Long-Description: <p>${project.description}</p>
- <p><b>Vendor:</b> Brockmann Consult GmbH</p>
- <p><b>Contact address:</b> Chrysanderstr. 1, 21029 Hamburg (Germany)</p>
- <p><b>Copyright:</b> (C) 2025 by Brockmann Consult GmbH</p>
- <p><b>Vendor:</b> Brockmann Consult GmbH</p>
- <p><b>License of Sen2Water adapter:</b> https://opensource.org/license/gpl-3-0</p>
- <p><b>License of Sen2Water processor:</b> https://opensource.org/license/MIT</p>
+ <p><b>Vendor:</b> <a href="https://www.brockmann-consult.de">Brockmann Consult GmbH</a><br>
+ <b>Contact address:</b> Chrysanderstr. 1, 21029 Hamburg (Germany)<br>
+ <b>Copyright:</b> (C) 2025 by Brockmann Consult GmbH<br>
+ <b>License of Sen2Water adapter:</b> <a href="https://opensource.org/license/gpl-3-0">GPLv3</a><br>
+ <b>License of Sen2Water processor:</b> <a href="https://opensource.org/license/MIT">MIT</a></p>
