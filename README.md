@@ -62,8 +62,12 @@ installed.
 
 The installers will be made available on an ESA website.
 
-## Licences
+## Licenses
+### Sen2Water Code
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Licences of the different contributions are included in the package in
-the licenses sub-folder. Hygeos has granted the distribution of POLYMER
-with the stand-alone version of Sen2Water.
+### Third-Party Components
+The distributed package includes several third-party components, each with their own license.
+All component licenses are included in the `licenses/` subfolder of the distribution package.
+Hygeos has granted the distribution of POLYMER with the stand-alone version of Sen2Water.
+All licenses apply.
