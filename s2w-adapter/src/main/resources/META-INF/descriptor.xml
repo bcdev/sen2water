@@ -150,31 +150,12 @@
     <bundleLocation>REMOTE</bundleLocation>
     <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${sen2water.bundle.version}-win64_patched.zip</downloadURL>
     <templateparameter>
-      <name>arguments</name>
-      <dataType>java.io.File</dataType>
-      <defaultValue>Command Template</defaultValue>
-      <valueSet/>
-      <notNull>false</notNull>
-      <notEmpty>false</notEmpty>
-      <deprecated>false</deprecated>
-      <parameterType>TemplateParameter</parameterType>
-      <parameters>
-        <parameter>
-          <name>target</name>
-          <dataType>java.lang.String</dataType>
-          <defaultValue>$HOME\.snap\auxdata\sen2water-${sen2water.bundle.version}-win64</defaultValue>
-          <valueSet/>
-          <notNull>false</notNull>
-          <notEmpty>false</notEmpty>
-          <parameterType>RegularParameter</parameterType>
-        </parameter>
-      </parameters>
       <template type="simple">
         <contents/>
       </template>
       <outputFile>Command Template</outputFile>
     </templateparameter>
-    <targetLocation>$HOME/.snap/auxdata</targetLocation>
+    <targetLocation>$USERPROFILE/.snap/auxdata</targetLocation>
     <entryPoint>sen2water-${sen2water.bundle.version}-win64.zip</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </windowsBundle>
@@ -186,7 +167,6 @@
       <name>arguments</name>
       <dataType>java.io.File</dataType>
       <defaultValue>Command Template</defaultValue>
-      <valueSet/>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <deprecated>false</deprecated>
@@ -194,9 +174,8 @@
       <parameters>
         <parameter>
           <name>targetLocation</name>
-          <dataType>java.lang.String</dataType>
-          <defaultValue>$HOME/.snap/auxdata</defaultValue>
-          <valueSet/>
+          <dataType>java.io.File</dataType>
+          <defaultValue>$USERPROFILE/.snap/auxdata</defaultValue>
           <notNull>false</notNull>
           <notEmpty>false</notEmpty>
           <parameterType>RegularParameter</parameterType>
@@ -207,7 +186,7 @@
       </template>
       <outputFile>Command Template</outputFile>
     </templateparameter>
-    <targetLocation>$HOME/.snap/auxdata</targetLocation>
+    <targetLocation>$USERPROFILE/.snap/auxdata</targetLocation>
     <entryPoint>sen2water-${sen2water.bundle.version}-linux.run</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </linuxBundle>
