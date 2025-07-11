@@ -13,6 +13,7 @@
   <description>Sen2Water performs pixel identification and atmospheric correction over ocean and inland water for Sentinel-2 data</description>
 
   <properties>
+    <sen2water.bundle.version>0.6.1</sen2water.bundle.version>
     <snap.version>12.0.1</snap.version>
     <snap-help-system.version>1.0.2</snap-help-system.version>
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>

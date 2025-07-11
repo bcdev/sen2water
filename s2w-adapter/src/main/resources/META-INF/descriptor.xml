@@ -38,10 +38,10 @@
     </osvariable>
     <osvariable>
       <key>S2WDIR</key>
-      <value>$HOME/.snap/auxdata/sen2water-0.6.1-linux</value>
+      <value>$HOME/.snap/auxdata/sen2water-${sen2water.bundle.version}-linux</value>
       <isShared>false</isShared>
-      <windows>$HOME/.snap/auxdata/sen2water-0.6.1-win64</windows>
-      <linux>$HOME/.snap/auxdata/sen2water-0.6.1-linux</linux>
+      <windows>$HOME/.snap/auxdata/sen2water-${sen2water.bundle.version}-win64</windows>
+      <linux>$HOME/.snap/auxdata/sen2water-${sen2water.bundle.version}-linux</linux>
       <isTransient>false</isTransient>
     </osvariable>
     <osvariable>
@@ -56,10 +56,9 @@
   <parameters>
     <parameter>
       <name>outputdir</name>
-      <alias>&lt;html&gt;&lt;body&gt;Output directory:&lt;br&gt;(If not specified,&lt;br&gt;the input product&lt;br&gt;location is used)&lt;/body&gt;&lt;/html&gt;</alias>
       <dataType>java.io.File</dataType>
       <defaultValue/>
-      <description>Output directory</description>
+      <description>Output directory (If not specified, the input product location is used)</description>
       <valueSet/>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
@@ -149,7 +148,7 @@
   <windowsBundle>
     <bundleType>ZIP</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.6.1-win64.zip</downloadURL>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${sen2water.bundle.version}-win64.zip</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -163,7 +162,7 @@
         <parameter>
           <name>target</name>
           <dataType>java.lang.String</dataType>
-          <defaultValue>$HOME\.snap\auxdata\sen2water-0.6.1-win64</defaultValue>
+          <defaultValue>$HOME\.snap\auxdata\sen2water-${sen2water.bundle.version}-win64</defaultValue>
           <valueSet/>
           <notNull>false</notNull>
           <notEmpty>false</notEmpty>
@@ -176,13 +175,13 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$HOME/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-0.6.1-win64.zip</entryPoint>
+    <entryPoint>sen2water-${sen2water.bundle.version}-win64.zip</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </windowsBundle>
   <linuxBundle>
     <bundleType>INSTALLER</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-0.6.1-linux.run</downloadURL>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${sen2water.bundle.version}-linux.run</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -209,7 +208,7 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$HOME/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-0.6.1-linux.run</entryPoint>
+    <entryPoint>sen2water-${sen2water.bundle.version}-linux.run</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </linuxBundle>
   <macosxBundle>
