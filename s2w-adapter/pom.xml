@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>sen2water-adapter</artifactId>
+  <groupId>eu.esa.opt</groupId>
+  <version>0.6.2</version>
+  <packaging>nbm</packaging>
+
+  <name>Sen2Water Tool Adapter for SNAP</name>
+  <description>Sen2Water performs pixel identification and atmospheric correction over ocean and inland water for Sentinel-2 data</description>
+
+  <properties>
+    <snap.version>12.0.1</snap.version>
+    <snap-help-system.version>1.0.2</snap-help-system.version>
+    <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+    <buildDate>${maven.build.timestamp}</buildDate>
+    <jvm.version>21</jvm.version>
+    <javahelp.version>2.0.05</javahelp.version>
+    <encoding>UTF-8</encoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.esa.snap</groupId>
+      <artifactId>snap-sta</artifactId>
+      <version>${snap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.esa.snap</groupId>
+      <artifactId>snap-sta-ui</artifactId>
+      <version>${snap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.esa.snap</groupId>
+      <artifactId>snap-rcp</artifactId>
+      <version>${snap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>eu.esa.snap.netbeans</groupId>
+      <artifactId>snap-help-system</artifactId>
+      <version>${snap-help-system.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <configuration>
+          <encoding>${encoding}</encoding>
+        </configuration>
+        <executions>
+          <execution>
+            <id>file-manifest</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/nbm</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/nbm</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>manifest.mf</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>file-descriptor</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/classes/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/resources/META-INF</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>descriptor.xml</include>
+                  </includes>
+                </resource>
+
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.netbeans.utilities</groupId>
+        <artifactId>nbm-maven-plugin</artifactId>
+        <version>14.0</version>
+        <extensions>true</extensions>
+        <dependencies>
+          <dependency>
+            <groupId>javax.help</groupId>
+            <artifactId>javahelp</artifactId>
+            <version>${javahelp.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <verifyRuntime>false</verifyRuntime>
+          <homePageUrl>https://github.com/bcdev/sen2water</homePageUrl>
+          <moduleType>normal</moduleType>
+          <licenseName>GPL 3</licenseName>
+          <licenseFile>LICENSE.html</licenseFile>
+          <cluster>opttbx</cluster>
+          <defaultCluster>opttbx</defaultCluster>
+          <brandingToken>opttbx</brandingToken>
+          <useOSGiDependencies>false</useOSGiDependencies>
+          <requiresRestart>true</requiresRestart>
+          <keystore>keystore/opttbx.ks</keystore>
+          <keystorealias>snap</keystorealias>
+          <keystorepassword>snap-123</keystorepassword>
+          <sourceManifestFile>target/nbm/manifest.mf</sourceManifestFile>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <source>${jvm.version}</source>
+          <target>${jvm.version}</target>
+          <debug>true</debug>
+          <encoding>${encoding}</encoding>
+          <excludes>
+            <exclude>.gitignore</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>create-nbmVersion</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>project.nbmVersion</name>
+              <value>${project.version}</value>
+              <regex>(-SNAPSHOT)|(-rc[0-9]+)</regex>
+              <replacement>.0</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+
+  <repositories>
+    <repository>
+      <id>snap-repo-public</id>
+      <name>Public Maven Repository for SNAP</name>
+      <url>https://nexus.snap-ci.ovh/repository/snap-maven-public/</url>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>snap-repo-public</id>
+      <name>Public Maven Repository for SNAP</name>
+      <url>https://nexus.snap-ci.ovh/repository/snap-maven-public/</url>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+</project>
