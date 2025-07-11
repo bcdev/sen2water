@@ -108,15 +108,12 @@
           </dependency>
         </dependencies>
         <configuration>
-          <verifyRuntime>false</verifyRuntime>
           <homePageUrl>https://github.com/bcdev/sen2water</homePageUrl>
-          <moduleType>normal</moduleType>
           <licenseName>GPL 3</licenseName>
           <licenseFile>LICENSE.html</licenseFile>
           <cluster>opttbx</cluster>
           <defaultCluster>opttbx</defaultCluster>
           <brandingToken>opttbx</brandingToken>
-          <useOSGiDependencies>false</useOSGiDependencies>
           <requiresRestart>true</requiresRestart>
           <keystore>keystore/opttbx.ks</keystore>
           <keystorealias>snap</keystorealias>
