@@ -24,21 +24,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.esa.snap</groupId>
-      <artifactId>snap-sta</artifactId>
-      <version>${snap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.esa.snap</groupId>
-      <artifactId>snap-sta-ui</artifactId>
-      <version>${snap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.esa.snap</groupId>
-      <artifactId>snap-rcp</artifactId>
-      <version>${snap.version}</version>
-    </dependency>
-    <dependency>
       <groupId>eu.esa.snap.netbeans</groupId>
       <artifactId>snap-help-system</artifactId>
       <version>${snap-help-system.version}</version>
