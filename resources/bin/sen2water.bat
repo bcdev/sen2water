@@ -17,7 +17,7 @@ echo %PATH% | find /I "%s2wdir%\bin" >nul
 if errorlevel 1 (
     echo Setting up environment, extending the PATH
     REM Not found, so extend the user PATH
-    setx PATH "%s2wPath%;%PATH%"
+    set "PATH=%s2wPath%;%PATH%"
 ) else (
     echo PATH already contains entries, skipping update.
 )
