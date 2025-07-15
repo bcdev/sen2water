@@ -6,14 +6,13 @@
 
   <artifactId>sen2water-adapter</artifactId>
   <groupId>eu.esa.opt</groupId>
-  <version>0.6.2</version>
+  <version>0.6.1</version>
   <packaging>nbm</packaging>
 
   <name>Sen2Water Tool Adapter for SNAP</name>
   <description>Sen2Water performs pixel identification and atmospheric correction over ocean and inland water for Sentinel-2 data</description>
 
   <properties>
-    <sen2water.bundle.version>0.6.1</sen2water.bundle.version>
     <snap.version>12.0.0</snap.version>
     <snap-help-system.version>1.0.2</snap-help-system.version>
     <jvm.version>21</jvm.version>

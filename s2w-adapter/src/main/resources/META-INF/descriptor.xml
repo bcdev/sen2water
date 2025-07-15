@@ -1,7 +1,7 @@
 <operator>
-  <name>Sen2Water</name>
+  <name>Sen2Water-${project.version}</name>
   <operatorClass>org.esa.snap.core.gpf.operators.tooladapter.ToolAdapterOp</operatorClass>
-  <alias>Sen2Water</alias>
+  <alias>Sen2Water-${project.version}</alias>
   <label>Sen2Water Atmospheric Correction over ocean and inland water</label>
   <version>${project.version}</version>
   <description>${project.description}</description>
@@ -39,10 +39,10 @@
 
     <osvariable>
       <key>S2WDIR</key>
-      <value>$USERPROFILE/.snap/auxdata/sen2water-${sen2water.bundle.version}-linux</value>
+      <value>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-linux</value>
       <isShared>false</isShared>
-      <windows>$USERPROFILE/.snap/auxdata/sen2water-${sen2water.bundle.version}-win64_patched</windows>
-      <linux>$USERPROFILE/.snap/auxdata/sen2water-${sen2water.bundle.version}-linux</linux>
+      <windows>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-win64_patched</windows>
+      <linux>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-linux</linux>
       <isTransient>false</isTransient>
     </osvariable>
     <osvariable>
@@ -157,7 +157,7 @@
   <windowsBundle>
     <bundleType>ZIP</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${sen2water.bundle.version}-win64_patched.zip</downloadURL>
+    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${project.version}-win64_patched.zip</downloadURL>
     <templateparameter>
       <template type="simple">
         <contents/>
@@ -165,13 +165,13 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$USERPROFILE/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-${sen2water.bundle.version}-win64_patched.zip</entryPoint>
+    <entryPoint>sen2water-${project.version}-win64_patched.zip</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </windowsBundle>
   <linuxBundle>
     <bundleType>INSTALLER</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${sen2water.bundle.version}-linux.run</downloadURL>
+    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${project.version}-linux.run</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
@@ -196,7 +196,7 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$USERPROFILE/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-${sen2water.bundle.version}-linux.run</entryPoint>
+    <entryPoint>sen2water-${project.version}-linux.run</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </linuxBundle>
   <macosxBundle>
