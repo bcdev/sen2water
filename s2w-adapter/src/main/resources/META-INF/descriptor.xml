@@ -106,6 +106,10 @@
       <dataType>java.lang.String</dataType>
       <defaultValue>embedded</defaultValue>
       <description>Name of ancillary data for ACOLITE, embedded or constant</description>
+      <valueSet>
+        <string>embedded</string>
+        <string>constant</string>
+      </valueSet>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
@@ -116,6 +120,10 @@
       <defaultValue>constant</defaultValue>
       <description>Name of ancillary data for C2RCC, constant or embedded</description>
       <notNull>false</notNull>
+      <valueSet>
+        <string>embedded</string>
+        <string>constant</string>
+      </valueSet>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
     </parameter>
@@ -124,6 +132,11 @@
       <dataType>java.lang.String</dataType>
       <defaultValue>embedded</defaultValue>
       <description>Name of ancillary data for POLYMER, embedded or nasa</description>
+      <valueSet>
+        <string>embedded</string>
+        <string>nasa</string>
+        <string>constant</string>
+      </valueSet>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
