@@ -256,9 +256,7 @@ if "!chunksize!" == "" (
 
 :: -J-Xmx6G -Dsnap.userdir=%s2wdir% -Dsnap.cachedir=%cd%\.snap\var -Dsnap.log.level=ERROR
 
-call %GPTPATH%\gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
-    -J-Duser.home=%s2wdir%\temp ^
-    -c 4096M -q 4 -e ^
+call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
     %s2wdir%\etc\idepix-graph.xml -Pdem=!dem! !destriped! ^
     -t %idepix% -f NetCDF4-BEAM
 
@@ -276,9 +274,7 @@ if "!c2rccanc!" == "embedded" (
 ) else (
     set useEcmwfAuxData=false
 )
-call %GPTPATH%\gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
-    -J-Duser.home=%s2wdir%\temp ^
-    -c 4096M -q 4 -e ^
+call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
     %s2wdir%\etc\c2rcc-graph.xml -Pdem=!dem! -PuseEcmwfAuxData=!useEcmwfAuxData! !destriped! ^
     -t %c2rcc% -f NetCDF4-BEAM
 
@@ -291,9 +287,7 @@ if "!withtoolbox!" == "true" (
     echo POLYMER atmospheric correction ...
 )
 
-call %GPTPATH%\gpt.bat -Dsnap.dataio.reader.tileHeight=%blocksize% -Dsnap.dataio.reader.tileWidth=%blocksize% ^
-    -J-Duser.home=%s2wdir%\temp ^
-    -c 4096M -q 4 -e ^
+call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
     %s2wdir%\etc\polymer-mask-graph.xml %idepix% ^
     -t %cloudmask% -f NetCDF4-BEAM
 
