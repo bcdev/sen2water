@@ -15,7 +15,7 @@
   <preprocessTool>false</preprocessTool>
   <writeForProcessing>false</writeForProcessing>
   <mainToolFileLocation>$S2WDIR/bin/$S2WSCRIPT</mainToolFileLocation>
-  <workingDir>$USERPROFILE\s2w_wd</workingDir>
+  <workingDir>$USERPROFILE</workingDir>
   <template type="file">
     <file>Sen2Water-template.vm</file>
   </template>
