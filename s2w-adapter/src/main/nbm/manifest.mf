@@ -5,7 +5,7 @@ OpenIDE-Module-Name: Sen2Water Processor
 OpenIDE-Module-Display-Category: SNAP Supported Plugins
 OpenIDE-Module-Java-Dependencies: Java > ${jvm.version}
 OpenIDE-Module-Type: STA
-OpenIDE-Module-Alias: Sen2Water
+OpenIDE-Module-Alias: Sen2Water-${project.version}
 OpenIDE-Module-Long-Description: <p>${project.description}</p>
  <p><b>Vendor:</b> <a href="https://www.brockmann-consult.de">Brockmann Consult GmbH</a><br>
  <b>Contact address:</b> Chrysanderstr. 1, 21029 Hamburg (Germany)<br>

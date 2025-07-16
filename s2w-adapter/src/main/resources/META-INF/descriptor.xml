@@ -1,6 +1,7 @@
 <operator>
   <name>Sen2Water-${project.version}</name>
   <operatorClass>org.esa.snap.core.gpf.operators.tooladapter.ToolAdapterOp</operatorClass>
+  <!-- This alias must be identical with the one from manifest.mf: OpenIDE-Module-Alias -->
   <alias>Sen2Water-${project.version}</alias>
   <label>Sen2Water Atmospheric Correction over ocean and inland water</label>
   <version>${project.version}</version>
@@ -16,7 +17,7 @@
   <mainToolFileLocation>$S2WDIR/bin/$S2WSCRIPT</mainToolFileLocation>
   <workingDir>$USERPROFILE\s2w_wd</workingDir>
   <template type="file">
-    <file>Sen2Water-${project.version}-template.vm</file>
+    <file>Sen2Water-template.vm</file>
   </template>
   <progressPattern>Progress\[%\]: (\d{1,3})\.(?:.+)</progressPattern>
   <variables>
