@@ -73,7 +73,6 @@
                     <include>descriptor.xml</include>
                   </includes>
                 </resource>
-
               </resources>
             </configuration>
           </execution>
