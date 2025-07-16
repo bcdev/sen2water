@@ -5,6 +5,8 @@
 
 <map version="2.0">
 
-    <mapID target="s2w_overview" url="s2w_Overview.html"/>
+    <mapID target="s2w_overview" url="s2w/Overview.html"/>
+    <mapID target="s2w_confAdapter" url="s2w/ConfigureAdapter.html"/>
+    <mapID target="s2w_execSen2Water" url="s2w/ExecuteSen2Water.html"/>
 
 </map>

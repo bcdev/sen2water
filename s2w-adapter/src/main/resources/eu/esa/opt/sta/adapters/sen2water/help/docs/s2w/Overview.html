@@ -1,0 +1,97 @@
+<!--
+  ~ Copyright (C) 2015 CS SI
+  ~
+  ~ This program is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU General Public License as published by the Free
+  ~ Software Foundation; either version 3 of the License, or (at your option)
+  ~ any later version.
+  ~ This program is distributed in the hope that it will be useful, but WITHOUT
+  ~ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  ~ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along
+  ~ with this program; if not, see http://www.gnu.org/licenses/
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head>
+  <title>Sen2Water Help</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<table class="header">
+  <tr class="header">
+    <td class="header">&nbsp; Sen2Water - Overview
+    </td>
+    <td class="header" align="right"><a
+        href="nbdocs://org.esa.snap.snap.help/org/esa/snap/snap/help/docs/general/overview/SnapOverview.html"><img
+        src="../images/snap_header.jpg" border=0></a></td>
+  </tr>
+</table>
+
+<h3>Introduction</h3>
+<p>Sentinel-2 MSI pixel identification and atmospheric correction over ocean and inland water.<br> Sen2Water processes
+  Sentinel-2 MSI L1C granules with top-of-atmosphere reflectances. The input is expected in SAFE format, unpacked in a
+  directory. The 13 input bands of 10 m, 20 m, and 60 m resolution are processed into water-leaving reflectances over
+  water areas at 60 m resolution. In addition, flags are provided in three flag mask variables. The output data format
+  is NetCDF4 with internal compression. The water-leaving reflectances are either calculated by POLYMER, ACOLITE, or
+  C2RCC depending on which one is best suited for the location. In addition, Idepix is used to calculate corresponding
+  flags.</p>
+
+<p class="inote"><b>NOTE</b><br>The Windows version is experimental because POLYMER does not support Windows
+  out-of-the-box. It requires that the
+  <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
+    <param name="content" value="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist">
+    <param name="text" value="<html><u>Microsoft C++ compiler runtime</u></html>">
+    <param name="textFontSize" value="13pt">
+  </object>
+  is installed.
+</p>
+
+<ul>
+  <li><a href="ConfigureAdapter.html">Configuring the Sen2Water adapter in SNAP</a></li>
+  <li><a href="ExecuteSen2Water.html">Executing Sen2Water in SNAP</a></li>
+  <li><a href="GeneratedOutput.html">Description of Sen2Water output</a></li>
+</ul>
+
+<h3>Links & Resources</h3>
+<ul>
+  <li>
+    <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
+      <param name="content" value="https://hygeos.com/en/polymer/">
+      <param name="text" value="<html><u>POLYMER</u></html>">
+      <param name="textFontSize" value="13pt">
+    </object>
+  </li>
+  <li>
+    <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
+      <param name="content" value="https://www.c2rcc.org">
+      <param name="text" value="<html><u>C2RCC</u></html>">
+      <param name="textFontSize" value="13pt">
+    </object>
+  </li>
+  <li>
+    <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
+      <param name="content" value="https://github.com/acolite/acolite">
+      <param name="text" value="<html><u>ACOLITE</u></html>">
+      <param name="textFontSize" value="13pt">
+    </object>
+  </li>
+</ul>
+
+<h3>Questions & Feedback</h3>
+<p>
+  For any questions about the usage of Sen2Water, please visit the
+  <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
+    <param name="content" value="https://forum.step.esa.int/c/optical-toolbox">
+    <param name="text" value="<html><u>STEP forum</u></html>">
+    <param name="textFontSize" value="13pt">
+  </object>
+  .
+</p>
+</body>
+</html>

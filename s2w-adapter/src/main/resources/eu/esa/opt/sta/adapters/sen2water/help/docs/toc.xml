@@ -1,15 +1,19 @@
 <?xml version='1.0' encoding='ISO-8859-1'  ?>
 <!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN"
-        "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+  "http://java.sun.com/products/javahelp/toc_2_0.dtd">
 
 <toc version="2.0" categoryclosedimage="folder" categoryopenimage="folder" topicimage="doc">
 
-    <tocitem text="Sentinel Toolbox Application">
-        <tocitem text="Optical">
-            <tocitem text="Thematic Water Processing">
-                <tocitem text="Sen2Water" target="s2w_overview"/>
-            </tocitem>
+  <tocitem text="Sentinel Toolbox Application">
+    <tocitem text="Optical">
+      <tocitem text="Thematic Water Processing">
+        <tocitem text="Sen2Water" target="s2w_overview">
+          <tocitem text="Overview" target="s2w_overview"/>
+          <tocitem text="Configure Sen2Water Adapter" target="s2w_confAdapter"/>
+          <tocitem text="Execute Sen2Water Processor" target="s2w_execSen2Water"/>
         </tocitem>
+      </tocitem>
     </tocitem>
+  </tocitem>
 
 </toc>
