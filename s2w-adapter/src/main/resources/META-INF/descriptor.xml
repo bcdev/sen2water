@@ -14,7 +14,7 @@
   <preprocessTool>false</preprocessTool>
   <writeForProcessing>false</writeForProcessing>
   <mainToolFileLocation>$S2WDIR/bin/$S2WSCRIPT</mainToolFileLocation>
-  <workingDir>$USERPROFILE</workingDir>
+  <workingDir>$USERPROFILE\s2w_wd</workingDir>
   <template type="file">
     <file>Sen2Water-template.vm</file>
   </template>
@@ -30,7 +30,6 @@
     </osvariable>
     <osvariable>
       <key>TEMP</key>
-      <value>/tmp</value>
       <isShared>false</isShared>
       <windows>$USERPROFILE\appdata\local\temp</windows>
       <linux>/tmp</linux>
@@ -39,15 +38,13 @@
 
     <osvariable>
       <key>S2WDIR</key>
-      <value>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-linux</value>
       <isShared>false</isShared>
-      <windows>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-win64_patched</windows>
+      <windows>$USERPROFILE\.snap\auxdata\sen2water-${project.version}-win64_patched</windows>
       <linux>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-linux</linux>
       <isTransient>false</isTransient>
     </osvariable>
     <osvariable>
       <key>S2WSCRIPT</key>
-      <value>sen2water.sh</value>
       <isShared>false</isShared>
       <windows>sen2water.bat</windows>
       <linux>sen2water.sh</linux>
