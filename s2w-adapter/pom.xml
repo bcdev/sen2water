@@ -95,9 +95,6 @@
           <homePageUrl>https://github.com/bcdev/sen2water</homePageUrl>
           <licenseName>GPL 3</licenseName>
           <licenseFile>LICENSE.html</licenseFile>
-          <cluster>opttbx</cluster>
-          <defaultCluster>opttbx</defaultCluster>
-          <brandingToken>opttbx</brandingToken>
           <requiresRestart>true</requiresRestart>
           <keystore>keystore/opttbx.ks</keystore>
           <keystorealias>snap</keystorealias>

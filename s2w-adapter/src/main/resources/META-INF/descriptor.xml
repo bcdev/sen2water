@@ -16,7 +16,7 @@
   <mainToolFileLocation>$S2WDIR/bin/$S2WSCRIPT</mainToolFileLocation>
   <workingDir>$USERPROFILE\s2w_wd</workingDir>
   <template type="file">
-    <file>Sen2Water-template.vm</file>
+    <file>Sen2Water-${project.version}-template.vm</file>
   </template>
   <progressPattern>Progress\[%\]: (\d{1,3})\.(?:.+)</progressPattern>
   <variables>
