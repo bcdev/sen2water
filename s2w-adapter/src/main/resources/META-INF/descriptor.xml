@@ -30,14 +30,6 @@
       <isTransient>false</isTransient>
     </osvariable>
     <osvariable>
-      <key>TEMP</key>
-      <isShared>false</isShared>
-      <windows>$USERPROFILE\appdata\local\temp</windows>
-      <linux>/tmp</linux>
-      <isTransient>false</isTransient>
-    </osvariable>
-
-    <osvariable>
       <key>S2WDIR</key>
       <isShared>false</isShared>
       <windows>$USERPROFILE\.snap\auxdata\sen2water-${project.version}-win64_patched</windows>
