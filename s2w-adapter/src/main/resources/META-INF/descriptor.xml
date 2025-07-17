@@ -50,6 +50,7 @@
       <dataType>java.io.File</dataType>
       <defaultValue/>
       <description>Output directory (If not specified, the input product location is used)</description>
+      <label>Output Directory</label>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>FolderParameter</parameterType>
@@ -58,6 +59,7 @@
       <name>withoutcleanup</name>
       <dataType>java.lang.Boolean</dataType>
       <description>Optionally preserves intermediate files</description>
+      <label>Without Cleanup</label>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
@@ -66,6 +68,7 @@
       <name>withdetfoofilter</name>
       <dataType>java.lang.Boolean</dataType>
       <description>Optionally sets pixels with mixed detector contributions to invalid</description>
+      <label>With Detector Filtering</label>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
@@ -74,6 +77,7 @@
       <name>withouttgc</name>
       <dataType>java.lang.Boolean</dataType>
       <description>Optionally switches off TOA Glint Correction</description>
+      <label>Without TOA Glint Correction</label>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
@@ -83,6 +87,7 @@
       <dataType>java.lang.String</dataType>
       <defaultValue>Copernicus 90m Global DEM</defaultValue>
       <description>Name of DEM collection, Copernicus 90m Global DEM or Copernicus 30m Global DEM</description>
+      <label>DEM</label>
       <valueSet>
         <string>Copernicus 90m Global DEM</string>
         <string>Copernicus 30m Global DEM</string>
@@ -96,6 +101,7 @@
       <dataType>java.lang.String</dataType>
       <defaultValue>embedded</defaultValue>
       <description>Name of ancillary data for ACOLITE, embedded or constant</description>
+      <label>ACOLITE Ancillary Data</label>
       <valueSet>
         <string>embedded</string>
         <string>constant</string>
@@ -109,11 +115,12 @@
       <dataType>java.lang.String</dataType>
       <defaultValue>constant</defaultValue>
       <description>Name of ancillary data for C2RCC, constant or embedded</description>
-      <notNull>false</notNull>
+      <label>C2RCC Ancillary Data</label>
       <valueSet>
         <string>embedded</string>
         <string>constant</string>
       </valueSet>
+      <notNull>false</notNull>
       <notEmpty>false</notEmpty>
       <parameterType>RegularParameter</parameterType>
     </parameter>
@@ -122,6 +129,7 @@
       <dataType>java.lang.String</dataType>
       <defaultValue>embedded</defaultValue>
       <description>Name of ancillary data for POLYMER, embedded or nasa</description>
+      <label>Polymer Ancillary Data</label>
       <valueSet>
         <string>embedded</string>
         <string>nasa</string>
@@ -134,7 +142,7 @@
     <parameter>
       <name>targetProductFile</name>
       <dataType>java.io.File</dataType>
-      <defaultValue>$TEMP/s2w-output</defaultValue>
+      <defaultValue></defaultValue>
       <description>Output file</description>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
