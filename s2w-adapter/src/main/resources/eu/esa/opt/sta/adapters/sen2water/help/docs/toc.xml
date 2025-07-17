@@ -11,6 +11,7 @@
           <tocitem text="Overview" target="s2w_overview"/>
           <tocitem text="Configure Sen2Water Adapter" target="s2w_confAdapter"/>
           <tocitem text="Execute Sen2Water Processor" target="s2w_execSen2Water"/>
+          <tocitem text="Sen2Water Algorithm Description" target="s2w_algoSen2Water"/>
         </tocitem>
       </tocitem>
     </tocitem>
