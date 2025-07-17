@@ -159,7 +159,8 @@ if "!withtoolbox!" == "true" (
     if "!outputdir!" == "" (
         call :dirname !input! outputdir
     )
-    cd !outputdir!
+    :: using /d just incase also the drive changes
+    cd /d "!outputdir!"
 ) else (
     set outputdir=%cd%
 )
@@ -293,9 +294,9 @@ call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
 
 echo %cloudmask%
 
-cd %s2wdir%\lib\polymer
+cd /d %s2wdir%\lib\polymer
 python setup.py build_ext --inplace
-cd !outputdir!
+cd /d !outputdir!
 
 if "!polymeranc!" == "" (
     set polymeranc=embedded
@@ -331,12 +332,6 @@ for /f "tokens=* USEBACKQ" %%f in (`ncdump -h %s2w% ^| find ":id"`) do (
 set "newname=%fid:~14,-3%"
 ren %s2w% %newname%
 
-if "!withtoolbox!" == "true" (
-    mkdir %temp%\s2w-output
-    del %temp%\s2w-output\S2*
-    copy %newname% %temp%\s2w-output
-)
-
 if not "!withoutcleanup!" == "true" (
     del %resampled% %idepix% %c2rcc% %acolite% %acolite:L2R=L1R% %polymer:polymer=mask% %polymer%
     del %base%-TGC-parameters.json !destriped!
@@ -352,6 +347,9 @@ if "!withtoolbox!" == "true" (
 )
 echo done
 
+:: even the %errorlevel% is zero and zero is provided as exit code
+:: the console log in SNAP prints: Process exited with value 1
+:: echo ERRORLEVEL = %errorlevel%
 exit /b 0
 
 :dirname p v
