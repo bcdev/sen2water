@@ -142,7 +142,7 @@
     <parameter>
       <name>targetProductFile</name>
       <dataType>java.io.File</dataType>
-      <defaultValue></defaultValue>
+      <defaultValue/>
       <description>Output file</description>
       <notNull>false</notNull>
       <notEmpty>false</notEmpty>
