@@ -39,8 +39,9 @@
   directory. The 13 input bands of 10 m, 20 m, and 60 m resolution are processed into water-leaving reflectances over
   water areas at 60 m resolution. In addition, flags are provided in three flag mask variables. The output data format
   is NetCDF4 with internal compression. The water-leaving reflectances are either calculated by POLYMER, ACOLITE, or
-  C2RCC depending on which one is best suited for the location. In addition, Idepix is used to calculate corresponding
-  flags.</p>
+  C2RCC depending on which one is best suited for the location. In addition, IdePix is used to calculate corresponding
+  flags. More details on the algorithm can be found on the dedicated <a href="AlgorithmDescription.html">Algorithm
+    Description</a> page.</p>
 
 <p class="inote"><b>NOTE</b><br>The Windows version is experimental because POLYMER does not support Windows
   out-of-the-box. It requires that the
@@ -86,6 +87,13 @@
     <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
       <param name="content" value="https://github.com/acolite/acolite">
       <param name="text" value="<html><u>ACOLITE</u></html>">
+      <param name="textFontSize" value="13pt">
+    </object>
+  </li>
+  <li>
+    <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
+      <param name="content" value="https://www.brockmann-consult.de/portfolio/idepix/">
+      <param name="text" value="<html><u>IdePix</u></html>">
       <param name="textFontSize" value="13pt">
     </object>
   </li>
