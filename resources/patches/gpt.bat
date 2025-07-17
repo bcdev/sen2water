@@ -5,9 +5,9 @@
 setlocal
 
 set wd=%cd%
-cd %~dp0%\..\..\..
+cd /d %~dp0%\..\..\..
 set s2wdir=%cd%
-cd %wd%
+cd /d %wd%
 
 if "%blocksize%" == "" (
   set blocksize=610
