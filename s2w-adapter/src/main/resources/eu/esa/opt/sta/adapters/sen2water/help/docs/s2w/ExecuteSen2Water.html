@@ -34,10 +34,85 @@
 </table>
 
 <h3>Execute Sen2Water</h3>
+<h4>Input Parameters</h4>
+<table>
+  <tr>
+    <td>
+      <table>
+        <thead>
+        <tr>
+          <td style="font-size: medium"><b>Name</b></td>
+          <td style="font-size: medium"><b>Descriptions</b></td>
+        </tr>
+        </thead>
+        <tr>
+          <td>Source Product</td>
+          <td>The input is expected in SAFE format and unpacked in a directory, e.g., <code>S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE</code>.
+            You can select the <code>MTD_MSIL1C.xml</code> files as usual.
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td><p align="center">
+      <img src="images/OperatorInputParameters.png" alt="Operator Input Parameters" width="850px">
+    </p></td>
+  </tr>
+</table>
 
-<h4>Source Product</h4>
-<p> The input is expected in SAFE format and unpacked in a directory, e.g., <code>S2A_MSIL1C_20240104T103431_N0510_R108_T32UME_20240104T123149.SAFE</code>
-</p>
+<h4>Processing Parameters</h4>
+<table>
+  <tr>
+    <td><p>With the option 'Display execution output' at the top, you can enable the console log output.</p>
+      <table>
+        <thead>
+        <tr>
+          <td style="font-size: medium"><b>Name</b></td>
+          <td style="font-size: medium"><b>Descriptions</b></td>
+        </tr>
+        </thead>
+        <tr>
+          <td>Output Directory</td>
+          <td>This is where the output product will be created.</td>
+        </tr>
+        <tr>
+          <td>Without Cleanup</td>
+          <td>If enabled, temporary files will not be cleaned up.</td>
+        </tr>
+        <tr>
+          <td>With Detector Filtering</td>
+          <td>If enabled, pixels with mixed detector contributions are set to invalid.</td>
+        </tr>
+        <tr>
+          <td>Without TOA Glint Correction</td>
+          <td>If enabled, the TOA Glint Correction will not be performed.</td>
+        </tr>
+        <tr>
+          <td>DEM</td>
+          <td>Lets you select between the 30 m and 90 m Copernicus Global DEM.</td>
+        </tr>
+        <tr>
+          <td>ACOLITE Ancillary Data</td>
+          <td>Lets you switch between the ancillary data for ACOLITE. Either <code>embedded</code> or
+            <code>constant</code>
+          </td>
+        </tr>
+        <tr>
+          <td>C2RCC Ancillary Data</td>
+          <td>Lets you switch between the ancillary data for C2RCC. Either <code>embedded</code> or
+            <code>constant</code></td>
+        </tr>
+        <tr>
+          <td>Polymer Ancillary Data</td>
+          <td>Lets you switch between the ancillary data for Polymer. Either <code>embedded</code> or
+            <code>constant</code> or <code>nasa</code></td>
+        </tr>
+      </table>
+    </td>
+    <td><p align="center">
+      <img src="images/OperatorProcessingParameters.png" alt="Operator Processing Parameters" width="850px">
+    </p></td>
+  </tr>
+</table>
 
 </body>
 </html>

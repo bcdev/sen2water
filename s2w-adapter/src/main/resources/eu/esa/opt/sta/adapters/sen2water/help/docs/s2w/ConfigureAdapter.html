@@ -33,14 +33,95 @@
   </tr>
 </table>
 
-<h3>Configuring the Sen2Water adapter in SNAP</h3>
+<h3>Configuring the Sen2Water Adapter in SNAP</h3>
+<h4>Install Sen2Water Processor Bundle</h4>
+<p>After installing the Adapter plugin, the actual Sen2Water processor bundle needs to be downloaded and installed too.
+  This download is more than >2GB.</p>
+<p>To do so, you need to go to <code>Tools->Manage External Tools</code> and select the Sen2Water processor and click
+  Edit. On the left side, select the <code>Bundle Binaries</code> tab and click the <code>Download and Install
+    Now</code> button in the lower-right.<br> After the installation succeeds, the processor is configured and ready to
+  use. </p>
+
+<h4>Configuration Options</h4>
+<p>Usually you don't have to modify the configuration options. However, the most important options are briefly described
+  below. </p>
+<table>
+  <tr>
+    <td><h5>Operator Descriptor</h5>
+      <p>Here the general information of the processor are provided. The name, the alias (name for gpt), the
+        description, where the processor shall show up in the menu and other information.</p></td>
+    <td><p align="center">
+      <img src="images/ConfOperatorDescriptor.png" alt="Operator Descriptor" width="900px">
+    </p>
+    </td>
+  </tr>
+  <tr>
+    <td><h5>Configuration Parameters</h5>
+      <p>This panel contains information on how the processor is executed. It contains the path to the executable, the
+        working directory which shall be used and the command line parameters as velocity template. The template is
+        parsed and evaluated before passing the parameters to the command line.</p></td>
+    <td><p align="center">
+      <img src="images/ConfConfigurationParameters.png" alt="Configuration Parameters" width="900px">
+    </p></td>
+  </tr>
+  <tr>
+    <td><h5>Operator Parameters</h5>
+      <p>This panel defines the parameters which are shown in the user interface and evaluated by the velocity template
+        defined in the Configuration tab. </p></td>
+    <td><p align="center">
+      <img src="images/ConfOperatorParameters.png" alt="Operator Parameters" width="900px">
+    </p></td>
+  </tr>
+  <tr>
+    <td><h5>System Variables</h5>
+      <p> The system variables define general and operating system dependent variables. <br>
+      <table>
+        <tr>
+          <td>USERPROFILE</td>
+          <td>Defines where the home directory of the user is.</td>
+        </tr>
+        <tr>
+          <td>S2WDIR</td>
+          <td>This is the directory of the actual Sen2Water processor. By default, it holds the value where the bundle
+            is installed to when you fo the download and installation with SNAP. If you have used the processor before
+            and have installed the bundle to a different location, you can modify this variable to point to the correct
+            location.
+          </td>
+        </tr>
+        <tr>
+          <td>S2WSCRIPT</td>
+          <td>The name of the script file which is invoked when the processor is started.</td>
+        </tr>
+      </table>
+    </td>
+    <td><p align="center">
+      <img src="images/ConfSystemVariables.png" alt="System Variables" width="900px">
+    </p>
+    </td>
+  </tr>
+  <tr>
+    <td><h5>Bundle Binaries</h5>
+      <p> This tab has the path to the remote location where the bundle will be downloaded from. After download, it will
+        also install the bundle. To start the process, you have to click on the <code>Download and Install Now</code>-button.<br>
+        If you already have downloaded the bundle, you can switch to the LOCAL option specify the local path.</p>
+    </td>
+    <td><p align="center">
+      <img src="images/ConfBundleBinaries.png" alt="Bundle Binaries" width="900px">
+    </p>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
 
 <p class="inote"><b>NOTE</b><br>The Windows version is experimental because POLYMER does not support Windows
   out-of-the-box. It requires that the
   <object classid="java:eu.esa.snap.netbeans.javahelp.BrowserDisplayer">
     <param name="content" value="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist">
     <param name="text" value="<html><u>Microsoft C++ compiler runtime</u></html>">
-    <param name="textFontSize" value="bigger">
+    <param name="textFontSize" value="13pt">
   </object>
   is installed.
 </p>
