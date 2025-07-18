@@ -178,7 +178,7 @@
   <linuxBundle>
     <bundleType>INSTALLER</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${project.version}-linux.run</downloadURL>
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${project.version}-linux.run</downloadURL>
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
