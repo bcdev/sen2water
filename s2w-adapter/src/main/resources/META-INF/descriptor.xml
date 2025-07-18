@@ -7,7 +7,9 @@
   <version>${project.version}</version>
   <description>${project.description}</description>
   <authors>Brockmann Consult GmbH, developed for ESA OPT-MPC</authors>
-  <copyright>Brockmann Consult GmbH (C2RCC, Idepix, msiresampling, sen2water wrapper), Hygeos (POLYMER), RBINS (ACOLITE)</copyright>
+  <copyright>Brockmann Consult GmbH (C2RCC, Idepix, msiresampling, sen2water wrapper), Hygeos (POLYMER), RBINS
+    (ACOLITE)
+  </copyright>
   <helpID>s2w_overview</helpID>
   <internal>false</internal>
   <autoWriteSuppressed>false</autoWriteSuppressed>
@@ -25,8 +27,14 @@
       <key>USERPROFILE</key>
       <isShared>false</isShared>
       <windows/>
-      <linux>~</linux>
-      <macosx>~</macosx>
+      <linux>$HOME</linux>
+      <isTransient>false</isTransient>
+    </osvariable>
+    <osvariable>
+      <key>HOME</key>
+      <isShared>false</isShared>
+      <windows>$USERPROFILE</windows>
+      <linux/>
       <isTransient>false</isTransient>
     </osvariable>
     <osvariable>
@@ -155,7 +163,8 @@
   <windowsBundle>
     <bundleType>ZIP</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${project.version}-win64_patched.zip</downloadURL>
+    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${project.version}-win64_patched.zip
+    </downloadURL>
     <templateparameter>
       <template type="simple">
         <contents/>
@@ -189,7 +198,7 @@
         </parameter>
       </parameters>
       <template type="simple">
-        <contents>--keep</contents>
+        <contents>--nox11 --target $targetLocation/sen2water-${project.version}-linux</contents>
       </template>
       <outputFile>Command Template</outputFile>
     </templateparameter>
