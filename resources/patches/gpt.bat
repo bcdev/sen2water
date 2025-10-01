@@ -11,7 +11,7 @@ cd /d %wd%
 
 if "%blocksize%" == "" (
   set blocksize=610
-	echo block size set to %blocksize%
+  echo block size set to %blocksize%
 ) else (
   echo block size already set to %blocksize%
 )
@@ -27,7 +27,7 @@ if "%blocksize%" == "" (
 
 %s2wdir%\lib\jre\bin\java ^
 -cp %s2wdir%\lib\snap\snap\modules\*;%s2wdir%\lib\idepix\*;%s2wdir%\lib\c2rcc\* ^
--Duser.home=%s2wdir%\temp ^
+-Duser.home=%wd% ^
 -Djava.awt.headless=true ^
 -Xmx6G ^
 -Dsnap.mainClass=org.esa.snap.core.gpf.main.GPT ^

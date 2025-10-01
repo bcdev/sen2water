@@ -9,25 +9,17 @@ cd %~dp0..%
 set s2wdir=%cd%
 cd %wd1%
 
-echo Sen2Water 0.6.1 (%s2wdir%)
+echo Sen2Water 0.6.2 (%s2wdir%)
 
-:: check if the bin folder is already in the PATH?
-set "s2wPath=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64"
 echo %PATH% | find /I "%s2wdir%\bin" >nul
 if errorlevel 1 (
-    echo Setting up environment, extending the PATH
-    REM Not found, so extend the user PATH
+    echo setting up environment ...
+    set "s2wPath=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64"
     set "PATH=%s2wPath%;%PATH%"
-) else (
-    echo PATH already contains entries, skipping update.
+    set "PYTHONPATH=%s2wdir%\lib\msiresampling"
+    set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
+    call %s2wdir%\lib\conda\condabin\activate.bat
 )
-
-set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
-
-:: echo Activating Conda environment ...
-set "PYTHONPATH=%s2wdir%\lib\msiresampling"
-call %s2wdir%\lib\conda\condabin\activate.bat
-
 set "GPTPATH=%s2wdir%\lib\snap\bin"
 
 :: parse parameters
@@ -159,7 +151,6 @@ if "!withtoolbox!" == "true" (
     if "!outputdir!" == "" (
         call :dirname !input! outputdir
     )
-    :: using /d just incase also the drive changes
     cd /d "!outputdir!"
 ) else (
     set outputdir=%cd%

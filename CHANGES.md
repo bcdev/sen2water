@@ -1,3 +1,9 @@
+## Version 0.6.2 (2025-09-30)
+
+Adaptations for SNAP 12/13 as control instance
+
+* updated adapter for SNAP integration
+
 ## Version 0.6.1 (2025-03-11)
 
 Version after Sen2Water prototype final meeting

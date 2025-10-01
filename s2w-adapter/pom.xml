@@ -6,7 +6,7 @@
 
   <artifactId>sen2water-adapter</artifactId>
   <groupId>eu.esa.opt</groupId>
-  <version>0.6.1</version>
+  <version>0.6.2</version>
   <packaging>nbm</packaging>
 
   <name>Sen2Water Tool Adapter for SNAP</name>
