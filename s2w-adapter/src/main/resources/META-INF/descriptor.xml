@@ -40,7 +40,7 @@
     <osvariable>
       <key>S2WDIR</key>
       <isShared>false</isShared>
-      <windows>$USERPROFILE\.snap\auxdata\sen2water-${project.version}-win64_patched</windows>
+      <windows>$USERPROFILE\.snap\auxdata\sen2water-${project.version}-win64</windows>
       <linux>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-linux</linux>
       <isTransient>false</isTransient>
     </osvariable>
@@ -163,7 +163,7 @@
   <windowsBundle>
     <bundleType>ZIP</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://eomasters.s3-eu-central-1.ionoscloud.com/sen2water-${project.version}-win64_patched.zip
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${project.version}-win64.zip
     </downloadURL>
     <templateparameter>
       <template type="simple">
@@ -172,7 +172,7 @@
       <outputFile>Command Template</outputFile>
     </templateparameter>
     <targetLocation>$USERPROFILE/.snap/auxdata</targetLocation>
-    <entryPoint>sen2water-${project.version}-win64_patched.zip</entryPoint>
+    <entryPoint>sen2water-${project.version}-win64.zip</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </windowsBundle>
   <linuxBundle>
