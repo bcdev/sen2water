@@ -171,7 +171,7 @@
       </template>
       <outputFile>Command Template</outputFile>
     </templateparameter>
-    <targetLocation>$USERPROFILE/.snap/auxdata/sen2water-${project.version}-win64</targetLocation>
+    <targetLocation>$USERPROFILE/.snap/auxdata</targetLocation>
     <entryPoint>sen2water-${project.version}-win64.zip</entryPoint>
     <updateVariable>S2WDIR</updateVariable>
   </windowsBundle>

@@ -16,10 +16,10 @@ if errorlevel 1 (
     echo setting up environment ...
     set "s2wPath=%s2wdir%\bin;%s2wdir%\lib\snap\bin;%s2wdir%\lib\snap\snap\modules\lib\amd64"
     set "PATH=%s2wPath%;%PATH%"
-    set "PYTHONPATH=%s2wdir%\lib\msiresampling"
-    set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
-    call %s2wdir%\lib\conda\condabin\activate.bat
 )
+set "PYTHONPATH=%s2wdir%\lib\msiresampling"
+set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
+call %s2wdir%\lib\conda\condabin\activate.bat
 set "GPTPATH=%s2wdir%\lib\snap\bin"
 
 :: parse parameters
@@ -86,6 +86,9 @@ if "%1" NEQ "" (
        exit /b 1
    )))))))))))))
    goto loop
+)
+if "%outputdir%" == "$outputdir" (
+    set outputdir=
 )
 
 if "!input!" == "" (

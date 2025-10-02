@@ -104,6 +104,11 @@ if $withtoolbox; then
         mkdir -p $outputdir
         cd $outputdir
     fi
+else
+    if [ "$outputdir" != "" ]; then
+        mkdir -p $outputdir
+        cd $outputdir
+    fi
 fi
 echo "working directory $(pwd)"
 
