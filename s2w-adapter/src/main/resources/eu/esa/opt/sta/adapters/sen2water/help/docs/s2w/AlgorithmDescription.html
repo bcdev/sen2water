@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2015 CS SI
+  ~ Copyright (C) 2025 Brockmann Consult GmbH
   ~
   ~ This program is free software; you can redistribute it and/or modify it
   ~ under the terms of the GNU General Public License as published by the Free
@@ -25,7 +25,7 @@
 
 <table class="header">
   <tr class="header">
-    <td class="header">&nbsp; Sen2Water — Algorithm Description
+    <td class="header">&nbsp; Sen2Water Algorithm Description
     </td>
     <td class="header" align="right"><a
         href="nbdocs://org.esa.snap.snap.help/org/esa/snap/snap/help/docs/general/overview/SnapOverview.html"><img
@@ -34,6 +34,181 @@
 </table>
 
 <h3>Sen2Water Algorithm</h3>
+
+The Sen2Water processor combines three atmospheric correction algorithms and a pixel
+identification algorithm, resampling, and blending that are each maintained on their
+own. Therefore, this description mainly refers to existing documentation of the
+elements combined in this processor. The distinction between ocean and inland water
+and the behaviour of the algorithm at the ocean-inland water interface are described
+here. More details are provided in the
+<a href="https://github.com/bcdev/sen2water/blob/main/docs/OMPC.BC.TN.009%20-%20i1r1draft%20-%20ATBD-MSI-L2.pdf">ATBD</a>.
+
+<h4>Resampling</h4>
+
+Accurate information about viewing angles is essential for atmospheric correction. Due
+to the different detectors of MSI there are discontinuities in the angles layer. Angles
+resampling is not trivial and sometimes even requires extrapolation. Sen2Water contains
+an optimised version of the SNAP S2Resampling operator. It resamples to 60 meters, and
+it interpolates angles per detector, and creates a common angles layer in addition to
+the resampled reflectances. <p/>
+
+There is one open issue with MSI L1C products: The detector footprints of different bands
+do not exactly match. Therefore, a unique viewing angle cannot be determined for some border
+pixels in the overlap of detectors. The algorithm provided two options, either to select the
+angles of one of the detectors (the one with the higher number, this is the default), or to
+invalidate the overlapping area between detectors (controlled by parameter). Some time in
+the future this will hopefully be cured by a master detector footprint selection for all bands
+when creating the L1C. <p/>
+
+<h4>Distinction between ocean water areas, inland water areas, and land</h4>
+
+Sen2Water distinguishes ocean and inland water by a static ocean mask. Dynamic
+water pixel identification refines the distinction regarding land or water for
+each observation which makes a difference e.g. for tidal areas. <p/>
+
+Three sources have been used to derive the static mask used in Sen2Water:
+<ul>
+  <li>ESA World Cover 10m <a href="https://esa-worldcover.org/en">https://esa-worldcover.org/en</a></li>
+  <li>Global Islands dataset of USGS <a href="https://www.sciencebase.gov/catalog/item/63bdf25dd34e92aad3cda273"
+    >https://www.sciencebase.gov/catalog/item/63bdf25dd34e92aad3cda273"</a> based on a Global Shoreline Vector
+    (GSV), derived from Landsat 30m.</li>
+  <li>The HR-OC water mask of all European coasts, derived from Eurostat coastlines 2016
+    <a href=""https://gisco-services.ec.europa.eu/distribution/v2/coas/download/ref-coastline-2016-01m.geojson.zip"
+    >https://gisco-services.ec.europa.eu/distribution/v2/coas/download/ref-coastline-2016-01m.geojson.zip</a></li>
+</ul>
+
+WorldCover distinguishes water from land, and the coastlines distinguish ocean
+from inland water. From these distinctions a static mask is derived with more details
+to guide dynamic pixel identification. It also guides blending at the interface between
+ocean and inland water where necessary. A buffer of the ocean coastline into river estuaries
+defines the zone of blending at the ocean-inland water interface. A buffer of the coastline
+defines the zone of dynamic water determination.
+
+<h4>TOA Glint Correction</h4>
+
+TOA Glint Correction is described in the
+<a href="https://catalogue.marine.copernicus.eu/documents/QUID/CMEMS-HR-OC-QUID-009-201to212.pdf">CMEMS HR-OC QUID 2024</a>,
+section IV.2 .
+
+<h4>Pixel identification</h4>
+
+Cloud screening and the dynamic discrimination of land and water are two
+functions of pixel identification. Idepix is performing this task in Sen2Water.
+The Idepix Sentinel-2 algorithm is defined in the <a href="https://zenodo.org/records/14808767">Idepix ATBD</a>.
+
+Parameters that influence the way the algorithm works in Sen2Water are:
+<ul>
+  <li>computeCloudShadow: whether to determine cloud shadow, set to true</li>
+  <li>computeMountainShadow: whether to determine mountain shadow, set to true</li>
+  <li>computeCloudBuffer: whether to extend clouds by a buffer, set to true</li>
+  <li>cloudBufferWidth: width of the 'safety buffer' around a pixel identified as cloudy, set to 2</li>
+  <li>computeCloudBufferForCloudAmbiguous: whether to consider cloud-ambiguous as cloud for cloud buffer determination, set to true</li>
+  <li>demName: digital elevation model, set to "Copernicus 90m Global DEM"</li>
+</ul>
+
+The output of Idepix is a collection of non-disjunctive masks with a legend distinguishing various
+probabilities of cloud, cast shadow, snow or ice, land or water, bright areas, invalid areas.
+
+<h4>Atmospheric correction</h4>
+
+Atmospheric correction over water surfaces presents significant challenges due to the complex
+interactions between light, the atmosphere, and water bodies. This process is crucial for
+accurately retrieving water-leaving radiance, which is essential for deriving valuable
+information about water quality and composition. There are a number of specific challenges
+of atmospheric correction over water:
+<ul>
+  <li>Water surfaces can be very dark: Water surfaces typically have low reflectance, especially
+    in the visible spectrum. This results in a weak water-leaving radiance signal compared to
+    the atmospheric contribution, making it difficult to isolate the water signal
+    [<a href="https://www.oceanopticsbook.info/view/atmospheric-correction/the-atmospheric-correction-problem">Mobley 2020</a>]
+    [<a href="https://doi.org/10.3390/rs14132979">Pan et al 2022</a>].</li>
+  <li>Water reflectance is largest in the blue part of the spectrum: differently than for
+    vegetated land surfaces, the short wavelength part of the visible spectrum cannot be
+    used to estimate the aerosol reflectance. Instead, due to absorption by the water molecules,
+    the NIR part of the spectrum can be used for aerosol retrieval. However, this causes the
+    extrapolation of the aerosol signal over a large spectral range from the NIR to the blue
+    part of the spectrum.</li>
+  <li>Atmospheric Variability: The atmosphere's composition, including aerosols and gases,
+    can vary significantly over short distances and time periods. This variability affects
+    the scattering and absorption of light, complicating the correction process
+    [<a href="https://www.oceanopticsbook.info/view/atmospheric-correction/the-atmospheric-correction-problem">Mobley 2020</a>].</li>
+  <li>Surface Effects: Sun glint and sky glint from the water surface can introduce additional
+    noise and errors in the measured radiance, further complicating the atmospheric correction
+    [<a href="https://doi.org/10.1016/j.rse.2021.112633">Wang et al 2021</a>].</li>
+  <li>Adjacency Effects: In coastal and inland waters, radiation reflected from nearby
+    land surfaces can influence the signal received by the sensor, a phenomenon known
+    as the adjacency effect [<a href="https://doi.org/10.3390/rs14132979">Pan et al 2021</a>].</li>
+</ul>
+
+To address these challenges, specific atmospheric correction algorithms have been
+developed. In Sen2Water, three of those are used which have been demonstrated to
+perform well. However, each of them has its strength under certain conditions and
+a specific algorithm selection and blending is applied.
+<ul>
+  <li>POLYMER: This algorithm uses a spectral matching technique and is particularly effective in handling sun glint. It has shown good performance in various water types, including coastal and inland waters [<a href="https://doi.org/10.3390/rs14132979">Pan et al 2021</a>][<a href="https://doi.org/10.1016/j.rse.2021.112366">Pahlevan et al 2021</a>].</li>
+  <li>C2RCC: The Case-2 Regional Coast Colour processor uses neural networks to simultaneously retrieve atmospheric and water properties. It has been widely used for coastal and inland waters and offers good performance across different water types [<a href="https://doi.org/10.3390/rs14132979">Pan et al 2021</a>][<a href="https://doi.org/10.1016/j.rse.2021.112366">Pahlevan et al 2021</a>].</li>
+  <li>ACOLITE: This algorithm is designed specifically for high-resolution sensors and has shown promising results in turbid coastal and inland waters. It uses image-based atmospheric correction methods [<a href="https://doi.org/10.3390/rs14132979">Pan et al 2021</a>][<a href="https://doi.org/10.1016/j.rse.2021.112366">Pahlevan et al 2021</a>].</li>
+</ul>
+
+The algorithm of C2RCC is described in [Brockmann, C. et al., Evolution of the C2RCC Neural Network for
+Sentinel 2 and 3 for the Retrieval of Ocean Colour Products in Normal and Extreme Optically Complex Waters, LPS 2016].
+The algorithm of ACOLITE is defined in [<a href="https://doi.org/10.1016/j.rse.2019.03.010">Vanhellemont
+  Quinten, Adaptation of the dark spectrum fitting atmospheric correction for aquatic applications of
+  the Landsat and Sentinel-2 archives</a>] and [<a href="https://doi.org/10.1364/OE.397456">Vanhellemont Quinten,
+  Sensitivity analysis of the dark spectrum fitting atmospheric correction for metre- and decametre-scale
+  satellite imagery using autonomous hyperspectral radiometry, 2020</a>]. The release notes of the software is available at
+  <a href="https://github.com/acolite/acolite/releases/latest">https://github.com/acolite/acolite/releases/latest</a>.
+Blending of ACOLITE and C2RCC results for ocean water is defined in [Van der Zande Dimitry, et al. Improving operational ocean color
+coverage using a merged atmospheric correction approach [Conference] // SPIE Sensors+Imaging. - 2023].
+The algorithm of POLYMER is described in [<a href="https://www.osapublishing.org/oe/abstract.cfm?uri=oe-19-10-9783">Steinmetz, F, Deschamps, P.-Y., Ramon, D., 2011</a>].
+
+<h4>Blending of results at the ocean to inland water interface</h4>
+
+The mouths of rivers are a spatial interface between ocean water areas and inland water
+areas. If we would switch AC algorithms at this interface then the reflectance values
+would not be continuous at the fictive coastline. To avoid that we use an approach similar
+to the blending between turbid and non-turbid waters, but based on the distance from the
+fictive coastline instead of a band ratio. Details are described in the
+<a href="https://github.com/bcdev/sen2water/blob/main/docs/OMPC.BC.TN.009%20-%20i1r1draft%20-%20ATBD-MSI-L2.pdf">ATBD</a>.
+
+<h4>Quality masks and quality statistics</h4>
+
+The processing chain contains several processor steps that generate masks. These masks have
+different legends. Depending on blending, some masks may be applicable in ocean areas while
+other masks are applicable to inland water areas. Where blending happens, several masks apply.
+
+The L2W product provides a consistent set of three groups of masks, one easy-to-use mask
+of alternative flag values, and two expert sets of flag masks. The expert masks are the
+Idepix output and a newly composed set of masks derived from the combination of quality
+masks of the AC algorithms, and the result of blending that shows which algorithm(s) has
+been applied to a certain pixel.
+
+Values distinguished by the pixel-class mask:
+<ul>
+  <li>NO_DATA</li>
+  <li>CLEAR_LAND_OR_VEGETATION</li>
+  <li>CLEAR_OCEAN_WATER</li>
+  <li>CLEAR_INLAND_WATER</li>
+  <li>SNOW_ICE</li>
+  <li>CIRRUS</li>
+  <li>CLOUD_OR_MOUNTAIN_SHADOW</li>
+  <li>AMBIGUOUS_CLOUD</li>
+  <li>CLOUD</li>
+  <li>AC_OUT_OF_BOUNDS</li>
+</ul>
+
+Flag mask values of the combined AC flags and blending:
+<ul>
+  <li>c2rcc_oor if Rtosa_OOS or RtosaOOR are set, the input spectrum to the atmospheric correction neural net was out of the scope of the training range and the inversion is likely to be wrong</li>
+  <li>acolite_negatives if L2_negatives are set, quality flag of the atmospheric correction</li>
+  <li>polymer_invalid if bitmask & 1023 != 0, i.e. LAND or CLOUD_BASE or L1_INVALID or NEGATIVE_BB or OUT_OF_BOUNDS or EXCEPTION or THICK_AEROSOL or HIGH_AIR_MASS or EXTERNAL_MASK</li>
+  <li>with_c2rcc</li>
+  <li>with_acolite</li>
+  <li>with_polymer</li>
+</ul>
+Theoretically, all three algorithms may have contributed in rare cases in estuaries. Then, all with_ flags are set for respective pixels.
+
+The pixel_classif_flags of the L2W is the output of Idepix.
 
 <h3>Links & Resources</h3>
 <ul>
