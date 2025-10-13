@@ -4,15 +4,13 @@
 
 __author__ = "Martin Böttcher, Brockmann Consult GmbH"
 __copyright__ = "Copyright 2023, Brockmann Consult GmbH"
-__license__ = "MIT"
-__version__ = "0.6"
+__license__ = "TBD"
+__version__ = "0.51"
 __email__ = "info@brockmann-consult.de"
-__status__ = "Production"
+__status__ = "Development"
 
 # changes in 0.51:
 # sort aux_longitude, see https://github.com/ecmwf/cfgrib/issues/402
-# changes in 0.6:
-# license header
 
 import re
 import glob
@@ -329,7 +327,7 @@ class MsiL1cBackendEntrypoint(BackendEntrypoint):
 
     def open_ancillary_files(self, auxpath, datasets):
         prefix = auxpath[auxpath.rfind('_')+1:].lower()
-        ds = xr.open_dataset(auxpath, engine="cfgrib", mask_and_scale=False)
+        ds = xr.open_dataset(auxpath, engine="cfgrib", mask_and_scale=False, backend_kwargs={"indexpath": ""})
         # work around for https://github.com/ecmwf/cfgrib/issues/402
         if -90.0 <= ds.longitude[0] < 90.0:
             pass
