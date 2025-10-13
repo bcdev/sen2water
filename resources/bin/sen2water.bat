@@ -19,8 +19,7 @@ if errorlevel 1 (
 )
 set "PYTHONPATH=%s2wdir%\lib\msiresampling"
 set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
-call %s2wdir%\lib\conda\condabin\activate.bat
-set "GPTPATH=%s2wdir%\lib\snap\bin"
+rem conda activate moved to after all parameters are shifted
 
 :: parse parameters
 set input=
@@ -36,46 +35,46 @@ set withtoolbox=false
 set outputdir=
 
 :loop
-if "%1" NEQ "" (
-   if "%1" == "--c2rccanc" (
+if '%1' NEQ '' (
+   if '%1' == "--c2rccanc" (
        set c2rccanc=%2
        shift
        shift
-   ) else ( if "%1" == "--acoliteanc" (
+   ) else ( if '%1' == "--acoliteanc" (
        set acoliteanc=%2
        shift
        shift
-   ) else ( if "%1" == "--polymeranc" (
+   ) else ( if '%1' == "--polymeranc" (
        set polymeranc=%2
        shift
        shift
-   ) else ( if "%1" == "--dem" (
+   ) else ( if '%1' == "--dem" (
        set dem=%2
        shift
        shift
-   ) else ( if "%1" == "--withouttgc" (
+   ) else ( if '%1' == "--withouttgc" (
        shift
        set withouttgc=true
-   ) else ( if "%1" == "--withdetfoofilter" (
+   ) else ( if '%1' == "--withdetfoofilter" (
        shift
        set withdetfoofilter=true
-   ) else ( if "%1" == "--withoutcleanup" (
+   ) else ( if '%1' == "--withoutcleanup" (
        shift
        set withoutcleanup=true
-   ) else ( if "%1" == "--withtoolbox" (
+   ) else ( if '%1' == "--withtoolbox" (
        shift
        set withtoolbox=true
-   ) else ( if "%1" == "--outputdir" (
+   ) else ( if '%1' == "--outputdir" (
        set outputdir=%2
        shift
        shift
-   ) else ( if "%1" == "--chunksize" (
+   ) else ( if '%1' == "--chunksize" (
        set chunksize=%2
        shift
        shift
-   ) else ( if "%1" == "--help" (
+   ) else ( if '%1' == "--help" (
        shift
-   ) else ( if "%1:0:1%" == "-" (
+   ) else ( if '%1:0:1%' == "-" (
        echo unknown parameter %1
        exit /b 1
    ) else ( if "!input!" == "" (
@@ -168,6 +167,8 @@ echo.%cd% | find "%s2wdir%" > Nul && (
 )
 
 ::ln -sf ${s2wdir}/lib/snap/snap/modules/lib/amd64/libenvironment-variables.so .
+rem activate conda after all parameters are shifted away
+call "%s2wdir%\lib\conda\Scripts\activate.bat" "%s2wdir%\lib\conda"
 
 if "!withtoolbox!" == "true" (
     echo Progress[%%]: 5.0 : resampling to 60m ...
@@ -175,9 +176,9 @@ if "!withtoolbox!" == "true" (
     echo resampling to 60m ...
 )
 
-python -u %s2wdir%\lib\msiresampling\sen2water\msiresampling\main.py ^
+python -u "%s2wdir%\lib\msiresampling\sen2water\msiresampling\main.py" ^
      --ancillary msl --ancillary tco3 --ancillary tcwv --ancillary u10 --ancillary v10 ^
-     !withdetfoofilter! !chunksize! !input! %resampled%
+     !withdetfoofilter! !chunksize! "!input!" %resampled%
 
 echo %resampled%
 echo:
@@ -190,8 +191,8 @@ if "!withouttgc!" == "true" (
     ) else (
         echo TOA glint correction ...
     )
-    python %s2wdir%\lib\acolite\tgcparameters.py %input%
-    python -u %s2wdir%\lib\acolite\tgc2.py --acolite_path %s2wdir%\lib\acolite --input %resampled% --output . ^
+    python "%s2wdir%\lib\acolite\tgcparameters.py" "%input%"
+    python -u "%s2wdir%\lib\acolite\tgc2.py" --acolite_path "%s2wdir%\lib\acolite" --input %resampled% --output . ^
            --glint_threshold 0.0 --scaling True --aot_min 0.1 --process_high_sza False --estimate False ^
            --grid_write True --grid_files %base%-TGC-parameters.json --verbosity 2
     if exist %destriped% (
@@ -215,14 +216,14 @@ if "!acoliteanc!" == "constant" (
     set s2auxiliarydefault=True
 )
 
-powershell -Command "(gc %s2wdir%\etc\acolite.parameters) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!destriped!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
+powershell -Command "(gc '%s2wdir%\etc\acolite.parameters') -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!destriped!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
 
-python -u %s2wdir%\lib\acolite\launch_acolite.py --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
+python -u "%s2wdir%\lib\acolite\launch_acolite.py" --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
 
 if not exist %acolite% (
     echo *** ACOLITE failed, retrying without TGC ...
-    powershell -Command "(gc %s2wdir%\etc\acolite.parameters) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!resampled!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
-    python -u %s2wdir%\lib\acolite\launch_acolite.py --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
+    powershell -Command "(gc '%s2wdir%\etc\acolite.parameters') -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_60m.nc', '!resampled!' -replace 's2_auxiliary_default=True', 's2_auxiliary_default=!s2auxiliarydefault!' | Out-File -encoding ASCII acolite.parameters"
+    python -u "%s2wdir%\lib\acolite\launch_acolite.py" --nogfx --cli --settings=acolite.parameters > %base%-acolite.log
     if not exist %acolite% (
         echo *** ACOLITE failed
         exit /b 1
@@ -249,10 +250,10 @@ if "!chunksize!" == "" (
     for /f "tokens=2" %%G IN ('!chunksize!') DO set blocksize=%%G
 )
 
-:: -J-Xmx6G -Dsnap.userdir=%s2wdir% -Dsnap.cachedir=%cd%\.snap\var -Dsnap.log.level=ERROR
+:: -J-Xmx6G -Dsnap.userdir="%s2wdir%" -Dsnap.cachedir="%cd%\.snap\var" -Dsnap.log.level=ERROR
 
-call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
-    %s2wdir%\etc\idepix-graph.xml -Pdem=!dem! !destriped! ^
+call "%s2wdir%\lib\snap\bin\gpt.bat" -c 4096M -q 4 -e ^
+    "%s2wdir%\etc\idepix-graph.xml" -Pdem=!dem! !destriped! ^
     -t %idepix% -f NetCDF4-BEAM
 
 echo %idepix%
@@ -269,8 +270,8 @@ if "!c2rccanc!" == "embedded" (
 ) else (
     set useEcmwfAuxData=false
 )
-call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
-    %s2wdir%\etc\c2rcc-graph.xml -Pdem=!dem! -PuseEcmwfAuxData=!useEcmwfAuxData! !destriped! ^
+call "%s2wdir%\lib\snap\bin\gpt.bat" -c 4096M -q 4 -e ^
+    "%s2wdir%\etc\c2rcc-graph.xml" -Pdem=!dem! -PuseEcmwfAuxData=!useEcmwfAuxData! !destriped! ^
     -t %c2rcc% -f NetCDF4-BEAM
 
 echo %c2rcc%
@@ -282,23 +283,23 @@ if "!withtoolbox!" == "true" (
     echo POLYMER atmospheric correction ...
 )
 
-call %GPTPATH%\gpt.bat -c 4096M -q 4 -e ^
-    %s2wdir%\etc\polymer-mask-graph.xml %idepix% ^
+call "%s2wdir%\lib\snap\bin\gpt.bat" -c 4096M -q 4 -e ^
+    "%s2wdir%\etc\polymer-mask-graph.xml" %idepix% ^
     -t %cloudmask% -f NetCDF4-BEAM
 
 echo %cloudmask%
 
-cd /d %s2wdir%\lib\polymer
+cd /d "%s2wdir%\lib\polymer"
 python setup.py build_ext --inplace
 cd /d !outputdir!
 
 if "!polymeranc!" == "" (
     set polymeranc=embedded
 )
-powershell -Command "(gc %s2wdir%\etc\polymer.parameters.windows) -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_mask.nc', '%cloudmask%' | Out-File -encoding ASCII polymer.parameters"
+powershell -Command "(gc '%s2wdir%\etc\polymer.parameters.windows') -replace 'S2A_MSIL1C_20230929T103821_N0509_R008_T32UME_20230929T141112_mask.nc', '%cloudmask%' | Out-File -encoding ASCII polymer.parameters"
 
 if exist %polymer% del %polymer%
-python -u %s2wdir%\lib\polymer\run-polymer.py polymer.parameters !polymeranc! "%s2wdir%\auxdata\dem\!dem:~1,-1!" %resampled% %polymer%
+python -u "%s2wdir%\lib\polymer\run-polymer.py" polymer.parameters !polymeranc! "%s2wdir%\auxdata\dem\!dem:~1,-1!" %resampled% %polymer%
 
 echo %polymer%
 echo:
@@ -309,7 +310,7 @@ if "!withtoolbox!" == "true" (
     echo Sen2Water switching and output formatting ...
 )
 
-python -u %s2wdir%\lib\msiresampling\sen2water\s2wswitching\main.py ^
+python -u "%s2wdir%\lib\msiresampling\sen2water\s2wswitching\main.py" ^
      !chunksize! ^
      !destriped! %idepix% %c2rcc% %acolite% %polymer% !staticmask! %s2w%
 
