@@ -57,7 +57,7 @@ if '%1' NEQ '' (
        set withouttgc=true
    ) else ( if '%1' == '--withdetfoofilter' (
        shift
-       set withdetfoofilter=true
+       set withdetfoofilter=--withdetfoofilter
    ) else ( if '%1' == '--withoutcleanup' (
        shift
        set withoutcleanup=true
@@ -69,7 +69,7 @@ if '%1' NEQ '' (
        shift
        shift
    ) else ( if '%1' == '--chunksize' (
-       set chunksize=%2
+       set "chunksize=--chunksize %2"
        shift
        shift
    ) else ( if '%1' == '--help' (
