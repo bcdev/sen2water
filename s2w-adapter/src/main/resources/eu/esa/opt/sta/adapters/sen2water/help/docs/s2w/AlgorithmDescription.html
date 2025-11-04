@@ -36,7 +36,7 @@
 <h3>Sen2Water Algorithm</h3>
 
 The Sen2Water processor combines three atmospheric correction algorithms and a pixel
-identification algorithm, resampling, and blending that are each maintained on their
+identification algorithm, resampling, and blending. Each of them is maintained on its
 own. Therefore, this description mainly refers to existing documentation of the
 elements combined in this processor. The distinction between ocean and inland water
 and the behaviour of the algorithm at the ocean-inland water interface are described
@@ -82,7 +82,7 @@ from inland water. From these distinctions a static mask is derived with more de
 to guide dynamic pixel identification. It also guides blending at the interface between
 ocean and inland water where necessary. A buffer of the ocean coastline into river estuaries
 defines the zone of blending at the ocean-inland water interface. A buffer of the coastline
-defines the zone of dynamic water determination.
+defines the zone of dynamic ocean water determination.
 
 <h4>TOA Glint Correction</h4>
 
