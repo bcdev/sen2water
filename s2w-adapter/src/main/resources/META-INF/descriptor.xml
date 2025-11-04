@@ -163,8 +163,11 @@
   <windowsBundle>
     <bundleType>ZIP</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
-    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${project.version}-win64.zip
-    </downloadURL>
+    <downloadURL>https://step.esa.int/thirdparties/Sen2Water/sen2water-${project.version}-win64.zip</downloadURL>
+      <!--
+    <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${project.version}-win64.zip</downloadURL>
+    -->
+
     <templateparameter>
       <template type="simple">
         <contents/>
@@ -178,7 +181,10 @@
   <linuxBundle>
     <bundleType>INSTALLER</bundleType>
     <bundleLocation>REMOTE</bundleLocation>
+    <downloadURL>https://step.esa.int/thirdparties/Sen2Water/sen2water-${project.version}-linux.run</downloadURL>
+      <!--
     <downloadURL>https://www.brockmann-consult.de/Sen2Water.tmp/sen2water-${project.version}-linux.run</downloadURL>
+    -->
     <templateparameter>
       <name>arguments</name>
       <dataType>java.io.File</dataType>
