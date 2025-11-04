@@ -1,3 +1,10 @@
+## Version 0.6.3 (2025-11-04)
+
+Bug fixes for SNAP 13 integration
+
+* url for download of Sen2Water package moved from BC test environment to ESA location
+* Windows batch script modified to work with recent windows update
+
 ## Version 0.6.2 (2025-09-30)
 
 Adaptations for SNAP 12/13 as control instance

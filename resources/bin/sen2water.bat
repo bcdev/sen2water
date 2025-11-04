@@ -9,7 +9,7 @@ cd %~dp0..%
 set s2wdir=%cd%
 cd %wd1%
 
-echo Sen2Water 0.6.2 (%s2wdir%)
+echo Sen2Water 0.6.3 (%s2wdir%)
 
 echo %PATH% | find /I "%s2wdir%\bin" >nul
 if errorlevel 1 (
@@ -18,7 +18,7 @@ if errorlevel 1 (
     set "PATH=%s2wPath%;%PATH%"
 )
 set "PYTHONPATH=%s2wdir%\lib\msiresampling"
-set "ECCODES_DEFINITION_PATH=%s2wdir%\lib\conda\share\eccodes\definitions"
+set "ECCODES_DEFINITION_PATH="%s2wdir%\lib\conda\share\eccodes\definitions"
 rem conda activate moved to after all parameters are shifted
 
 :: parse parameters
@@ -36,45 +36,45 @@ set outputdir=
 
 :loop
 if '%1' NEQ '' (
-   if '%1' == "--c2rccanc" (
+   if '%1' == '--c2rccanc' (
        set c2rccanc=%2
        shift
        shift
-   ) else ( if '%1' == "--acoliteanc" (
+   ) else ( if '%1' == '--acoliteanc' (
        set acoliteanc=%2
        shift
        shift
-   ) else ( if '%1' == "--polymeranc" (
+   ) else ( if '%1' == '--polymeranc' (
        set polymeranc=%2
        shift
        shift
-   ) else ( if '%1' == "--dem" (
+   ) else ( if '%1' == '--dem' (
        set dem=%2
        shift
        shift
-   ) else ( if '%1' == "--withouttgc" (
+   ) else ( if '%1' == '--withouttgc' (
        shift
        set withouttgc=true
-   ) else ( if '%1' == "--withdetfoofilter" (
+   ) else ( if '%1' == '--withdetfoofilter' (
        shift
        set withdetfoofilter=true
-   ) else ( if '%1' == "--withoutcleanup" (
+   ) else ( if '%1' == '--withoutcleanup' (
        shift
        set withoutcleanup=true
-   ) else ( if '%1' == "--withtoolbox" (
+   ) else ( if '%1' == '--withtoolbox' (
        shift
        set withtoolbox=true
-   ) else ( if '%1' == "--outputdir" (
+   ) else ( if '%1' == '--outputdir' (
        set outputdir=%2
        shift
        shift
-   ) else ( if '%1' == "--chunksize" (
+   ) else ( if '%1' == '--chunksize' (
        set chunksize=%2
        shift
        shift
-   ) else ( if '%1' == "--help" (
+   ) else ( if '%1' == '--help' (
        shift
-   ) else ( if '%1:0:1%' == "-" (
+   ) else ( if '%1:0:1%' == '-' (
        echo unknown parameter %1
        exit /b 1
    ) else ( if "!input!" == "" (
@@ -333,18 +333,18 @@ if not "!withoutcleanup!" == "true" (
     del acolite_run*txt %base%-acolite.log acolite.parameters polymer.parameters
 )
 
-echo !newname!
 if "!withtoolbox!" == "true" (
     echo Progress[%%]: 100.0 : done
     echo %cd%\%newname%
 ) else (
+    echo done
     echo %newname%
 )
-echo done
 
 :: even the %errorlevel% is zero and zero is provided as exit code
 :: the console log in SNAP prints: Process exited with value 1
 :: echo ERRORLEVEL = %errorlevel%
+echo ignore the following return value, please:
 exit /b 0
 
 :dirname p v
