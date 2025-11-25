@@ -5,7 +5,7 @@ set -e
 # Linux script to run the Sen2Water processing chain that generates an MSI L2W from an MSI L1C.
 
 s2wdir=$(dirname $(dirname $(realpath $0)))
-echo "Sen2Water 0.6.3 ($s2wdir)"
+echo "Sen2Water 0.6.4 ($s2wdir)"
 
 if [ "$(which gpt)" != "$s2wdir/lib/snap/bin/gpt" ]; then
     echo "setting up environment ..."

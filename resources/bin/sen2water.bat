@@ -9,7 +9,7 @@ cd %~dp0..%
 set s2wdir=%cd%
 cd %wd1%
 
-echo Sen2Water 0.6.3 (%s2wdir%)
+echo Sen2Water 0.6.4 (%s2wdir%)
 
 echo %PATH% | find /I "%s2wdir%\bin" >nul
 if errorlevel 1 (

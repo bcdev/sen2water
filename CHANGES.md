@@ -1,3 +1,9 @@
+## Version 0.6.4 (2025-11-25)
+
+License text
+
+* license text changed to display all component licenses during Sen2Water tool adapter installation in SNAP.
+
 ## Version 0.6.3 (2025-11-04)
 
 Bug fixes for SNAP 13 integration
