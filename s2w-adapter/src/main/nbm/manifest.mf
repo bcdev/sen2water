@@ -10,5 +10,11 @@ OpenIDE-Module-Long-Description: <p>${project.description}</p>
  <p><b>Vendor:</b> <a href="https://www.brockmann-consult.de">Brockmann Consult GmbH</a><br>
  <b>Contact address:</b> Chrysanderstr. 1, 21029 Hamburg (Germany)<br>
  <b>Copyright:</b> (C) 2025 by Brockmann Consult GmbH<br>
- <b>License of Sen2Water adapter:</b> <a href="https://opensource.org/license/gpl-3-0">GPLv3</a><br>
- <b>License of Sen2Water processor:</b> <a href="https://opensource.org/license/MIT">MIT</a></p>
+ <b>License of Sen2Water SNAP adapter:</b> <a href="https://opensource.org/license/gpl-3-0">GPLv3</a><br>
+ <b>License of Idepix:</b> <a href="https://github.com/bcdev/snap-idepix">GPL3</a><br>
+ <b>License of SNAP, C2RCC:</b> <a href="https://github.com/senbox-org/">GPL3</a><br>
+ <b>License of ACOLITE:</b> <a href="https://github.com/acolite/acolite">GPL3</a><br>
+ <b>License of Polymer:</b> <a href="https://github.com/hygeos/polymer">Polymer</a><br>
+ <b>License of JRE:</b> <a href="https://openjdk.org/">GPL2</a><br>
+ <b>License of CONDA:</b> <a href="https://www.anaconda.com/">Miniconda</a><br>
+ <b>License of Sen2Water modules:</b> <a href="https://opensource.org/license/MIT">MIT</a></p>
