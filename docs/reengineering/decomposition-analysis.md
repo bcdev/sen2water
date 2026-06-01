@@ -18,7 +18,7 @@ Idepix for MSI is a SNAP operator that is composed of serveral internal operator
 
 Candidate names for units are
 
-| Unit (intermediate name) | Input bands                                               | Output Bands                        | Computational service                | SNAP Operator                |
+| Unit (intermediate name) | Input bands                                               | Output bands                        | Computational service                | SNAP Operator                |
 |--------------------------|-----------------------------------------------------------|-------------------------------------|--------------------------------------|------------------------------|
 | l1c (product)            | -                                                         | B1,..,B12,sza,saa,vza,vaa,geocoding | main input                           | -                            | 
 | dem (ADF)                | -                                                         | dem.elevation                       | ADF                                  | -                            | 

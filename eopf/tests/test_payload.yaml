@@ -50,6 +50,8 @@ I/O:
     path: test_l2w/S02MSIL1C_20210627T100559_0000_B022_TC33_T32TPS.zarr
 #    engine: zarr
     engine: cpm_zarr
+  - id: S2_L2W_TC33
+    path: test_l2w/S2B_MSIL2W_20250811T102559_N0511_R108_T32UMB_20260501T064100.nc
 
   output_products:
   - id: output_folder
