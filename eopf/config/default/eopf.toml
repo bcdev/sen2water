@@ -1,0 +1,33 @@
+# Example TOML Configuration File
+
+[general]
+title = "EOPF-CPM"
+version = 1.0
+description = "An example configuration file with complex structures."
+facility = "BC1"
+processing_facility = "BC2"
+
+[processing]
+facility = "BC3"
+
+[logging]
+level = "INFO"
+dask_level = "WARNING"
+
+[accessors.memmap]
+packet_cache_size = 30000
+
+[dask_context]
+cluster_type = "local"
+[dask_context.cluster_config]
+# Default to use only multi-process dask local cluster
+threads_per_worker = 2
+n_workers = 2
+processes = true
+memory_limit = "8GiB"
+
+
+
+
+[store.convert]
+use_multithreading = true
