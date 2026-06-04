@@ -1,0 +1,28 @@
+# Example TOML Configuration File
+
+processing_facility = "BC2"
+
+[general]
+title = "EOPF-CPM"
+version = 1.0
+description = "s2w test configuration"
+facility = "BC"
+
+[logging]
+level = "DEBUG"
+dask_level = "DEBUG"
+
+[accessors.memmap]
+packet_cache_size = 30000
+
+[dask_context]
+cluster_type = "local"
+[dask_context.cluster_config]
+# Default to use only multi-process dask local cluster
+threads_per_worker = 2
+n_workers = 2
+processes = false
+memory_limit = "8GiB"
+
+[store.convert]
+use_multithreading = true
