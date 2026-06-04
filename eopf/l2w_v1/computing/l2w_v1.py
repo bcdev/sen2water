@@ -19,7 +19,6 @@ import dask.array as da
 import numpy as np
 from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
-from eopf.logging import EOLogging
 
 from l2w_v1.exceptions.errors import MyError
 
@@ -48,17 +47,14 @@ class L2WV1Processor(EOProcessingUnit):
         **kwargs: Any,
     ) -> MappingDataType:
 
-        logger = EOLogging().get_logger()
-
         if len(inputs) < 1:
             raise MyError("Missing mandatory input product 'l1c'")
 
         l1c = inputs["l1c"]
-        l2w_prototype = adfs["l2w_prototype"] if "l2w_prototype" in adfs else None
+        l2w_prototype = xr.open_dataset(adfs["l2w_prototype"].path, chunks=610, mask_and_scale=False) if "l2w_prototype" in adfs else None
 
         # introduce new L2W output
         l2w = xr.DataTree(name="l2w")
-
 
         # introduce group
         water_leaving_reflectance = xr.DataTree(name="water_leaving_reflectance")
@@ -268,6 +264,7 @@ class L2WV1Processor(EOProcessingUnit):
 
         # l2w.attrs["processing_history"] = l1c.attrs["processing_history"]
         outputs = {"l2w": l2w}
+        l2w.attrs["stac_discovery"] = { "id": "S02MSIL2W_20210627T100559_0000_B022_TFBD" }
         self._add_history_event(inputs, outputs=outputs, mode="default", adfs=adfs)
 
 

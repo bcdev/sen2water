@@ -32,6 +32,9 @@ workflow:
   inputs:
     l1c: S2_L1C_TC33
 
+  adfs:
+    l2w_prototype: S2_L2W_TC33
+
   outputs:
     .*: output_folder
 
@@ -44,20 +47,22 @@ workflow:
 # -------------------------------------------------------------
 # Input/Output (I/O) Configuration
 # -------------------------------------------------------------
-I/O:
+io:
   input_products:
   - id: S2_L1C_TC33
     path: test_l2w/S02MSIL1C_20210627T100559_0000_B022_TC33_T32TPS.zarr
-#    engine: zarr
+#    path: /windows/tmp/eopf/polymer/tests/test_l1c/S02MSIL1C_20210627T100559_0000_B022_TC33_T32TPS.zarr
     engine: cpm_zarr
+
+  adfs:
   - id: S2_L2W_TC33
-    path: test_l2w/S2B_MSIL2W_20250811T102559_N0511_R108_T32UMB_20260501T064100.nc
+    path: test_l2w/S2A_MSIL2W_20220207T101201_N0400_R022_T33UUA_20251105T114657.nc
+#    path: /windows/tmp/eopf/S2A_MSIL2W_20220207T101201_N0400_R022_T33UUA_20251105T114657.nc
 
   output_products:
   - id: output_folder
     path: test_l2w/
     type: folder
-#    engine: zarr
 #    engine: cpm_zarr
     engine: cpm_netcdf
     writer_params:
@@ -66,11 +71,11 @@ I/O:
 # -------------------------------------------------------------
 # Dask Context Configuration
 # -------------------------------------------------------------
-dask_context:
-  cluster_type: local
-  cluster_config:
-    n_workers: 4
-    threads_per_worker: 1
-    memory_limit: 8GiB
-  client_config:
-    timeout: 1800
+#dask_context:
+#  cluster_type: local
+#  cluster_config:
+#    n_workers: 4
+#    threads_per_worker: 1
+#    memory_limit: 8GiB
+#  client_config:
+ #   timeout: 1800
