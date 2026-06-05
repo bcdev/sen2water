@@ -18,13 +18,19 @@ from click.testing import CliRunner
 from eopf import __version__
 from eopf.cli.cli import eopf_cli
 
+from eopf.config.config import EOConfiguration
+
 
 # @pytest.mark.parametrize("opts", [("--help",)])
+# @pytest.mark.parametrize("opts", [("trigger","local","/home/martin/projects/sen2water/eopf/tests/test_payload.yaml")])
 @pytest.mark.parametrize("opts", [("trigger","local",".\tests\test_payload.yaml")])
 def test_cli(opts):
+    # set env var EOPF_CONFIGURATION_FOLDER to absolute path of directory that contains file eopf.toml
+    EOConfiguration().load_default_file()
     runner = CliRunner()
-    r = runner.invoke(eopf_cli, args=opts)
-    # assert r.exit_code == 0
-    # print(r.output)
+    r = runner.invoke(eopf_cli, args=opts, catch_exceptions=False)
+    print(r.stderr)
+    print(r.output)
+    assert r.exit_code == 0
     # fmt: off
 
