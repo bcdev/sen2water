@@ -32,7 +32,7 @@ class L2WV1Processor(EOProcessingUnit):
 
     PROCESSOR_NAME = "l2w"
     PROCESSOR_VERSION = "0.0.1"
-    PROCESSOR_LEVEL = "L2"
+    PROCESSOR_LEVEL = "Level-2 Product"
     PROCESSOR_MODEL = False
 
     def __init__(self, identifier: Any = "") -> None:
@@ -261,12 +261,259 @@ class L2WV1Processor(EOProcessingUnit):
         )
         l2w["quality/water/" + band_name] = band
 
+        l2w.attrs["stac_discovery"] = {
+            "type": "Feature",
+            "id": "S02MSIL2W_20210627T100559_0000_B022_TFBD",
+            "bbox": [
+                11.755584916064224,
+                45.93349650488509,
+                10.290484068727272,
+                46.94616825397537,
+            ],
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [10.314035280374382, 46.94616825397537],
+                        [11.755584916064224, 46.920536388192055],
+                        [11.706254333045143, 45.93349650488509],
+                        [10.290484068727272, 45.95826451839171],
+                        [10.314035280374382, 46.94616825397537],
+                    ]
+                ],
+            },
+            "properties": {
+                "product:type": "S02MSIL2W",
+                "processing:facility": "ESA",
+                "processing:level": "L2W",
+                "processing:lineage": "systematic",
+                "processing:version": "00.08",
+                "product:timeliness": "PT3H",
+                "product:timeliness_category": "NRT",
+                "constellation": "sentinel-2",
+                "platform": "sentinel-2b",
+                "sat:platform_international_designator": "2015-028A",
+                "instruments": ["msi"],
+                "sat:absolute_orbit": 22499,
+                "sat:orbit_state": "descending",
+                "sat:relative_orbit": 22,
+                "eopf:datastrip_id": "S2B_OPER_MSI_L1C_DS_S2RP_20230318T143834_S20210627T101702_N05.00",
+                "eopf:datatake_id": "GS2B_20210627T100559_022499_N05.00",
+                "eopf:instrument_mode": "INS-NOBS",
+                "gsd": "60",
+                "proj:bbox": [600000.0, 5090220.0, 709800.0, 5200020.0],
+                "proj:code": "EPSG:32632",
+                "proj:transform": [
+                    60.0,
+                    0.0,
+                    600000.0,
+                    0.0,
+                    -60.0,
+                    5200020.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                ],
+                "proj:wkt2": 'PROJCS["WGS 84 / UTM zone 32N",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",9],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH],AUTHORITY["EPSG","32632"]]',
+                "start_datetime": "2021-06-27T10:05:59.024Z",
+                "end_datetime": "2021-06-27T10:05:59.024Z",
+                "datetime": "2021-06-27T10:05:59.024000Z",
+                "eo:cloud_cover": 15.3870823255397,
+                "eo:snow_cover": 8.31696975126161,
+                "providers": [{"name": "ESA", "roles": ["producer"]}],
+                "created": "2023-03-18T14:38:34.000000Z",
+                "sci:doi": "TBD",
+                "bands": [
+                    {
+                        "eo:center_wavelength": 0.4423,
+                        "eo:full_width_half_max": 0.02,
+                        "name": "Rw443",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.4923,
+                        "eo:full_width_half_max": 0.065,
+                        "name": "Rw490",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.559,
+                        "eo:full_width_half_max": 0.035,
+                        "name": "Rw560",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.665,
+                        "eo:full_width_half_max": 0.03,
+                        "name": "Rw665",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.7038,
+                        "eo:full_width_half_max": 0.015,
+                        "name": "Rw703",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.7391000000000001,
+                        "eo:full_width_half_max": 0.015,
+                        "name": "Rw740",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.7797000000000001,
+                        "eo:full_width_half_max": 0.02,
+                        "name": "Rw783",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.833,
+                        "eo:full_width_half_max": 0.105,
+                        "name": "Rw842",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.864,
+                        "eo:full_width_half_max": 0.02,
+                        "name": "Rw865",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 0.9432,
+                        "eo:full_width_half_max": 0.02,
+                        "name": "Rw945",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 1.3769,
+                        "eo:full_width_half_max": 0.03,
+                        "name": "Rw1375",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 1.6104,
+                        "eo:full_width_half_max": 0.09,
+                        "name": "Rw1610",
+                        "raster:spatial_resolution": "60",
+                    },
+                    {
+                        "eo:center_wavelength": 2.1856999999999998,
+                        "eo:full_width_half_max": 0.18,
+                        "name": "Rw2190",
+                        "raster:spatial_resolution": "60",
+                    },
+                ],
+            },
+            "assets": {
+                "Rw443": {
+                    "title": "Rw443",
+                    "href": "/measurements/water_leaving_reflectance/Rw443",
+                },
+                "Rw490": {
+                    "title": "Rw490",
+                    "href": "/measurements/water_leaving_reflectance/Rw490",
+                },
+                "Rw560": {
+                    "title": "Rw560",
+                    "href": "/measurements/water_leaving_reflectance/Rw560",
+                },
+                "Rw665": {
+                    "title": "Rw665",
+                    "href": "/measurements/water_leaving_reflectance/Rw665",
+                },
+                "Rw705": {
+                    "title": "Rw705",
+                    "href": "/measurements/water_leaving_reflectance/Rw705",
+                },
+                "Rw740": {
+                    "title": "Rw740",
+                    "href": "/measurements/water_leaving_reflectance/Rw740",
+                },
+                "Rw783": {
+                    "title": "Rw783",
+                    "href": "/measurements/water_leaving_reflectance/Rw783",
+                },
+                "Rw842": {
+                    "title": "Rw842",
+                    "href": "/measurements/water_leaving_reflectance/Rw842",
+                },
+                "Rw865": {
+                    "title": "Rw865",
+                    "href": "/measurements/water_leaving_reflectance/Rw865",
+                },
+                "Rw945": {
+                    "title": "Rw945",
+                    "href": "/measurements/water_leaving_reflectance/Rw945",
+                },
+                "Rw1375": {
+                    "title": "Rw1375",
+                    "href": "/measurements/water_leaving_reflectance/Rw1375",
+                },
+                "Rw1610": {
+                    "title": "Rw1610",
+                    "href": "/measurements/water_leaving_reflectance/Rw1610",
+                },
+                "Rw2190": {
+                    "title": "Rw2190",
+                    "href": "/measurements/water_leaving_reflectance/Rw2190",
+                },
+                "pixel_class": {
+                    "title": "pixel_class",
+                    "href": "/quality/water/pixel_class",
+                },
+                "sen2water_flags": {
+                    "title": "sen2water_flags",
+                    "href": "/quality/water/sen2water_flags",
+                },
+                "pixel_classif_flags": {
+                    "title": "pixel_classif_flags",
+                    "href": "/quality/water/pixel_classif_flags",
+                },
+            },
+            "stac_version": "1.1.0",
+            "stac_extensions": [
+                "https://stac-extensions.github.io/eopf/v1.2.0/schema.json",
+                "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
+                "https://stac-extensions.github.io/raster/v2.0.0/schema.json",
+                "https://stac-extensions.github.io/sat/v1.1.0/schema.json",
+                "https://stac-extensions.github.io/view/v1.0.0/schema.json",
+                "https://stac-extensions.github.io/scientific/v1.0.0/schema.json",
+                "https://stac-extensions.github.io/processing/v1.2.0/schema.json",
+                "https://stac-extensions.github.io/product/v0.1.0/schema.json",
+            ],
+        }
+        l2w.attrs["other_metadata" ] = {
+            "title": "OPT-MPC Sen2Water water-leaving reflectances in 60m",
+            "tracking_id": "21ccb604-ba3d-11f0-b1d5-0433c22b8076",
+            "pixel_statistics": {
+                "ocean": {
+                    "valid_count": 213224,
+                    "clear_count": 140090,
+                    "snow_ice_count": 2,
+                    "cloud_count": 73132,
+                },
+                "inland_water": {
+                    "valid_count": 1783,
+                    "clear_count": 1031,
+                    "snow_ice_count": 0,
+                    "cloud_count": 752,
+                },
+                "land": {
+                    "valid_count": 225938,
+                    "clear_count": 161244,
+                    "snow_ice_count": 3,
+                    "cloud_count": 64691,
+                },
+                "valid_count": 440945,
+            },
+            "eopf_category": "eoproduct",
+        }
 
-        # l2w.attrs["processing_history"] = l1c.attrs["processing_history"]
         outputs = {"l2w": l2w}
-        l2w.attrs["stac_discovery"] = { "id": "S02MSIL2W_20210627T100559_0000_B022_TFBD" }
-        self._add_history_event(inputs, outputs=outputs, mode="default", adfs=adfs)
 
+        l2w.attrs["processing_history"] = l1c.attrs["processing_history"]
+        # TODO seems to happen outside of the processor, lacks DEM and S2W water mask
+        # self._add_history_event(inputs, outputs=outputs, mode="default", adfs=adfs)
 
         # return inputs
         return outputs
