@@ -156,7 +156,7 @@ class L2WV1Processor(EOProcessingUnit):
             dims=("y", "x"),
             attrs={
                 "long_name": "Pixel classification flags",
-                "flag_values": [np.ubyte(0), np.ubyte(1), np.ubyte(2), np.ubyte(3), np.ubyte(4), np.ubyte(5), np.ubyte(6), np.ubyte(7), np.ubyte(8), np.ubyte(9)],
+                "flag_values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                 "flag_meanings": "NO_DATA CLEAR_LAND_OR_VEGETATION CLEAR_OCEAN_WATER CLEAR_INLAND_WATER SNOW_ICE CIRRUS CLOUD_OR_MOUNTAIN_SHADOW AMBIGUOUS_CLOUD CLOUD AC_OUT_OF_BOUNDS",
                 "_FillValue": np.ubyte(0),
                 "grid_mapping": "quality/water/crs",
@@ -176,7 +176,7 @@ class L2WV1Processor(EOProcessingUnit):
             dims=("y", "x"),
             attrs={
                 "long_name": "Quality and algorithm flags",
-                "flag_masks": [np.ubyte(0), np.ubyte(1), np.ubyte(2), np.ubyte(4), np.ubyte(8), np.ubyte(16), np.ubyte(32)],
+                "flag_masks": [1, 2, 4, 8, 16, 32],
                 "flag_meanings": "c2rcc_oor acolite_negatives polymer_invalid with_c2rcc with_acolite with_polymer",
                 "grid_mapping": "quality/water/crs",
             }
