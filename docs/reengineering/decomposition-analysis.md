@@ -35,3 +35,15 @@ Candidate names for units are
 
 There is an internal resampling for cloud shadow in case the input is not at 60m. In case the input is not in 60m there is a recursive call to MSI Idepix to get a classification at 60m. This case is not required for Sen2Water as long as it will only be used at 60m. The recursive call is not considered in this analysis.
 
+## MSIresampling
+
+- The `ResamplingOperator` is already decomposed into units that resemble EOProcessingUnits.
+- The interface between algorithms is already effectively xarray (managed by the `ResamplingOperator`). We may wrap each algorithms with an EOProcessingUnit, so that the interface between units are xarray objects (xr.DataTrees) and unwrapping is handled within the unit.
+- If a case is found where the wrapping/unwrapping step into xarray objects is omitted, this could be a reason to avoid wrapping algorithms in EOProcessingUnit units.
+- The algorithms in MSIresampling can be used elsewhere. It is therefore preferable to keep them useful outside the EOPF framework and expose them as a library. The algorithms can then be wrapped as processing units and only the full ResamplingOperator's run function is completely reimplemented with the framework.
+
+## Polymer
+
+- Processing functions are implemented using xarray. Therefore, `xarray.map_blocks` is used instead of `dask.array.map_blocks`
+- We have to allow processing units with xarray based implementations if we want to use polymer functions without large rewrites (into numpy based functions)
+
