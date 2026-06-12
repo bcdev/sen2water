@@ -101,3 +101,40 @@ def test_angles_interpolation():
     print()
     print(result)
     assert abs(result[1,1] - 142.8894) < 0.001
+
+def test_bicubic_interpolation():
+    import numpy as np
+    import scipy
+
+    input = np.array([[1.0, 3.0, 4.0, 2.0], [3.0, 7.0, 8.0, 4.0], [2.0, 6.0, 9.0, 3.0]])
+    x = np.linspace(0, 3, 5)
+    y = np.linspace(0, 2, 4)
+    target_coords = np.stack(np.meshgrid(y, x, indexing="ij"))
+    print(target_coords)
+    print(input)
+    print(scipy.ndimage.map_coordinates(input, target_coords, order=1))
+    print(scipy.ndimage.map_coordinates(input, target_coords, order=3))
+    print(scipy.ndimage.map_coordinates(input, target_coords, order=3, prefilter=False))
+
+def test_bicubic_upsampling():
+    data = np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 8.0]])
+    mode = 'bicubic'
+    factor = 3
+    image_shape = (2, 3)
+    image_chunksize = (2, 3)
+    block_id = (0, 0)
+    result = Upsampling().upsample(
+        data,
+        mode=mode,
+        factor=(factor, factor),
+        src_image_shape=image_shape,
+        src_image_chunksize=image_chunksize,
+        block_id=block_id)
+    print()
+    print(result)
+    if factor == 3:
+        import math
+        assert math.isclose(result[1,1], data[0,0])
+        assert math.isclose(result[4,4], data[1,1])
+        assert math.isclose(result[4,7], data[1,2])
+    print("done")

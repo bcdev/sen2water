@@ -116,7 +116,42 @@ class Upsampling(OverlapAlgorithm):
             return result
 
         if mode == "bicubic":
-            raise ValueError(f"{mode} not implemented yet")
+
+            # extend tp grid by two columns and two rows for interpolation unless done by map_overlap
+            if block_id[0] == 0:
+                # extend to the top
+                src_dummy_row1 = 3 * src_data[0] - 2 * src_data[1]
+                src_dummy_row2 = 2 * src_data[0] - src_data[1]
+                src_data = np.vstack([src_dummy_row1, src_dummy_row2, src_data])
+            if (block_id[0]+1) * src_image_chunksize[0] >= src_image_shape[0]:
+                # extend to the bottom
+                src_dummy_row1 = 3 * src_data[-1] - 2 * src_data[-2]
+                src_dummy_row2 = 2 * src_data[-1] - src_data[-2]
+                src_data = np.vstack([src_data, src_dummy_row2, src_dummy_row1])
+            if block_id[1] == 0:
+                # extend to the left
+                src_dummy_column1 = 3 * src_data[:, :1] - 2 * src_data[:, 1:2]
+                src_dummy_column2 = 2 * src_data[:, :1] - src_data[:, 1:2]
+                src_data = np.hstack([src_dummy_column1, src_dummy_column2, src_data])
+            if (block_id[1]+1) * src_image_chunksize[1] >= src_image_shape[1]:
+                # extend to the right
+                src_dummy_column1 = 3 * src_data[:, -1:] - 2 * src_data[:, -2:-1]
+                src_dummy_column2 = 2 * src_data[:, -1:] - src_data[:, -2:-1]
+                src_data = np.hstack([src_data, src_dummy_column2, src_dummy_column1])
+
+            y_start = (3 + 1 / y_factor) / 2
+            x_start = (3 + 1 / x_factor) / 2
+            y_count = (src_data.shape[0] - 4) * y_factor
+            x_count = (src_data.shape[1] - 4) * x_factor
+            y_end = y_start + (y_count - 1) / y_factor
+            x_end = x_start + (x_count - 1) / x_factor
+            y_target = np.linspace(y_start, y_end, y_count)
+            x_target = np.linspace(x_start, x_end, x_count)
+            target_grid = np.stack(np.meshgrid(y_target, x_target, indexing="ij"))
+            import scipy
+            result = scipy.ndimage.map_coordinates(src_data, target_grid, order=3)
+            return result
+
         raise ValueError(f"unknown upsampling mode {mode}")
 
     func = upsample
