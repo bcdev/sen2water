@@ -14,6 +14,7 @@ The scope of the analysis comprises
 
 ## Idepix
 
+Idepix reads the L1C resampled to 60m and accesses respective tiles of a DEM and a static water mask and generates a flag band pixel_classif_flags.
 Idepix for MSI is a SNAP operator that is composed of serveral internal operators. They are candidates for units. Their outputs are candidates for intermediates.
 
 Candidate names for units are
@@ -35,12 +36,54 @@ Candidate names for units are
 
 There is an internal resampling for cloud shadow in case the input is not at 60m. In case the input is not in 60m there is a recursive call to MSI Idepix to get a classification at 60m. This case is not required for Sen2Water as long as it will only be used at 60m. The recursive call is not considered in this analysis.
 
-## MSIresampling
+## msiresampling
 
-- The `ResamplingOperator` is already decomposed into units that resemble EOProcessingUnits.
-- The interface between algorithms is already effectively xarray (managed by the `ResamplingOperator`). We may wrap each algorithms with an EOProcessingUnit, so that the interface between units are xarray objects (xr.DataTrees) and unwrapping is handled within the unit.
-- If a case is found where the wrapping/unwrapping step into xarray objects is omitted, this could be a reason to avoid wrapping algorithms in EOProcessingUnit units.
+msiresmapling reads the L1C, resamples the reflectance bands to a common resolution (of 60m for Sen2Water), carefully aggregates angles from the band-specific and detector-specific angles of the L1C, and resamples ancillary data to the target grid.
+
+The prototype implementation makes use of dask. It uses two classes Operator and Algorithm where Operator reads and creates xarray objects, Dataset for inputs and output, and dictionaries of DataArray for intermediates. The Algorithm is applied to dask arrays. Its implementation is a function on the level of numpy arrays applied to blocks. In msiresampling the same Algorithm is used in different places, and sometimes a step is implemented by alternative Algorithms depending on the source and target resolution. Several algorithms are applied per band separately. The top level operator creates the processing workflow.
+
+- The `ResamplingOperator` is already on the level of an EOProcessingUnits. It can be rewritten as ResamplingUnit.
+- There are two options for deconstruction:
+- If we stay with Algorithms in this module we rewrite ResamplingOperator.run into ResamplingUnit.apply by changing the data type of parameters and return value to DataTree and the paths of variables within input and output datatree. It may also be necessary to transform input data dask arrays if they are read differently and not stacked.
+- If we decompose msiresampling into many EOProcessingUnits then we wrap each algorithm with an EOProcessingUnit, so that the interface between units are xarray objects (xr.DataTrees) and unwrapping is handled within the unit. ResamplingUnit in this case orchestrates lower level units. We rewrite ResamplingOperator.run as well.
 - The algorithms in MSIresampling can be used elsewhere. It is therefore preferable to keep them useful outside the EOPF framework and expose them as a library. The algorithms can then be wrapped as processing units and only the full ResamplingOperator's run function is completely reimplemented with the framework.
+
+Candidate names for units are
+
+| Unit (intermediate name)   | Input bands                                            | Output bands                                                      | Computational service                                                | Prototype class            |
+|----------------------------|--------------------------------------------------------|-------------------------------------------------------------------|----------------------------------------------------------------------|----------------------------|
+| MsiResampling              | B01,...,B12,B_detector_footprint_B1,...,               | B1,...,B12,B_detector_footprint_B1,...,                           | resampling to common target resolution                               | ResamplingOperator         |
+|                            | quality_flags_B1,...,cloud_ice_flags,                  | quality_flags_B1,...,cloud_ice_flags,                             | considering detectors and angles                                     |                            |
+|                            | msl,...,                                               | msl,...,msl_interpolated,...,                                     |                                                                      |                            |
+|                            | sun_zenith,sun_azimuth,view_zenith,view_azimuth,       | sun_zenith,sun_azimuth,view_zenith_B1,...,view_azimuth_B1,...,    |                                                                      |                            |
+|                            | B_ancillary_lost,...,spatial_ref_60m,...,y,x           | y,x,lat,lon,aux_latitude,aux_longitude,crs                        |                                                                      |                            |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
+| GetYX                      |                                                        | y,x                                                               | read data delayed (TBD whether this reading shall be delayed at all) | .values                    |
+| GeoCoordinates             | y,x,crs                                                | lat,lon                                                           | transform UTM pixel coordinates to geo-coordinates                   | GeoCoordinates             |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
+| Downsampling               | B_detector_footprint_B1,...,master_detfoo              | resampled B_detector_footprint_B1,... or master_detfoo            | resample detector using majority, or find common detector,           | Downsampling               |
+|                            |                                                        |                                                                   | per band, for higher resolutions                                     |                            |
+| Upsampling                 | B_detector_footprint_B1,...                            | resampled B_detector_footprint_B1,...                             | resample detector, per band, for lower resolutions                   | Upsampling                 |
+| MasterDetFoo               | master_detfoo,resampled B_detector_footprint_B1,...    | master_detfoo                                                     | mask out deviations in master_detfoo, for equal or lower resolutions | da.where                   |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
+| Downsampling               | B1,...B12,B_detector_footprint_B1,....,                | B1,...,B12                                                        | resample band using original and resampled detector for filtering,   | Downsampling               |
+|                            | resampled B_detector_footprint_B1,... or master_detfoo |                                                                   | for higher resolutions                                               |                            |
+| Upsampling                 | B1,...,B12                                             | B1,...,B12                                                        | resample band for lower resolutions                                  | Upsampling                 |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
+| Downsampling               | quality_flags_B1,...                                   | resampled quality_flags_B1,...                                    | resample band for higher resolution, using first, applied per band   | Downsampling               |
+| Upsampling                 | quality_flags_B1,...                                   | resampled quality_flags_B1,...                                    | resample band for lower resolutions, using nearest, applied per band | Upsampling                 |
+| Upsampling                 | cloud_ice_flags                                        | resampled cloud_ice_flags                                         | resample band for lower resolutions, using nearest, applied per band | Upsampling                 |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
+| GetAncillary               |                                                        | aux_latitude,aux_longitude,msl,...                                | read data delayed (TBD whether this reading shall be delayed at all) | .values                    |
+| AncillaryInterpolation     | lat,lon,aux_latitude,aux_longitude,msl,...             | msl_interpolated,...                                              | interpolate from coarse geographic grid to target UTM grid           | AncillaryInterpolation     |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
+| TpInterpolation            | Bx,sun_zenith,sun_azimuth                              | sun_zenith, sun_azimuth                                           | interpolate angles to target grid                                    | TpInterpolation            | 
+| GetViewingAngles           |                                                        | vza_B1,...,vaa_B1,...                                             | read data delayed (TBD whether this reading shall be delayed at all) | .values                    |
+| ExpandViewingAngles        | vza_B1,...,vaa_B1,...                                  | extended vza_B1,...,vaa_B1,...                                    | extend angles per detector, delayed                                  | AnglesInterpolation.expand |
+| AnglesInterpolation        | B_detector_footprint_B1,...,                           | view_zenith_B1,...,view_azimuth_B1,...                            | interpolate angles to target grid                                    | AnglesInterpolation        |
+|                            | extended vza_B1,...,vaa_B1,...                         |                                                                   |                                                                      |                            |
+| MeanAngles                 | view_zenith_B1,...,view_azimuth_B1,...                 | view_zenith_mean,view_azimuth_mean                                | mean angle for all bands                                             | MeanAngles                 |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------   |
 
 ## Polymer
 
