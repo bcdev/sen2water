@@ -116,3 +116,109 @@ class MsiConstants(object):
         [255,200,  0,255],
         [255,255,255,255],
     ]
+
+
+class MsiConstantsReengineering(object):
+
+    bands = [
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b8a",
+        "b09",
+        "b10",
+        "b11",
+        "b12",
+    ]
+    resolutions = {
+        "b01": 60,
+        "b02": 10,
+        "b03": 10,
+        "b04": 10,
+        "b05": 20,
+        "b06": 20,
+        "b07": 20,
+        "b08": 10,
+        "b8a": 20,
+        "b09": 60,
+        "b10": 60,
+        "b11": 20,
+        "b12": 20,
+    }
+
+    flag_band_prefixes = [
+        "B_ancillary_lost",
+        "B_ancillary_degraded",
+        "B_msi_lost",
+        "B_msi_degraded",
+        "B_defective",
+        "B_nodata",
+        "B_partially_corrected_crosstalk",
+        "B_saturated_l1a",
+    ]
+
+    cloud_ice_flags = [
+        "B_opaque_clouds",
+        "B_cirrus_clouds",
+        "B_snow_and_ice_areas"
+    ]
+
+    ancillary_bands = [
+        "z",
+        "aod469",
+        "aod550",
+        "aod670",
+        "aod865",
+        "aod1240",
+        "bcaod550",
+        "duaod550",
+        "omaod550",
+        "ssaod550",
+        "suaod550",
+        "tcwv",
+        "msl",
+        "tco3",
+        "u10",
+        "v10",
+        "r",
+    ]
+
+    sun_angles = [
+        "sun_zenith",
+        "sun_azimuth",
+    ]
+
+    detector_colour = [
+        [  0,  0,255,255],
+        [  0,  0,255,255],
+        [  0,255,  0,255],
+        [  0,255,  0,255],
+        [255,  0,  0,255],
+        [255,  0,  0,255],
+        [255,175,175,255],
+        [255,250,250,255],
+        [255,200,  0,255],
+        [255,255,  0,255],
+        [255,  0,255,255],
+        [255,  0,255,255],
+    ]
+    quality_flags_colour = [
+        [255,200,  0,255],
+        [255,200,  0,255],
+        [255,  0,255,255],
+        [255,  0,  0,255],
+        [255,  0,  0,255],
+        [  0,255,255,255],
+        [255,175,175,255],
+        [178,  0,  0,255],
+    ]
+    cloud_ice_colour = [
+        [  0,  0,255,255],
+        [255,200,  0,255],
+        [255,255,255,255],
+    ]
