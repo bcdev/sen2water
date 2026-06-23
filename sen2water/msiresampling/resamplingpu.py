@@ -122,13 +122,13 @@ class ResamplingPU(EOProcessingUnit):
         lon_data = lat_lon[1]
         del xx, yy, transformer, lat_lon
 
-        resampled["measurements/reflectance/resampled/lat"] = xr.DataArray(
+        resampled["measurements/reflectance/resampled/latitude"] = xr.DataArray(
             lat_data,
             dims=['y', 'x'],
             attrs={"standard_name": "latitude",
                    "units": "degrees_north"}
         )
-        resampled["measurements/reflectance/resampled/lon"] = xr.DataArray(
+        resampled["measurements/reflectance/resampled/longitude"] = xr.DataArray(
             lon_data,
             dims=['y', 'x'],
             attrs={"standard_name": "longitude",
@@ -381,7 +381,7 @@ class ResamplingPU(EOProcessingUnit):
                     input_data_with_target_resolution = source_band_data
 
             attrs = source_band.attrs
-            attrs["coordinates"] = "crs y x lat lon"
+            attrs["coordinates"] = "crs y x latitude longitude"
             resampled[f"measurements/reflectance/resampled/{band}"] = xr.DataArray(
                 resampled_band,
                 dims=dims,
@@ -534,7 +534,7 @@ class ResamplingPU(EOProcessingUnit):
                 image_chunksize=(band_chunksize, band_chunksize),
                 dtype=angle_data.dtype,
             )
-            resampled[f"conditions/geometry/{angle_short_name}"] = xr.DataArray(
+            resampled[f"conditions/geometry/resampled/{angle_short_name}"] = xr.DataArray(
                 resampled_angles,
                 dims=dims,
                 attrs={"long_name": angle_long_name,
@@ -615,7 +615,7 @@ class ResamplingPU(EOProcessingUnit):
             resampled[f"conditions/geometry/resampled/vza_{band}"] = xr.DataArray(
                 resampled_vza,
                 dims=dims,
-                attrs={"long_name": "Viewing incidence zenith angle",
+                attrs={"long_name": f"Viewing incidence zenith angle for band {band}",
                        "units": "degrees",
                        "_FillValue": np.nan,
                        "coordinates": "crs y x"}
@@ -623,7 +623,7 @@ class ResamplingPU(EOProcessingUnit):
             resampled[f"conditions/geometry/resampled/vaa_{band}"] = xr.DataArray(
                 resampled_vaa,
                 dims=dims,
-                attrs={"long_name": "Viewing incidence azimuth angle",
+                attrs={"long_name": f"Viewing incidence azimuth angle for band {band}",
                        "units": "degrees",
                        "_FillValue": np.nan,
                        "coordinates": "crs y x"}
