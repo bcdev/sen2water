@@ -135,6 +135,23 @@ class ResamplingPU(EOProcessingUnit):
                    "units": "degrees_east"}
         )
 
+        resampled["conditions/mask/detector_footprint/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
+        resampled["conditions/mask/detector_footprint/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
+        resampled["conditions/mask/detector_footprint/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+        if ancillary:
+            resampled["conditions/meteorology/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
+            resampled["conditions/meteorology/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
+            resampled["conditions/meteorology/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+        resampled["quality/mask/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
+        resampled["quality/mask/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
+        resampled["quality/mask/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+        resampled["conditions/mask/l1c_classification/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
+        resampled["conditions/mask/l1c_classification/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
+        resampled["conditions/mask/l1c_classification/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+        resampled["conditions/geometry/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
+        resampled["conditions/geometry/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
+        resampled["conditions/geometry/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+
         resampled["conditions/meteorology/ecmwf"] = l1c["conditions/meteorology/ecmwf"].copy(inherit=False, deep=False)
         resampled["conditions/meteorology/cams"] = l1c["conditions/meteorology/cams"].copy(inherit=False, deep=False)
 
