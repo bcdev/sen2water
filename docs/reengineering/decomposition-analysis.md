@@ -89,4 +89,5 @@ Candidate names for units are
 
 - Processing functions are implemented using xarray. Therefore, `xarray.map_blocks` is used instead of `dask.array.map_blocks`
 - We have to allow processing units with xarray based implementations if we want to use polymer functions without large rewrites (into numpy based functions)
+- Or we analyse to which extend Polymer makes use of xarrray or to what extent it may even gain from using numpy.
 
