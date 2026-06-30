@@ -19,8 +19,8 @@ packet_cache_size = 30000
 cluster_type = "local"
 [dask_context.cluster_config]
 # Default to use only multi-process dask local cluster
-threads_per_worker = 1
-n_workers = 1
+threads_per_worker = 2
+n_workers = 2
 processes = false
 memory_limit = "8GiB"
 
