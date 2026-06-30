@@ -1,27 +1,25 @@
 from typing import Any, Optional, Literal, Tuple, Dict, Iterable, List
 
+import dask.array as da
 import numpy as np
 import xarray as xr
-import dask.array as da
-from pyproj import Transformer, CRS
-
 from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
+from pyproj import Transformer, CRS
 
 from l2w_v1.exceptions.errors import MyError
 from sen2water.msiresampling.ancillaryinterpolation import AncillaryInterpolation
 from sen2water.msiresampling.anglesinterpolation import AnglesInterpolation
 from sen2water.msiresampling.constants import MsiConstantsReengineering
-from sen2water.msiresampling.downsampling import Downsampling
 from sen2water.msiresampling.downsampling_pu import DownsamplingPU
 from sen2water.msiresampling.geocoordinates import GeoCoordinates
 from sen2water.msiresampling.meanangles import MeanAngles
 from sen2water.msiresampling.tpinterpolation import TpInterpolation
 from sen2water.msiresampling.upsampling import Upsampling
+from sen2water.msiresampling.upsampling_pu import UpsamplingPU
 
 
 class ResamplingMainPU(EOProcessingUnit):
-
     PROCESSOR_NAME = "MsiResampling2"
     PROCESSOR_VERSION = "0.7.0"
     PROCESSOR_LEVEL = "Level-1 Product"
@@ -37,24 +35,24 @@ class ResamplingMainPU(EOProcessingUnit):
         self._update_history = True
 
     def run(
-        self,
-        inputs: MappingDataType,
-        adfs: Optional[MappingAuxiliary] = None,
-        mode: Optional[str] = None,
-        *,
-        resolution: int = 60,
-        chunksize_in_meters = 36600,
-        ancillary: Optional[List[str]]=None,
-        downsampling: Literal['detectormean', 'first', 'min', 'max', 'mean', 'median'] = "detectormean",
-        flagdownsampling: Literal[
+            self,
+            inputs: MappingDataType,
+            adfs: Optional[MappingAuxiliary] = None,
+            mode: Optional[str] = None,
+            *,
+            resolution: int = 60,
+            chunksize_in_meters=36600,
+            ancillary: Optional[List[str]] = None,
+            downsampling: Literal['detectormean', 'first', 'min', 'max', 'mean', 'median'] = "detectormean",
+            flagdownsampling: Literal[
                 "mean", "median", "min", "max",
                 "flagand", "flagor", "flagmedianand", "flagmedianor",
                 "majority", "detectormean"
             ] = "flagand",
-        upsampling: Literal["nearest", "bilinear", "bicubic"] = "nearest",
-        with_detfoo_filter: bool = False,
-        merge_flags: bool = False,
-        **kwargs
+            upsampling: Literal["nearest", "bilinear", "bicubic"] = "nearest",
+            with_detfoo_filter: bool = False,
+            merge_flags: bool = False,
+            **kwargs
     ) -> MappingDataType:
         if len(inputs) < 1:
             raise MyError("Missing mandatory input product 'l1c'")
@@ -68,8 +66,7 @@ class ResamplingMainPU(EOProcessingUnit):
         }
         chunks = (chunksize_in_meters // resolution, chunksize_in_meters // resolution)
         resampled = xr.DataTree(name="resampled")
-        #resampled["measurements/reflectance/resampled/x"]
-
+        # resampled["measurements/reflectance/resampled/x"]
 
         # copy 1-d metric coordinate bands
 
@@ -138,7 +135,8 @@ class ResamplingMainPU(EOProcessingUnit):
 
         resampled["conditions/mask/detector_footprint/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
         resampled["conditions/mask/detector_footprint/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
-        resampled["conditions/mask/detector_footprint/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+        resampled["conditions/mask/detector_footprint/resampled/crs"] = resampled[
+            "/measurements/reflectance/resampled/crs"]
         if ancillary:
             resampled["conditions/meteorology/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
             resampled["conditions/meteorology/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
@@ -148,7 +146,8 @@ class ResamplingMainPU(EOProcessingUnit):
         resampled["quality/mask/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
         resampled["conditions/mask/l1c_classification/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
         resampled["conditions/mask/l1c_classification/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
-        resampled["conditions/mask/l1c_classification/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
+        resampled["conditions/mask/l1c_classification/resampled/crs"] = resampled[
+            "/measurements/reflectance/resampled/crs"]
         resampled["conditions/geometry/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
         resampled["conditions/geometry/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
         resampled["conditions/geometry/resampled/crs"] = resampled["/measurements/reflectance/resampled/crs"]
@@ -162,11 +161,10 @@ class ResamplingMainPU(EOProcessingUnit):
                 # Alternatively: set encoding to a good value
                 var.encoding.clear()
 
-
-
         # select detector per target pixel (with_detfoo_filter) or per target pixel per band
 
-        self._resample_detectors(resolution, dims, l1c, resampled, chunksize_in_meters=chunksize_in_meters, with_detfoo_filter=with_detfoo_filter)
+        self._resample_detectors(resolution, dims, l1c, resampled, chunksize_in_meters=chunksize_in_meters,
+                                 with_detfoo_filter=with_detfoo_filter)
 
         # resample reflectance bands B1 .. B12
 
@@ -184,9 +182,11 @@ class ResamplingMainPU(EOProcessingUnit):
 
         # resample flag bands B_xxx_B1 .. B_zzz_B12
 
-        self._resample_flags(flagdownsampling, resolution, chunksize_in_meters=chunksize_in_meters, dims=dims, l1c=l1c, resampled=resampled)
+        self._resample_flags(flagdownsampling, resolution, chunksize_in_meters=chunksize_in_meters, dims=dims, l1c=l1c,
+                             resampled=resampled)
 
-        self._resample_cloud_ice(flagdownsampling, resolution, chunksize_in_meters=chunksize_in_meters, dims=dims, l1c=l1c, resampled=resampled)
+        self._resample_cloud_ice(flagdownsampling, resolution, chunksize_in_meters=chunksize_in_meters, dims=dims,
+                                 l1c=l1c, resampled=resampled)
 
         if ancillary:
             self._resample_ancillary(
@@ -229,15 +229,14 @@ class ResamplingMainPU(EOProcessingUnit):
             "resampled": resampled
         }
 
-
     def _resample_detectors(
-        self,
-        resolution: int,
-        dims: Dict[str,int],
-        l1c: xr.DataTree,
-        resampled: xr.DataTree,
-        chunksize_in_meters: int,
-        with_detfoo_filter: bool=True
+            self,
+            resolution: int,
+            dims: Dict[str, int],
+            l1c: xr.DataTree,
+            resampled: xr.DataTree,
+            chunksize_in_meters: int,
+            with_detfoo_filter: bool = True
     ):
         """Adds resampled detector index"""
         if with_detfoo_filter:
@@ -250,9 +249,11 @@ class ResamplingMainPU(EOProcessingUnit):
                 if self.resolutions[band] == resolution:
                     master_band = band
                     detector_footprint_band_name = f"/conditions/mask/detector_footprint/r{resolution}m/{band}"
-                    master_detfoo_data = l1c[detector_footprint_band_name].data.rechunk(chunksize_in_meters // resolution)
+                    master_detfoo_data = l1c[detector_footprint_band_name].data.rechunk(
+                        chunksize_in_meters // resolution)
                     master_detfoo = xr.DataTree()
-                    master_detfoo['master_detfoo'] = xr.DataArray(master_detfoo_data, dims=l1c[detector_footprint_band_name].dims)
+                    master_detfoo['master_detfoo'] = xr.DataArray(master_detfoo_data,
+                                                                  dims=l1c[detector_footprint_band_name].dims)
 
                     break
             for band in self.bands:
@@ -261,15 +262,13 @@ class ResamplingMainPU(EOProcessingUnit):
                 band_resolution = self.resolutions[band]
                 detector_footprint_band_name = f"/conditions/mask/detector_footprint/r{band_resolution}m/{band}"
                 band_chunksize = chunksize_in_meters // band_resolution
-                detector_footprint_band_data = l1c[detector_footprint_band_name].data.rechunk(band_chunksize)
                 master_detfoo = DownsamplingPU().run(
-                    l1c,
-                    master_detfoo,
+                    {'data': l1c, 'target_detfoo': master_detfoo},
                     var_name=detector_footprint_band_name,
                     band_chunksize=band_chunksize,
                     mode="masterdetfoo",
                     factor=factor,
-                    dtype=detector_footprint_band_data.dtype,
+                    dtype=l1c[detector_footprint_band_name].data.dtype,
                     chunks=(chunksize_in_meters // resolution,
                             chunksize_in_meters // resolution)
                 )
@@ -277,20 +276,26 @@ class ResamplingMainPU(EOProcessingUnit):
                     factor = resolution // band_resolution
                 elif resolution < band_resolution:
                     factor = band_resolution // resolution
-                    resampled_detector = Upsampling().apply(
-                        detector_footprint_band_data,
+                    resampled_detector = UpsamplingPU().run(
+                        {'data': l1c},
+                        var_name=detector_footprint_band_name,
+                        band_chunksize=band_chunksize,
+                        src_image_shape=l1c[detector_footprint_band_name].data.shape,
+                        src_image_chunksize=(band_chunksize, band_chunksize),
                         mode="nearest",
                         factor=(factor, factor),
-                        src_image_shape=detector_footprint_band_data.shape,
-                        src_image_chunksize=(band_chunksize, band_chunksize),
                         depth=0,
-                        dtype=detector_footprint_band_data.dtype,
+                        dtype=l1c[detector_footprint_band_name].data.dtype,
                         chunks=(band_chunksize * factor, band_chunksize * factor)
                     )
-                    master_detfoo = da.where(resampled_detector == master_detfoo, master_detfoo, 0)
+                    master_detfoo['master_detfoo'] = xr.DataArray(da.where(
+                        resampled_detector[detector_footprint_band_name].data == master_detfoo['master_detfoo'].data,
+                        master_detfoo['master_detfoo'].data, 0), dims=dims)
                 else:
-                    resampled_detector = detector_footprint_band_data
-                    master_detfoo = da.where(resampled_detector == master_detfoo, master_detfoo, 0)
+                    resampled_detector = l1c
+                    master_detfoo['master_detfoo'] = xr.DataArray(da.where(
+                        resampled_detector[detector_footprint_band_name].data == master_detfoo['master_detfoo'].data,
+                        master_detfoo['master_detfoo'].data, 0), dims=dims)
             resampled["/conditions/mask/detector_footprint/resampled/master_detfoo"] = xr.DataArray(
                 master_detfoo,
                 dims=dims,
@@ -303,40 +308,45 @@ class ResamplingMainPU(EOProcessingUnit):
                 band_resolution = self.resolutions[band]
                 detector_footprint_band_name = f"/conditions/mask/detector_footprint/r{band_resolution}m/{band}"
                 band_chunksize = chunksize_in_meters // band_resolution
-                detector_footprint_band_data = l1c[detector_footprint_band_name].data.rechunk(band_chunksize)
+
                 if resolution > band_resolution:
                     factor = resolution // band_resolution
-                    resampled_detector = Downsampling().apply(
-                        detector_footprint_band_data,
+                    resampled_detector = DownsamplingPU().run(
+                        {'data': l1c},
+                        var_name=detector_footprint_band_name,
+                        band_chunksize=band_chunksize,
                         mode="majority",
                         factor=factor,
-                        dtype=detector_footprint_band_data.dtype,
+                        dtype=l1c[detector_footprint_band_name].data.dtype,
                         chunks=(chunksize_in_meters // resolution,
                                 chunksize_in_meters // resolution)
                     )
 
                 elif resolution < band_resolution:
                     factor = band_resolution // resolution
-                    resampled_detector = Upsampling().apply(
-                        detector_footprint_band_data,
+                    resampled_detector = UpsamplingPU().run(
+                        {'data': l1c},
+                        var_name=detector_footprint_band_name,
+                        band_chunksize=band_chunksize,
                         mode="nearest",
                         factor=(factor, factor),
-                        src_image_shape=detector_footprint_band_data.shape,
+                        src_image_shape=l1c[detector_footprint_band_name].data.shape,
                         src_image_chunksize=(band_chunksize, band_chunksize),
                         depth=0,
-                        dtype=detector_footprint_band_data.dtype,
+                        dtype=l1c[detector_footprint_band_name].data.dtype,
                         chunks=(band_chunksize * factor, band_chunksize * factor)
                     )
                 else:
-                    resampled_detector = detector_footprint_band_data
+                    resampled_detector = l1c
                 target_band_name = f"/conditions/mask/detector_footprint/resampled/{band}"
                 resampled[target_band_name] = xr.DataArray(
-                    resampled_detector,
+                    resampled_detector[detector_footprint_band_name].data,
                     dims=dims,
                     attrs={"long_name": f"detector footprint of {band}",
                            "_FillValue": np.uint8(0),
                            "coordinates": "crs y x"}
                 )
+
     def _resample_reflectance(
             self,
             downsampling: Literal[
@@ -346,7 +356,7 @@ class ResamplingMainPU(EOProcessingUnit):
             upsampling: Literal["nearest", "bilinear", "bicubic"],
             resolution: int,
             overlap_depth: int,
-            dims: Dict[str,int],
+            dims: Dict[str, int],
             l1c: xr.DataTree,
             resampled: xr.DataTree,
             chunksize_in_meters: int,
@@ -354,59 +364,81 @@ class ResamplingMainPU(EOProcessingUnit):
     ) -> da.Array:
         """Adds resampled reflectance bands, returns one input band with target resolution as dummy"""
         input_data_with_target_resolution: Optional[da.Array] = None
+
         for band in self.bands:
             band_resolution = self.resolutions[band]
-            source_band = l1c[f"measurements/reflectance/r{band_resolution}m/{band}"]
-            source_band_data = l1c[f"measurements/reflectance/r{band_resolution}m/{band}"].data.rechunk(chunksize_in_meters // band_resolution)
+            band_chunksize = chunksize_in_meters // band_resolution
+            band_name = f"measurements/reflectance/r{band_resolution}m/{band}"
             factor = resolution // band_resolution
             if resolution > band_resolution:
+
                 if downsampling == 'detectormean':
                     detector_footprint_band_name = f"/conditions/mask/detector_footprint/r{band_resolution}m/{band}"
-                    detector_footprint_band_data = l1c[detector_footprint_band_name].data.rechunk(chunksize_in_meters // band_resolution)
-                    resampled_band = Downsampling().apply(
-                        source_band_data,
-                        resampled["conditions/mask/detector_footprint/resampled/" + ("master_detfoo" if with_detfoo_filter else band)].data,
-                        detector_footprint_band_data,
+                    detector_footprint_band_data = l1c[detector_footprint_band_name].data.rechunk(
+                        chunksize_in_meters // band_resolution)
+
+                    target_tree = xr.DataTree()
+                    target_tree['target_detector_index'] = xr.DataArray(
+                        resampled["conditions/mask/detector_footprint/resampled/" + (
+                            "master_detfoo" if with_detfoo_filter else band)].data,
+                        dims=l1c[detector_footprint_band_name].dims
+                    )
+
+                    detector_tree = xr.DataTree()
+                    detector_tree['detfoo'] = xr.DataArray(detector_footprint_band_data,
+                                                           dims=l1c[detector_footprint_band_name].dims)
+
+                    resampled_band = DownsamplingPU().run(
+                        {'data': l1c,
+                         'target_detfoo': target_tree,
+                         'detfoo': detector_tree},
+                        var_name=band_name,
+                        band_chunksize=band_chunksize,
                         mode=downsampling,
                         factor=factor,
                         is_reflectance=True,
-                        dtype=source_band.dtype,
+                        dtype=l1c[band_name].data.dtype,
                         chunks=(chunksize_in_meters // resolution,
                                 chunksize_in_meters // resolution)
                     )
                 else:
-                    resampled_band = Downsampling().apply(
-                        source_band_data,
+                    resampled_band = DownsamplingPU().run(
+                        {'data': l1c},
+                        var_name=band_name,
+                        band_chunksize=band_chunksize,
                         mode=downsampling,
                         factor=factor,
                         is_reflectance=True,
-                        dtype=source_band.dtype,
+                        dtype=l1c[band_name].data.dtype,
                         chunks=(chunksize_in_meters // resolution,
                                 chunksize_in_meters // resolution)
                     )
             elif resolution < self.resolutions[band]:
                 band_chunksize = chunksize_in_meters // band_resolution
-                resampled_band = Upsampling().apply(
-                    source_band_data,
+                resampled_band = UpsamplingPU().run(
+                    {'data': l1c},
+                    var_name=band_name,
+                    band_chunksize=band_chunksize,
                     mode=upsampling,
                     factor=(factor, factor),
-                    src_image_shape=source_band_data.shape,
+                    src_image_shape=l1c[band_name].data.shape,
                     src_image_chunksize=(band_chunksize, band_chunksize),
                     is_reflectance=True,
                     depth=overlap_depth,
                     trim=False,
-                    dtype=source_band.dtype,
+                    dtype=l1c[band_name].data.dtype,
                     chunks=(band_chunksize * factor, band_chunksize * factor)
                 )
             else:
-                resampled_band = source_band_data
+                resampled_band = l1c
                 if input_data_with_target_resolution is None:
-                    input_data_with_target_resolution = source_band_data
+                    input_data_with_target_resolution = xr.DataTree()
+                    input_data_with_target_resolution['data'] = xr.DataArray(l1c[band_name].data, dims=dims)
 
-            attrs = source_band.attrs
+            attrs = resampled_band[band_name].attrs
             attrs["coordinates"] = "crs y x latitude longitude"
             resampled[f"measurements/reflectance/resampled/{band}"] = xr.DataArray(
-                resampled_band,
+                resampled_band[band_name].data,
                 dims=dims,
                 attrs=attrs
             )
@@ -436,7 +468,8 @@ class ResamplingMainPU(EOProcessingUnit):
             )
             attrs = anc_band.attrs.copy()
             attrs["coordinates"] = "crs y x"
-            resampled[f"conditions/meteorology/resampled/{anc_band.name}"] = xr.DataArray(anc_data, dims=dims, attrs=attrs)
+            resampled[f"conditions/meteorology/resampled/{anc_band.name}"] = xr.DataArray(anc_data, dims=dims,
+                                                                                          attrs=attrs)
 
     def _resample_flags(
             self,
@@ -454,37 +487,42 @@ class ResamplingMainPU(EOProcessingUnit):
         """Adds quality flags bands in target resolution"""
         for band in self.bands:
             band_resolution = self.resolutions[band]
-            flag_band = f"quality/mask/r{band_resolution}m/{band}"
-            flag_band_data = l1c[flag_band].data.rechunk(chunksize_in_meters // band_resolution)
+            band_chunksize = chunksize_in_meters // band_resolution
+            flag_band_name = f"quality/mask/r{band_resolution}m/{band}"
+
             if resolution > band_resolution:
                 factor = resolution // band_resolution
-                resampled_flags = Downsampling().apply(
-                    flag_band_data,
+                resampled_flags = DownsamplingPU().run(
+                    {'data': l1c},
+                    var_name=flag_band_name,
+                    band_chunksize=band_chunksize,
                     mode=flagdownsampling,
                     factor=factor,
-                    dtype=flag_band_data.dtype,
+                    dtype=l1c[flag_band_name].data.dtype,
                     chunks=(chunksize_in_meters // resolution,
                             chunksize_in_meters // resolution)
                 )
             elif resolution < band_resolution:
                 factor = band_resolution // resolution
                 band_chunksize = chunksize_in_meters // band_resolution
-                resampled_flags = Upsampling().apply(
-                    flag_band_data,
+                resampled_flags = UpsamplingPU().run(
+                    {'data': l1c},
+                    var_name=flag_band_name,
+                    band_chunksize=band_chunksize,
                     mode='nearest',
                     factor=(factor, factor),
-                    src_image_shape=flag_band_data.shape,
+                    src_image_shape=l1c[flag_band_name].data.shape,
                     src_image_chunksize=(band_chunksize, band_chunksize),
                     depth=0,
-                    dtype=flag_band_data.dtype,
+                    dtype=l1c[flag_band_name].data.dtype,
                     chunks=(band_chunksize * factor, band_chunksize * factor)
                 )
             else:
-                resampled_flags = flag_band_data
-            attrs = l1c[flag_band].attrs.copy()
+                resampled_flags = l1c
+            attrs = l1c[flag_band_name].attrs.copy()
             attrs["coordinates"] = "crs y x"
             resampled[f"quality/mask/resampled/{band}"] = xr.DataArray(
-                resampled_flags,
+                resampled_flags[flag_band_name].data,
                 dims=dims,
                 attrs=attrs
             )
@@ -503,28 +541,29 @@ class ResamplingMainPU(EOProcessingUnit):
             resampled: xr.DataTree
     ):
         """Adds cloud and ice flags in target resolution"""
-        band = "conditions/mask/l1c_classification/r60m/b00"
+        band_name = "conditions/mask/l1c_classification/r60m/b00"
         band_chunksize = chunksize_in_meters // 60
-        flag_band_data = l1c[band].data.rechunk(chunksize_in_meters // band_chunksize)
         if resolution < 60:
             factor = 60 // resolution
-            resampled_flags = Upsampling().apply(
-                flag_band_data,
+            resampled_flags = UpsamplingPU().run(
+                {'data': l1c},
+                var_name=band_name,
+                band_chunksize=band_chunksize,
                 mode='nearest',
                 factor=(factor, factor),
-                src_image_shape=flag_band_data.shape,
+                src_image_shape=l1c[band_name].data.shape,
                 src_image_chunksize=(band_chunksize, band_chunksize),
                 depth=0,
-                dtype=flag_band_data.dtype,
+                dtype=l1c[band_name].data.dtype,
                 chunks=(band_chunksize * factor, band_chunksize * factor)
             )
         else:
-            resampled_flags = flag_band_data
-        attrs = l1c[band].attrs.copy()
+            resampled_flags = l1c
+        attrs = l1c[band_name].attrs.copy()
         attrs["coordinates"] = "crs y x"
 
         resampled[f"conditions/mask/l1c_classification/resampled/b00"] = xr.DataArray(
-            resampled_flags,
+            resampled_flags[band_name].data,
             dims=dims,
             attrs=attrs
         )
@@ -600,7 +639,8 @@ class ResamplingMainPU(EOProcessingUnit):
         )
 
         for band in self.bands:
-            detector_footprint_band_name = "conditions/mask/detector_footprint/resampled/" + ("master_detfoo" if with_detfoo_filter else band)
+            detector_footprint_band_name = "conditions/mask/detector_footprint/resampled/" + (
+                "master_detfoo" if with_detfoo_filter else band)
             detector_footprint = resampled[detector_footprint_band_name].data
             extended_vza, extended_vaa = AnglesInterpolation().expand_angles_per_detector(
                 view_angle_band.isel(angle=angle_indices["vza"]).sel(band=band).values,
@@ -674,7 +714,7 @@ class ResamplingMainPU(EOProcessingUnit):
                    "coordinates": "crs y x"}
         )
 
-    #@dask.delayed
+    # @dask.delayed
     def construct_coordinate_arrays(self, y, x, chunks: Tuple[int, int]):
         xx = da.broadcast_to(x, (y.shape[0], x.shape[0]), chunks=chunks)
         yy = da.transpose(da.broadcast_to(y, (y.shape[0], x.shape[0]), chunks=chunks[::-1]))

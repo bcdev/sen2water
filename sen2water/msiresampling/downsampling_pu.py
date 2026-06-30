@@ -26,8 +26,7 @@ from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
 class DownsamplingPU(EOProcessingUnit):
 
     def run(self,
-            input: MappingDataType,
-            master_detfoo: MappingDataType,
+            inputs: MappingDataType,
             var_name: str,
             band_chunksize: int,
             mode: Literal[
@@ -39,13 +38,18 @@ class DownsamplingPU(EOProcessingUnit):
             is_reflectance: bool = False,
             **kwargs
             ) -> MappingDataType:
-        input_data = input[var_name].data.rechunk(band_chunksize)
-        dtype = input_data.dtype
-        result_data = da.map_blocks(self.downsample, *input_data, dtype=dtype, meta=np.array((), dtype=dtype),
+        input_data_list = []
+        input_data_list.append(inputs['data'][var_name].data.rechunk(band_chunksize))
+        if 'target_detfoo' in inputs:
+            input_data_list.append(inputs['target_detfoo']['target_detfoo'].data)
+        if 'detfoo' in inputs:
+            input_data_list.append(inputs['detfoo']['detfoo'].data)
+        dtype = input_data_list[0].dtype
+        result_data = da.map_blocks(self.downsample, *input_data_list, dtype=dtype, meta=np.array((), dtype=dtype),
                                mode=mode, factor=factor, is_azimuth_angle=is_azimuth_angle,
                                is_reflectance=is_reflectance)
         result = xr.DataTree()
-        result[var_name] = xr.DataArray(result_data, dims=input[var_name].dims)
+        result[var_name] = xr.DataArray(result_data, dims=inputs['data'][var_name].dims)
         return result
 
     def downsample(
