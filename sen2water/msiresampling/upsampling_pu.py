@@ -39,19 +39,31 @@ class UpsamplingPU(EOProcessingUnit):
             factor: int = 6,
             is_azimuth_angle: bool = False,
             is_reflectance: bool = False,
+            dtype: str = None,
             **kwargs
             ) -> MappingDataType:
         input_data = inputs['data'][var_name].data.rechunk(band_chunksize)
         dtype = input_data.dtype
-        result_data = da.map_overlap(self.downsample, input_data, dtype=dtype, meta=np.array((), dtype=dtype),
-                                     depth=depth,
-                                     mode=mode, factor=factor,
-                                     src_image_shape=src_image_shape,
-                                     src_image_chunksize=src_image_chunksize,
-                                     is_azimuth_angle=is_azimuth_angle,
-                                     is_reflectance=is_reflectance)
+        result_data = da.map_overlap(
+            self.upsample,
+            input_data,
+            mode=mode,
+            factor=factor,
+            src_image_shape=src_image_shape,
+            src_image_chunksize=src_image_chunksize,
+            is_azimuth_angle=is_azimuth_angle,
+            is_reflectance=is_reflectance,
+            depth=depth,
+            dtype=dtype,
+            meta=np.array((), dtype=dtype),
+            **kwargs,
+        )
         result = xr.DataTree()
-        result[var_name] = xr.DataArray(result_data, dims=inputs['data'][var_name].dims)
+        result[var_name] = xr.DataArray(
+            result_data,
+            dims=inputs['data'][var_name].dims,
+            attrs=inputs['data'][var_name].attrs
+        )
         return result
 
     def upsample(

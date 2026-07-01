@@ -197,23 +197,23 @@ class ResamplingMainPU(EOProcessingUnit):
             )
         del lat_data, lon_data
 
-        # self._resample_sun_angles(
-        #     resolution,
-        #     chunksize_in_meters=chunksize_in_meters,
-        #     dims=dims,
-        #     input_data_with_target_resolution=input_data_with_target_resolution,
-        #     l1c=l1c,
-        #     resampled=resampled
-        # )
+        self._resample_sun_angles(
+            resolution,
+            chunksize_in_meters=chunksize_in_meters,
+            dims=dims,
+            input_data_with_target_resolution=input_data_with_target_resolution,
+            l1c=l1c,
+            resampled=resampled
+        )
 
-        # self._resample_viewing_angles(
-        #     resolution,
-        #     chunksize_in_meters=chunksize_in_meters,
-        #     dims=dims,
-        #     l1c=l1c,
-        #     resampled=resampled,
-        #     with_detfoo_filter=with_detfoo_filter
-        # )
+        self._resample_viewing_angles(
+            resolution,
+            chunksize_in_meters=chunksize_in_meters,
+            dims=dims,
+            l1c=l1c,
+            resampled=resampled,
+            with_detfoo_filter=with_detfoo_filter
+        )
 
         properties = l1c.attrs["stac_discovery"]["properties"]
         resampled.attrs = {
@@ -252,8 +252,13 @@ class ResamplingMainPU(EOProcessingUnit):
                     master_detfoo_data = l1c[detector_footprint_band_name].data.rechunk(
                         chunksize_in_meters // resolution)
                     master_detfoo = xr.DataTree()
-                    master_detfoo['master_detfoo'] = xr.DataArray(master_detfoo_data,
-                                                                  dims=l1c[detector_footprint_band_name].dims)
+                    master_detfoo['target_detfoo'] = xr.DataArray(
+                        master_detfoo_data,
+                        dims=l1c[detector_footprint_band_name].dims,
+                        attrs={"long_name": "master detector footprint",
+                               "_FillValue": np.uint8(0),
+                               "coordinates": "crs y x"}
+                    )
 
                     break
             for band in self.bands:
@@ -286,23 +291,22 @@ class ResamplingMainPU(EOProcessingUnit):
                         factor=(factor, factor),
                         depth=0,
                         dtype=l1c[detector_footprint_band_name].data.dtype,
-                        chunks=(band_chunksize * factor, band_chunksize * factor)
+                        chunks=(band_chunksize * factor, band_chunksize * factor),
                     )
-                    master_detfoo['master_detfoo'] = xr.DataArray(da.where(
-                        resampled_detector[detector_footprint_band_name].data == master_detfoo['master_detfoo'].data,
-                        master_detfoo['master_detfoo'].data, 0), dims=dims)
+                    master_detfoo['target_detfoo'] = xr.DataArray(da.where(
+                        resampled_detector[detector_footprint_band_name].data == master_detfoo['target_detfoo'].data,
+                        master_detfoo['target_detfoo'].data, 0), dims=dims)
                 else:
-                    resampled_detector = l1c
-                    master_detfoo['master_detfoo'] = xr.DataArray(da.where(
-                        resampled_detector[detector_footprint_band_name].data == master_detfoo['master_detfoo'].data,
-                        master_detfoo['master_detfoo'].data, 0), dims=dims)
-            resampled["/conditions/mask/detector_footprint/resampled/master_detfoo"] = xr.DataArray(
-                master_detfoo,
-                dims=dims,
-                attrs={"long_name": "master detector footprint",
-                       "_FillValue": np.uint8(0),
-                       "coordinates": "crs y x"}
-            )
+                    resampled_detector = xr.DataTree()
+                    resampled_detector[detector_footprint_band_name] = xr.DataArray(
+                        l1c[detector_footprint_band_name].data.rechunk(band_chunksize),
+                        dims=dims,
+                        attrs=l1c[detector_footprint_band_name].attrs,
+                    )
+                    master_detfoo['target_detfoo'] = xr.DataArray(da.where(
+                        resampled_detector[detector_footprint_band_name].data == master_detfoo['target_detfoo'].data,
+                        master_detfoo['target_detfoo'].data, 0), dims=dims)
+            resampled["/conditions/mask/detector_footprint/resampled/master_detfoo"] = master_detfoo['target_detfoo']
         else:
             for band in self.bands:
                 band_resolution = self.resolutions[band]
@@ -337,7 +341,12 @@ class ResamplingMainPU(EOProcessingUnit):
                         chunks=(band_chunksize * factor, band_chunksize * factor)
                     )
                 else:
-                    resampled_detector = l1c
+                    resampled_detector = xr.DataTree()
+                    resampled_detector[detector_footprint_band_name] = xr.DataArray(
+                        l1c[detector_footprint_band_name].data.rechunk(band_chunksize),
+                        dims=dims,
+                        attrs=l1c[detector_footprint_band_name].attrs,
+                    )
                 target_band_name = f"/conditions/mask/detector_footprint/resampled/{band}"
                 resampled[target_band_name] = xr.DataArray(
                     resampled_detector[detector_footprint_band_name].data,
@@ -378,15 +387,9 @@ class ResamplingMainPU(EOProcessingUnit):
                         chunksize_in_meters // band_resolution)
 
                     target_tree = xr.DataTree()
-                    # target_tree['target_detfoo'] = xr.DataArray(
-                    #     resampled["conditions/mask/detector_footprint/resampled/" + (
-                    #         "master_detfoo" if with_detfoo_filter else band)].data,
-                    #     dims=l1c[detector_footprint_band_name].dims
-                    # )
-                    resampled_data = resampled["conditions/mask/detector_footprint/resampled/" + (
-                        "master_detfoo" if with_detfoo_filter else band)].data
-                    resampled_data_da_rechunked = da.from_array(resampled_data).rechunk(chunksize_in_meters // resolution)
-                    target_tree['target_detfoo'] = xr.DataArray(resampled_data_da_rechunked,
+                    target_tree['target_detfoo'] = xr.DataArray(
+                        resampled["conditions/mask/detector_footprint/resampled/" + (
+                            "master_detfoo" if with_detfoo_filter else band)].data,
                         dims=l1c[detector_footprint_band_name].dims
                     )
 
@@ -436,10 +439,15 @@ class ResamplingMainPU(EOProcessingUnit):
                     chunks=(band_chunksize * factor, band_chunksize * factor)
                 )
             else:
-                resampled_band = l1c
+                resampled_band = xr.DataTree()
+                resampled_band[band_name] = xr.DataArray(
+                    l1c[band_name].data.rechunk(band_chunksize),
+                    dims=dims,
+                    attrs=l1c[band_name].attrs,
+                )
                 if input_data_with_target_resolution is None:
                     input_data_with_target_resolution = xr.DataTree()
-                    input_data_with_target_resolution['data'] = xr.DataArray(l1c[band_name].data, dims=dims)
+                    input_data_with_target_resolution["data"] = resampled_band[band_name]
 
             attrs = resampled_band[band_name].attrs
             attrs["coordinates"] = "crs y x latitude longitude"
@@ -524,7 +532,12 @@ class ResamplingMainPU(EOProcessingUnit):
                     chunks=(band_chunksize * factor, band_chunksize * factor)
                 )
             else:
-                resampled_flags = l1c
+                resampled_flags = xr.DataTree()
+                resampled_flags[flag_band_name] = xr.DataArray(
+                    l1c[flag_band_name].data.rechunk(band_chunksize),
+                    dims=dims,
+                    attrs=l1c[flag_band_name].attrs
+                )
             attrs = l1c[flag_band_name].attrs.copy()
             attrs["coordinates"] = "crs y x"
             resampled[f"quality/mask/resampled/{band}"] = xr.DataArray(
@@ -564,10 +577,14 @@ class ResamplingMainPU(EOProcessingUnit):
                 chunks=(band_chunksize * factor, band_chunksize * factor)
             )
         else:
-            resampled_flags = l1c
+            resampled_flags = xr.DataTree()
+            resampled_flags[band_name] = xr.DataArray(
+                l1c[band_name].data.rechunk(band_chunksize),
+                dims=dims,
+                attrs=l1c[band_name].attrs
+            )
         attrs = l1c[band_name].attrs.copy()
         attrs["coordinates"] = "crs y x"
-
         resampled[f"conditions/mask/l1c_classification/resampled/b00"] = xr.DataArray(
             resampled_flags[band_name].data,
             dims=dims,
@@ -594,13 +611,14 @@ class ResamplingMainPU(EOProcessingUnit):
             angle_data = l1c[band].data[angle_idx]
             band_chunksize = chunksize_in_meters // resolution
             resampled_angles = TpInterpolation().apply(
-                input_data_with_target_resolution,
+                input_data_with_target_resolution["data"].data,
                 tp_data=angle_data,
                 resolution=resolution,
                 tp_resolution=5000,
-                image_shape=input_data_with_target_resolution.shape,
+                image_shape=input_data_with_target_resolution["data"].data.shape,
                 image_chunksize=(band_chunksize, band_chunksize),
                 dtype=angle_data.dtype,
+                chunks=(band_chunksize, band_chunksize),
             )
             resampled[f"conditions/geometry/resampled/{angle_short_name}"] = xr.DataArray(
                 resampled_angles,
@@ -661,6 +679,7 @@ class ResamplingMainPU(EOProcessingUnit):
                 band=band,
                 image_chunksize=(target_chunksize, target_chunksize),
                 dtype=np.float32,  # TBC
+                chunks=(target_chunksize, target_chunksize),
             )
             resampled_vaa = AnglesInterpolation().apply(
                 detector_footprint,
@@ -672,6 +691,7 @@ class ResamplingMainPU(EOProcessingUnit):
                 is_azimuth_angle=True,
                 image_chunksize=(target_chunksize, target_chunksize),
                 dtype=np.float32,  # TBC
+                chunks=(target_chunksize, target_chunksize),
             )
             # Shape of the view_angle_band
             # "coordinates": [
