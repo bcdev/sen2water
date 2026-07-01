@@ -12,7 +12,7 @@ __status__ = "Production"
 # changes in 1.1:
 # ...
 
-from typing import Tuple, Union, Literal
+from typing import Tuple, Literal
 
 import numpy as np
 from eopf.computing import EOProcessingUnit, MappingDataType
@@ -70,7 +70,7 @@ class UpsamplingPU(EOProcessingUnit):
             self,
             src_data: np.ndarray,
             *,
-            mode: Union["nearest", "bilinear", "bicubic"],
+            mode: Literal["nearest", "bilinear", "bicubic"],
             factor: Tuple[int, int],
             src_image_shape: Tuple[int, int],
             src_image_chunksize: Tuple[int, int],
