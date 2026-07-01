@@ -47,7 +47,7 @@ class DownsamplingPU(EOProcessingUnit):
         dtype = input_data_list[0].dtype
         result_data = da.map_blocks(self.downsample, *input_data_list, dtype=dtype, meta=np.array((), dtype=dtype),
                                mode=mode, factor=factor, is_azimuth_angle=is_azimuth_angle,
-                               is_reflectance=is_reflectance)
+                               is_reflectance=is_reflectance).compute()
         result = xr.DataTree()
         result[var_name] = xr.DataArray(result_data, dims=inputs['data'][var_name].dims)
         return result
@@ -55,7 +55,7 @@ class DownsamplingPU(EOProcessingUnit):
     def downsample(
             self,
             *inputs: np.ndarray,
-            mode: Union[
+            mode: Literal[
                 "mean", "median", "min", "max", "first",
                 "flagand", "flagor", "flagmedianand", "flagmedianor",
                 "majority", "detectormean", "masterdetfoo"] = 'mean',

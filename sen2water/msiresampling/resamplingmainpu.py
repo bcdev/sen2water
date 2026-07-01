@@ -197,23 +197,23 @@ class ResamplingMainPU(EOProcessingUnit):
             )
         del lat_data, lon_data
 
-        self._resample_sun_angles(
-            resolution,
-            chunksize_in_meters=chunksize_in_meters,
-            dims=dims,
-            input_data_with_target_resolution=input_data_with_target_resolution,
-            l1c=l1c,
-            resampled=resampled
-        )
+        # self._resample_sun_angles(
+        #     resolution,
+        #     chunksize_in_meters=chunksize_in_meters,
+        #     dims=dims,
+        #     input_data_with_target_resolution=input_data_with_target_resolution,
+        #     l1c=l1c,
+        #     resampled=resampled
+        # )
 
-        self._resample_viewing_angles(
-            resolution,
-            chunksize_in_meters=chunksize_in_meters,
-            dims=dims,
-            l1c=l1c,
-            resampled=resampled,
-            with_detfoo_filter=with_detfoo_filter
-        )
+        # self._resample_viewing_angles(
+        #     resolution,
+        #     chunksize_in_meters=chunksize_in_meters,
+        #     dims=dims,
+        #     l1c=l1c,
+        #     resampled=resampled,
+        #     with_detfoo_filter=with_detfoo_filter
+        # )
 
         properties = l1c.attrs["stac_discovery"]["properties"]
         resampled.attrs = {
@@ -378,9 +378,15 @@ class ResamplingMainPU(EOProcessingUnit):
                         chunksize_in_meters // band_resolution)
 
                     target_tree = xr.DataTree()
-                    target_tree['target_detector_index'] = xr.DataArray(
-                        resampled["conditions/mask/detector_footprint/resampled/" + (
-                            "master_detfoo" if with_detfoo_filter else band)].data,
+                    # target_tree['target_detfoo'] = xr.DataArray(
+                    #     resampled["conditions/mask/detector_footprint/resampled/" + (
+                    #         "master_detfoo" if with_detfoo_filter else band)].data,
+                    #     dims=l1c[detector_footprint_band_name].dims
+                    # )
+                    resampled_data = resampled["conditions/mask/detector_footprint/resampled/" + (
+                        "master_detfoo" if with_detfoo_filter else band)].data
+                    resampled_data_da_rechunked = da.from_array(resampled_data).rechunk(chunksize_in_meters // resolution)
+                    target_tree['target_detfoo'] = xr.DataArray(resampled_data_da_rechunked,
                         dims=l1c[detector_footprint_band_name].dims
                     )
 
