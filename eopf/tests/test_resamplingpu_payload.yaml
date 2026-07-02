@@ -26,8 +26,10 @@ general_configuration:
 workflow:
 - name: l2w_processor
   active: true
-  module: sen2water.msiresampling.resamplingmainpu
-  processing_unit: ResamplingMainPU
+#  module: sen2water.msiresampling.resamplingmainpu
+  module: sen2water.msiresampling.resamplingpu
+#  processing_unit: ResamplingMainPU
+  processing_unit: ResamplingPU
 
   inputs:
     l1c: S2_L1C_TC33
