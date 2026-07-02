@@ -6,8 +6,6 @@ import xarray as xr
 from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
 from pyproj import Transformer, CRS
-
-from l2w_v1.exceptions.errors import MyError
 from sen2water.msiresampling.ancillaryinterpolation import AncillaryInterpolation
 from sen2water.msiresampling.anglesinterpolation import AnglesInterpolation
 from sen2water.msiresampling.constants import MsiConstantsReengineering
@@ -55,7 +53,7 @@ class ResamplingMainPU(EOProcessingUnit):
             **kwargs
     ) -> MappingDataType:
         if len(inputs) < 1:
-            raise MyError("Missing mandatory input product 'l1c'")
+            raise KeyError("Missing mandatory input product 'l1c'")
 
         l1c: xr.DataTree = inputs[self.INPUT_IDENTIFIER]
 
