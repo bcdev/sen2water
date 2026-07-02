@@ -1,4 +1,5 @@
 from typing import Any, Optional, Literal, Tuple, Dict, Iterable, List
+from typing import Any, Optional, Literal, Tuple, Dict, Iterable, List
 
 import dask.array as da
 import numpy as np
@@ -7,12 +8,17 @@ from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
 from pyproj import Transformer, CRS
 from sen2water.msiresampling.ancillaryinterpolation import AncillaryInterpolation
+from sen2water.msiresampling.ancillaryinterpolation_pu import AncillaryInterpolationPU
 from sen2water.msiresampling.anglesinterpolation import AnglesInterpolation
+from sen2water.msiresampling.anglesinterpolation_pu import AnglesInterpolationPU
 from sen2water.msiresampling.constants import MsiConstantsReengineering
 from sen2water.msiresampling.downsampling_pu import DownsamplingPU
 from sen2water.msiresampling.geocoordinates import GeoCoordinates
+from sen2water.msiresampling.geocoordinates_pu import GeoCoordinatesPU
 from sen2water.msiresampling.meanangles import MeanAngles
+from sen2water.msiresampling.meanangles_pu import MeanAnglesPU
 from sen2water.msiresampling.tpinterpolation import TpInterpolation
+from sen2water.msiresampling.tpinterpolation_pu import TpInterpolationPU
 from sen2water.msiresampling.upsampling import Upsampling
 from sen2water.msiresampling.upsampling_pu import UpsamplingPU
 
@@ -106,30 +112,23 @@ class ResamplingMainPU(EOProcessingUnit):
             }
         )
         transformer = Transformer.from_crs(crs, CRS("EPSG:4326"))
-        lat_lon = GeoCoordinates().apply(
-            xx,
-            yy,
+        yy_xx = xr.DataTree()
+        yy_xx["y"] = xr.DataArray(
+            yy, dims=dims,
+        )
+        yy_xx["x"] = xr.DataArray(
+            xx, dims=dims,
+        )
+        lat_lon = GeoCoordinatesPU().run(
+            yy_xx,
             transformer=transformer,
-            new_axis=0,
             dtype=np.float64,
-            chunks=(2, *chunks),
+            chunks=chunks,
         )
-        lat_data = lat_lon[0]
-        lon_data = lat_lon[1]
-        del xx, yy, transformer, lat_lon
+        del xx, yy, transformer, yy_xx
 
-        resampled["measurements/reflectance/resampled/latitude"] = xr.DataArray(
-            lat_data,
-            dims=['y', 'x'],
-            attrs={"standard_name": "latitude",
-                   "units": "degrees_north"}
-        )
-        resampled["measurements/reflectance/resampled/longitude"] = xr.DataArray(
-            lon_data,
-            dims=['y', 'x'],
-            attrs={"standard_name": "longitude",
-                   "units": "degrees_east"}
-        )
+        resampled["measurements/reflectance/resampled/latitude"] = lat_lon["lat_lon"]["latitude"]
+        resampled["measurements/reflectance/resampled/longitude"] = lat_lon["lat_lon"]["longitude"]
 
         resampled["conditions/mask/detector_footprint/resampled/y"] = resampled["/measurements/reflectance/resampled/y"]
         resampled["conditions/mask/detector_footprint/resampled/x"] = resampled["/measurements/reflectance/resampled/x"]
@@ -190,10 +189,11 @@ class ResamplingMainPU(EOProcessingUnit):
             self._resample_ancillary(
                 ancillary,
                 l1c,
-                lat_data,
-                lon_data, dims=dims, resampled=resampled,
+                lat_lon,
+                dims=dims,
+                chunks=chunks,
+                resampled=resampled,
             )
-        del lat_data, lon_data
 
         self._resample_sun_angles(
             resolution,
@@ -460,28 +460,23 @@ class ResamplingMainPU(EOProcessingUnit):
             self,
             ancillary: Iterable[str],
             l1c: xr.DataTree,
-            lat_data: da.Array,
-            lon_data: da.Array,
+            lat_lon: xr.DataTree,
             dims: Dict[str, int],
-            resampled: xr.DataTree
+            chunks: Tuple[int, int] = None,
+            resampled: xr.DataTree = None,
     ):
+        anc_lat = l1c["conditions/meteorology/ecmwf/latitude"].values
+        anc_lon = l1c["conditions/meteorology/ecmwf/longitude"].values
         for anc_band_name in ancillary:
-            anc_lat = l1c["conditions/meteorology/ecmwf/latitude"]
-            anc_lon = l1c["conditions/meteorology/ecmwf/longitude"]
-            anc_band = l1c[anc_band_name]
-            anc_data = AncillaryInterpolation().apply(
-                lat_data,
-                lon_data,
-                anc_lat=anc_lat.values,
-                anc_lon=anc_lon.values,
-                anc_data=anc_band.values,
-                variable=anc_band,
+            anc_result = AncillaryInterpolationPU().run(
+                {"l1c": l1c, "lat_lon": lat_lon["lat_lon"]},
+                anc_lat=anc_lat,
+                anc_lon=anc_lon,
+                anc_band_name=anc_band_name,
                 dtype=np.float32,
+                chunks=chunks,
             )
-            attrs = anc_band.attrs.copy()
-            attrs["coordinates"] = "crs y x"
-            resampled[f"conditions/meteorology/resampled/{anc_band.name}"] = xr.DataArray(anc_data, dims=dims,
-                                                                                          attrs=attrs)
+            resampled[f"conditions/meteorology/resampled/{anc_band_name}"] = anc_result["ancillary"][anc_band_name]
 
     def _resample_flags(
             self,
@@ -604,28 +599,20 @@ class ResamplingMainPU(EOProcessingUnit):
             0: ("sza", "Sun Zenith Angle"),
             1: ("saa", "Sun Azimuth Angle"),
         }
-        band = "conditions/geometry/sun_angles"
         for angle_idx, (angle_short_name, angle_long_name) in angle_indices.items():
-            angle_data = l1c[band].data[angle_idx]
+            band_name = "conditions/geometry/sun_angles"
             band_chunksize = chunksize_in_meters // resolution
-            resampled_angles = TpInterpolation().apply(
-                input_data_with_target_resolution["data"].data,
-                tp_data=angle_data,
+            resampled_angles = TpInterpolationPU().run(
+                { "l1c": l1c, "dummy_grid": input_data_with_target_resolution },
+                band_name=band_name,
+                band_idx=angle_idx,
+                band_long_name=angle_long_name,
                 resolution=resolution,
                 tp_resolution=5000,
-                image_shape=input_data_with_target_resolution["data"].data.shape,
                 image_chunksize=(band_chunksize, band_chunksize),
-                dtype=angle_data.dtype,
                 chunks=(band_chunksize, band_chunksize),
             )
-            resampled[f"conditions/geometry/resampled/{angle_short_name}"] = xr.DataArray(
-                resampled_angles,
-                dims=dims,
-                attrs={"long_name": angle_long_name,
-                       "units": "degrees",
-                       "_FillValue": np.nan,
-                       "coordinates": "crs y x"}
-            )
+            resampled[f"conditions/geometry/resampled/{angle_short_name}"] = resampled_angles["interpolated"][band_name]
 
     def _resample_viewing_angles(
             self,
@@ -637,8 +624,8 @@ class ResamplingMainPU(EOProcessingUnit):
             with_detfoo_filter: bool = True,
     ):
         """Resamples viewing angles per detector and adds viewing angles per band"""
-        vza_accu = []
-        vaa_accu = []
+        vza_accu = dict()
+        vaa_accu = dict()
 
         view_angle_band_name = "conditions/geometry/viewing_incidence_angles"
         view_angle_band = l1c[view_angle_band_name]
@@ -663,32 +650,33 @@ class ResamplingMainPU(EOProcessingUnit):
         for band in self.bands:
             detector_footprint_band_name = "conditions/mask/detector_footprint/resampled/" + (
                 "master_detfoo" if with_detfoo_filter else band)
-            detector_footprint = resampled[detector_footprint_band_name].data
             extended_vza, extended_vaa = AnglesInterpolation().expand_angles_per_detector(
                 view_angle_band.isel(angle=angle_indices["vza"]).sel(band=band).values,
                 view_angle_band.isel(angle=angle_indices["vaa"]).sel(band=band).values,
             )
-            resampled_vza = AnglesInterpolation().apply(
-                detector_footprint,
+            resampled_vza = AnglesInterpolationPU().run(
+                { "detector_footprint": resampled },
+                detector_footprint_band_name=detector_footprint_band_name,
                 detectors=detectors,
                 detector_angles=extended_vza,
                 resolution=resolution,
                 angles_resolution=5000,
-                band=band,
+                band_name=band,
+                long_name=f"Viewing incidence zenith angle for band {band}",
                 image_chunksize=(target_chunksize, target_chunksize),
-                dtype=np.float32,  # TBC
                 chunks=(target_chunksize, target_chunksize),
             )
-            resampled_vaa = AnglesInterpolation().apply(
-                detector_footprint,
+            resampled_vaa = AnglesInterpolationPU().run(
+                { "detector_footprint": resampled },
+                detector_footprint_band_name=detector_footprint_band_name,
                 detectors=detectors,
                 detector_angles=extended_vaa,
                 resolution=resolution,
                 angles_resolution=5000,
-                band=band,
+                band_name=band,
+                long_name=f"Viewing incidence azimuth angle for band {band}",
                 is_azimuth_angle=True,
                 image_chunksize=(target_chunksize, target_chunksize),
-                dtype=np.float32,  # TBC
                 chunks=(target_chunksize, target_chunksize),
             )
             # Shape of the view_angle_band
@@ -699,44 +687,27 @@ class ResamplingMainPU(EOProcessingUnit):
             #   "x",
             #   "band"
             # ],
-            resampled[f"conditions/geometry/resampled/vza_{band}"] = xr.DataArray(
-                resampled_vza,
-                dims=dims,
-                attrs={"long_name": f"Viewing incidence zenith angle for band {band}",
-                       "units": "degrees",
-                       "_FillValue": np.nan,
-                       "coordinates": "crs y x"}
-            )
-            resampled[f"conditions/geometry/resampled/vaa_{band}"] = xr.DataArray(
-                resampled_vaa,
-                dims=dims,
-                attrs={"long_name": f"Viewing incidence azimuth angle for band {band}",
-                       "units": "degrees",
-                       "_FillValue": np.nan,
-                       "coordinates": "crs y x"}
-            )
-            vza_accu.append(resampled_vza)
-            vaa_accu.append(resampled_vaa)
+            resampled[f"conditions/geometry/resampled/vza_{band}"] = resampled_vza["interpolated"][band]
+            resampled[f"conditions/geometry/resampled/vaa_{band}"] = resampled_vaa["interpolated"][band]
+            vza_accu[band] = resampled_vza["interpolated"]
+            vaa_accu[band] = resampled_vaa["interpolated"]
 
-        vza_mean = MeanAngles().apply(*vza_accu, dtype=np.float32)
-        vaa_mean = MeanAngles().apply(*vaa_accu, is_azimuth_angle=True, dtype=np.float32)
+        vza_mean = MeanAnglesPU().run(
+            vza_accu,
+            band_prefix="conditions/geometry/resampled/vza_",
+            long_name="Mean viewing incidence zenith angle",
+            dims=dims,
+            dtype=np.float32)
+        vaa_mean = MeanAnglesPU().run(
+            vaa_accu,
+            band_prefix="conditions/geometry/resampled/vaa_",
+            long_name="Mean viewing incidence azimuth angle",
+            dims=dims,
+            is_azimuth_angle=True,
+            dtype=np.float32)
 
-        resampled[f"conditions/geometry/resampled/vza_mean"] = xr.DataArray(
-            vza_mean,
-            dims=dims,
-            attrs={"long_name": "Mean viewing incidence zenith angle",
-                   "units": "degrees",
-                   "_FillValue": np.nan,
-                   "coordinates": "crs y x"}
-        )
-        resampled[f"conditions/geometry/resampled/vaa_mean"] = xr.DataArray(
-            vaa_mean,
-            dims=dims,
-            attrs={"long_name": "Mean viewing incidence azimuth angle",
-                   "units": "degrees",
-                   "_FillValue": np.nan,
-                   "coordinates": "crs y x"}
-        )
+        resampled["conditions/geometry/resampled/vza_mean"] = vza_mean["interpolated"]["conditions/geometry/resampled/vza_mean"]
+        resampled["conditions/geometry/resampled/vaa_mean"] = vaa_mean["interpolated"]["conditions/geometry/resampled/vaa_mean"]
 
     # @dask.delayed
     def construct_coordinate_arrays(self, y, x, chunks: Tuple[int, int]):
