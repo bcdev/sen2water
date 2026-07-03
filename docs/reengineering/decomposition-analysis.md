@@ -25,7 +25,7 @@ Candidate names for units are
 | dem (ADF)                | -                                                         | dem.elevation                       | ADF                                  | -                            | 
 | watermask (ADF)          | -                                                         | watermask                           | ADF                                  | -                            |
 | elevation                | geocoding, dem.elevation                                  | elevation                           | Interpolate DEM altitude to grid     | AddElevationOp               |
-| slope_aspect orientation | elevation, geocoding                                      | slope, aspect, orientation          | Determine slope, aspect, orientation | SlopeAspectOrientationOp     |
+| slope_aspect_orientation | elevation, geocoding                                      | slope, aspect, orientation          | Determine slope, aspect, orientation | SlopeAspectOrientationOp     |
 | idepix_classification    | B1,..,B12,sza,saa,vza,vaa,elevation,watermask             | raw.p_c_f                           | Classify by threshold tests          | S2ClassificationOp           | 
 | idepix_filter_buffer     | raw.p_c_f,B2,B7,B8,B8A,B11                                | filtered.p_c_f                      | Filter spatially, apply buffer       | S2IdepixCloudPostProcessOp   | 
 | idepix_mountain_shadow   | sza,saa,slope,aspect,orientation                          | mountain_shadow_flag                | Determine mountain shadow            | S2IdepixMountainShadowOp     | 
@@ -91,3 +91,34 @@ Candidate names for units are
 - We have to allow processing units with xarray based implementations if we want to use polymer functions without large rewrites (into numpy based functions)
 - Or we analyse to which extend Polymer makes use of xarrray or to what extent it may even gain from using numpy.
 
+## MSIDSF (reimplementation of parts of ACOLITE)
+
+### Analysis
+
+- launch_acolite.py is the entry point
+- acolite_run.py collects settings and loops over inputs
+- calls acolite_l1r format normalisation
+  - identifies input type S2Resampling
+  - reads lat, lon, vza, vaa, sza, saa
+  - computes raa
+  - reads reflectances, writes as rhot
+  - reads ancillary from msl_interpolated etc. or msl etc. 
+  - determines median (interpolated) or central (msl etc.)
+- calls acolite_l2r for AC
+  - determines proportion of invalid (blackfill) pixels from one (configured) band
+  - optionally retrieves single aot value (optimise_aot_homogeneous)
+  - optionally averages aot from spatio-temporal climatology
+  - reads rsr lut, interpolates between wavelength
+  - extracts meteo, interpolates, single value
+  - reads and resamples DEM
+  - calculates pressure from elevation
+  - (selects par romix+rsky_t)
+  - crop wind scalar to between 0.1 and 20
+  - optionally crop sza and vza to limit suported by LUT
+  - same as next with ozone lut
+  - read Gas LUT dir/Gas/Gas_config.nc
+  - interpolate transmittance value in LUT for pressure, wavelength, vza, sza
+  - same with dir/LUB/WV/WV_config.nc
+  - multiply transmittance
+  - 
+  - 
