@@ -37,8 +37,8 @@ class AncillaryInterpolationPU(EOProcessingUnit):
         anc_band = inputs["l1c"][anc_band_name]
         result_data = da.map_blocks(
             self.interpolate_anc,
-            inputs["lat_lon"]["latitude"].data,
-            inputs["lat_lon"]["longitude"].data,
+            inputs["geographic_coords"]["latitude"].data,
+            inputs["geographic_coords"]["longitude"].data,
             anc_lat=anc_lat,
             anc_lon=anc_lon,
             anc_data=anc_band.values,
@@ -49,7 +49,7 @@ class AncillaryInterpolationPU(EOProcessingUnit):
         result = xr.DataTree()
         result[anc_band_name] = xr.DataArray(
             result_data,
-            dims=inputs["lat_lon"]["latitude"].dims,
+            dims=inputs["geographic_coords"]["latitude"].dims,
             attrs=anc_band.attrs,
         )
         return {"ancillary": result}

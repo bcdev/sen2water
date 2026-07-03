@@ -61,7 +61,7 @@ class DownsamplingPU(EOProcessingUnit):
             dims=inputs['data'][var_name].dims,
             attrs=inputs['data'][var_name].attrs
         )
-        return result
+        return {"resampled": result}
 
     def downsample(
             self,

@@ -28,13 +28,23 @@ class GeoCoordinatesPU(EOProcessingUnit):
         inputs: MappingDataType,
         transformer: Transformer = None,
         dtype: str = None,
+        dims: Tuple[int, int] = None,
         chunks: Tuple[int, int] = None,
         **kwargs,
     ) -> MappingDataType:
+
+        # check input
+
+        if not "metric_coords" in inputs:
+            raise KeyError("No 'metric_coords' in input of GeoCoordinatesPU.")
+        metric_coords_dt: xr.DataTree = inputs["metric_coords"]
+        if not isinstance(metric_coords_dt, xr.DataTree):
+            raise TypeError("Input 'metric_coords' of GeoCoordinatesPU is not an xarray.DataTree.")
+
         result_data = da.map_blocks(
             self.geo_coordinates,
-            inputs["y"].data,
-            inputs["x"].data,
+            metric_coords_dt["y"].data,
+            metric_coords_dt["x"].data,
             transformer=transformer,
             new_axis=0,
             chunks=(2, *chunks),
@@ -42,20 +52,21 @@ class GeoCoordinatesPU(EOProcessingUnit):
             meta=np.array((), dtype=dtype),
             **kwargs,
         )
+
         result = xr.DataTree()
         result["latitude"] = xr.DataArray(
             result_data[0],
-            dims=inputs["y"].dims,
+            dims=dims,
             attrs={"standard_name": "latitude",
                    "units": "degrees_north"},
         )
         result["longitude"] = xr.DataArray(
             result_data[1],
-            dims=inputs["x"].dims,
+            dims=dims,
             attrs={"standard_name": "longitude",
                    "units": "degrees_east"},
         )
-        return {"lat_lon": result}
+        return {"geographic_coords": result}
 
     def geo_coordinates(
         self,
