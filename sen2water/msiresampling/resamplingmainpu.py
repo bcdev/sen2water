@@ -5,8 +5,6 @@ from dask import array as da
 from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
 from pyproj import Transformer, CRS
-from xarray import DataTree
-
 from sen2water.msiresampling.ancillaryinterpolation_pu import AncillaryInterpolationPU
 from sen2water.msiresampling.anglesinterpolation import AnglesInterpolation
 from sen2water.msiresampling.anglesinterpolation_pu import AnglesInterpolationPU
@@ -140,23 +138,14 @@ class ResamplingMainPU(EOProcessingUnit):
         # resample angles
 
         self._resample_sun_angles(
-            l1c,
-            input_data_with_target_resolution,
-            resampled,
-            resolution,
-            chunksize_in_meters,
-            dims,
-            chunks,
+            l1c, input_data_with_target_resolution, resampled,
+            resolution, chunksize_in_meters, dims, chunks,
         )
 
         self._resample_viewing_angles(
-            l1c,
-            resampled,
+            l1c, resampled,
             with_detfoo_filter,
-            resolution,
-            chunksize_in_meters,
-            dims,
-            chunks,
+            resolution, chunksize_in_meters, dims, chunks,
         )
 
         properties = l1c.attrs["stac_discovery"]["properties"]
@@ -181,7 +170,7 @@ class ResamplingMainPU(EOProcessingUnit):
             resolution: int,
             dims: dict[str, int],
             chunks: tuple[int, int],
-    ) -> tuple[ xr.DataArray, xr.DataArray, xr.DataArray. xr.DataArray, xr.DataArray ]:
+    ) -> xr.DataTree:
 
         epsg_code = l1c.attrs["stac_discovery"]["properties"]["proj:code"]
         # GT(0) x-coordinate of the upper-left corner of the upper-left pixel.
@@ -347,7 +336,7 @@ class ResamplingMainPU(EOProcessingUnit):
         )
 
     def _initialise_master_detfoo(
-            self, l1c: DataTree, resolution: int, chunks: tuple[int, int]
+            self, l1c: xr.DataTree, resolution: int, chunks: tuple[int, int]
     ) -> tuple[str, xr.DataTree]:
         master_band = None
         master_detfoo = None
@@ -691,7 +680,7 @@ class ResamplingMainPU(EOProcessingUnit):
             resolution: int,
             chunksize_in_meters: int,
             dims: Dict[str, int],
-            chunks: Tuple[int, int] = None,
+            chunks: Tuple[int, int],
     ):
         """Adds sun angles resampled from TP grid in target resolution"""
 
