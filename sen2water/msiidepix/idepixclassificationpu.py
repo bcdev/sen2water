@@ -12,26 +12,24 @@ __status__ = "Production"
 # changes in 1.1:
 # ...
 
-from typing import Any, Optional, Literal, Tuple, Dict, Iterable, List
-import numpy as np
-import dask.array as da
-import xarray as xr
+from typing import Optional, Tuple
 
-from pyproj import Transformer, CRS
+import dask.array as da
+import numpy as np
+import xarray as xr
 from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 
-from sen2water.msiidepix.libs.algorithms import CloudMasks
-from sen2water.msiresampling.constants import MsiConstantsReengineering, MsiConstants
+from sen2water.msiidepix.constants import IdepixMsiConstants as ic
 
 
 class IdepixClassificationPU(EOProcessingUnit):
-
     def run(
             self,
             inputs: MappingDataType,
             adfs: Optional[MappingAuxiliary] = None,
-            resolution: int = 60,
-            chunksize_in_meters=36600,
+            dims: Tuple[int, int] = None,
+            dtype: str = None,
+            image_chunksize: Tuple[int, int] = None,
             **kwargs,
     ) -> MappingDataType:
 
@@ -39,40 +37,17 @@ class IdepixClassificationPU(EOProcessingUnit):
 
         if not "l1c" in inputs:
             raise KeyError("No 'l1c' in input of ResamplingMainPU.")
-        l1c: xr.DataTree = inputs["l1c"]
+        l1c = inputs["l1c"]
         if not isinstance(l1c, xr.DataTree):
             raise TypeError("Input 'l1c' of ResamplingMainPU is not an xarray.DataTree.")
-
-        input_data_list = []
-
-
-        # determine parameters
-        dims = {
-            "y": l1c[f"measurements/reflectance/r{resolution}m"].coords.sizes["y"],
-            "x": l1c[f"measurements/reflectance/r{resolution}m"].coords.sizes["x"]
-        }
-        chunks = (chunksize_in_meters // resolution, chunksize_in_meters // resolution)
-
-        # create result accumulator
-        pixel_classif_flag = xr.DataTree(name="pixel_classif_flag")
-
-        # add geo-coding with 1-d metric coordinates, CRS, 2-d geographic coordinates
-
-        # geographic_coords_dt = self._add_geocoding(
-        #     l1c,
-        #     resampled,
-        #     ancillary,
-        #     resolution,
-        #     dims,
-        #     chunks,
-        # )
 
         # retrieval
         pixel_classif = da.map_blocks(
             self.compute_pixel_classification_flag,
             l1c,
+            image_chunksize=image_chunksize,
             dtype=dtype,
-            meta=np.array((), dtype=dtype),
+            meta=np.array((), dtype=dtype)
             **kwargs,
         )
         result = xr.DataTree()
@@ -83,47 +58,89 @@ class IdepixClassificationPU(EOProcessingUnit):
         )
         return {"pixel_classif_flag": result}
 
+
     def compute_pixel_classification_flag(
             self,
             l1c: xr.DataTree,
-            *,
-            image_shape: Tuple[int, int],
             image_chunksize: Tuple[int, int],
-            block_id: Tuple[int, int],
     ) -> np.ndarray:
         """
-        Block-wise interpolation of tie-point data to the image grid
-        using linear interpolation based on pixel coordinates.
+        Computation of Idepix classification flag
 
         Parameters
         ----------
         l1c: xr.DataTree()
-            full source data
+            source data
+
+        image_chunksize: Tuple[int, int]
+            chunk size
 
         Returns
         -------
-        np.ndarray
-            array of pixel classif flags with the extent of the image block,
-            which is usually image_chunksize except for the right and lower border.
+        result - np.ndarray
+            array of pixel classif flags with the extent of the image block, which is usually image_chunksize
         """
 
-        refl_bands = MsiConstants.bands
+        # input toa
+        toa = []
+        for i in range(len(ic.bands)):
+            toa[i] = l1c[ic.bands[i]].values
 
-        for i in range(len(refl_bands)):
-            refl = l1c[refl_bands[i]].data
+        # classification logic
+        tc4_cirrus_value = -0.8239 * toa[1] + 0.0849 * toa[2] + 0.4396 * toa[3] - 0.058 * toa[8] + 0.2013 * toa[
+            11] - 0.2773 * toa[12] - toa[10]
 
-        dum = da.full_like(qua, False)  # dummy
-        cloud_masks = CloudMasks(
-            dtype=self.dtype, neural_network_path=self.neural_network_path
-        ).apply_to(inv, lnd, gli, dum, dum, dum, *toa)
+        tc4_value = -0.8239 * toa[1] + 0.0849 * toa[2] + 0.4396 * toa[3] - 0.058 * toa[8] + 0.2013 * toa[
+            11] - 0.2773 * toa[12]
 
+        ndwi_value = (toa[8] - toa[11]) / (toa[8] + toa[11])
 
+        b3_b11_value = (toa[2] / toa[11])
+
+        vis_bright_value = (toa[1] + toa[2] + toa[3]) / 3.0
+
+        is_b3_b11 = b3_b11_value > ic.B3B11_THRESH
+
+        is_invalid = np.full((image_chunksize[0],image_chunksize[1]), False, dtype=bool)  # TODO implement
+        is_clear_snow = np.full((image_chunksize[0],image_chunksize[1]), False, dtype=bool)  # TODO implement
+
+        gcw = tc4_cirrus_value < ic.GCW_THRESH
+        tcw = self._and(tc4_value < ic.TCW_TC_THRESH, ndwi_value < ic.TCW_NDWI_THRESH)
+        acw = self._and(is_b3_b11, (self._or(gcw, tcw)))
+        gcl = self._and(self._not(is_b3_b11), tc4_cirrus_value < ic.GCL_THRESH_DEFAULT,
+                        vis_bright_value > ic.VISBRIGHT_THRESH)
+        is_cloud_sure = self._and(self._not(is_invalid), self._not(is_clear_snow), self._or(acw, gcl))
+
+        is_cloud_ambiguous = b3_b11_value > ic.B3B11_THRESH
+
+        is_cloud = self._or(is_cloud_sure, is_cloud_ambiguous)
+
+        # final classification
+        result = np.zeros((image_chunksize[0], image_chunksize[1]), dtype=np.int32)
+
+        result[is_cloud] = ic.FLAG_MASK_CLOUD
+        result[is_cloud_sure] = ic.FLAG_MASK_CLOUD | ic.FLAG_MASK_CLOUD_SURE
+        result[is_cloud_ambiguous] = ic.FLAG_MASK_CLOUD | ic.FLAG_MASK_CLOUD_AMBIGUOUS
 
         return result
 
     func = compute_pixel_classification_flag
 
 
+    @staticmethod
+    def _and(a: np.ndarray, b: np.ndarray, *other: np.ndarray) -> np.ndarray:
+        r = np.logical_and(a, b)
+        for o in other:
+            r = np.logical_and(r, o)
+        return r
 
+    @staticmethod
+    def _not(c: np.ndarray) -> np.ndarray:
+        return np.logical_not(c)
 
-
+    @staticmethod
+    def _or(a: np.ndarray, b: np.ndarray, *other: np.ndarray) -> np.ndarray:
+        r = np.logical_or(a, b)
+        for o in other:
+            r = np.logical_or(r, o)
+        return r
