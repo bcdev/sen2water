@@ -10,7 +10,7 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
+# See the License for the specific language govrning permissions and
 # limitations under the License.
 import pytest
 from click.testing import CliRunner
@@ -22,10 +22,8 @@ from eopf.config.config import EOConfiguration
 
 
 # @pytest.mark.parametrize("opts", [("--help",)])
-@pytest.mark.parametrize("opts", [
-    #("trigger","local","/home/martin/projects/sen2water/eopf/tests/test_payload.yaml")
-     ("trigger","local","/home/hannes/projects/opt-mpc/sen2water/eopf/tests/test_resamplingpu_payload.yaml")
-])
+#@pytest.mark.parametrize("opts", [("trigger","local","/home/martin/projects/sen2water/eopf/tests/test_payload.yaml")])
+@pytest.mark.parametrize("opts", [("trigger","local","D:/olafd/bc/workspace/sen2water/eopf/tests/test_payload.yaml")])
 # @pytest.mark.parametrize("opts", [("trigger","local",".\tests\test_payload.yaml")])
 def test_cli(opts):
     # set env var EOPF_CONFIGURATION_FOLDER to absolute path of directory that contains file eopf.toml
