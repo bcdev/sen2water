@@ -12,6 +12,8 @@ __status__ = "Production"
 # changes in 1.1:
 # ...
 
+import numpy as np
+
 class MsiConstants(object):
 
     bands = [

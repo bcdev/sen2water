@@ -19,7 +19,7 @@ import numpy as np
 import xarray as xr
 from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 
-from sen2water.msiidepix.constants import IdepixMsiConstants as ic
+from sen2water.msiidepix.constants import IdepixMsiConstants as ic, IdepixMsiConstants
 
 
 class IdepixClassificationPU(EOProcessingUnit):
@@ -41,13 +41,14 @@ class IdepixClassificationPU(EOProcessingUnit):
         if not isinstance(l1c, xr.DataTree):
             raise TypeError("Input 'l1c' of ResamplingMainPU is not an xarray.DataTree.")
 
+        toa_data = [l1c[f"measurements/reflectance/resampled/{band}"].data for band in IdepixMsiConstants.bands]
+
         # retrieval
         pixel_classif = da.map_blocks(
             self.compute_pixel_classification_flag,
-            l1c,
-            image_chunksize=image_chunksize,
-            dtype=dtype,
-            meta=np.array((), dtype=dtype)
+            *toa_data,
+            dtype=np.int32,
+            meta=np.array((), dtype=np.int32)
             **kwargs,
         )
         result = xr.DataTree()
@@ -61,8 +62,7 @@ class IdepixClassificationPU(EOProcessingUnit):
 
     def compute_pixel_classification_flag(
             self,
-            l1c: xr.DataTree,
-            image_chunksize: Tuple[int, int],
+            *toa: xr.DataTree,
     ) -> np.ndarray:
         """
         Computation of Idepix classification flag
@@ -81,11 +81,6 @@ class IdepixClassificationPU(EOProcessingUnit):
             array of pixel classif flags with the extent of the image block, which is usually image_chunksize
         """
 
-        # input toa
-        toa = []
-        for i in range(len(ic.bands)):
-            toa[i] = l1c[ic.bands[i]].values
-
         # classification logic
         tc4_cirrus_value = -0.8239 * toa[1] + 0.0849 * toa[2] + 0.4396 * toa[3] - 0.058 * toa[8] + 0.2013 * toa[
             11] - 0.2773 * toa[12] - toa[10]
@@ -101,22 +96,23 @@ class IdepixClassificationPU(EOProcessingUnit):
 
         is_b3_b11 = b3_b11_value > ic.B3B11_THRESH
 
-        is_invalid = np.full((image_chunksize[0],image_chunksize[1]), False, dtype=bool)  # TODO implement
-        is_clear_snow = np.full((image_chunksize[0],image_chunksize[1]), False, dtype=bool)  # TODO implement
+        # is_invalid = np.full( False, shape=toa[0].shape, dtype=bool)  # TODO implement
+        # is_clear_snow = np.full(False, shape=toa[0].shape, dtype=bool)  # TODO implement
 
         gcw = tc4_cirrus_value < ic.GCW_THRESH
         tcw = self._and(tc4_value < ic.TCW_TC_THRESH, ndwi_value < ic.TCW_NDWI_THRESH)
         acw = self._and(is_b3_b11, (self._or(gcw, tcw)))
         gcl = self._and(self._not(is_b3_b11), tc4_cirrus_value < ic.GCL_THRESH_DEFAULT,
                         vis_bright_value > ic.VISBRIGHT_THRESH)
-        is_cloud_sure = self._and(self._not(is_invalid), self._not(is_clear_snow), self._or(acw, gcl))
+        # is_cloud_sure = self._and(self._not(is_invalid), self._not(is_clear_snow), self._or(acw, gcl))
+        is_cloud_sure = self._or(acw, gcl)
 
         is_cloud_ambiguous = b3_b11_value > ic.B3B11_THRESH
 
         is_cloud = self._or(is_cloud_sure, is_cloud_ambiguous)
 
         # final classification
-        result = np.zeros((image_chunksize[0], image_chunksize[1]), dtype=np.int32)
+        result = np.zeros(shape=toa[0].shape, dtype=np.int32)
 
         result[is_cloud] = ic.FLAG_MASK_CLOUD
         result[is_cloud_sure] = ic.FLAG_MASK_CLOUD | ic.FLAG_MASK_CLOUD_SURE
