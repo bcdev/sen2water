@@ -5,7 +5,8 @@ from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
 
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic
-from sen2water.msiidepix.idepixclassificationpu import IdepixClassificationPU
+from sen2water.msiidepix.idepixclassificationpu_pu import IdepixClassificationPUPU
+from sen2water.msiidepix.idepixclassificationpu_algo import IdepixClassificationAlgoPU
 
 
 class IdepixMainPU(EOProcessingUnit):
@@ -195,7 +196,7 @@ class IdepixMainPU(EOProcessingUnit):
         band_chunksize = chunksize_in_meters // band_resolution
         flag_band_name = "quality/mask/pixel_classif_flag"
 
-        idepix_flags = IdepixClassificationPU().run(
+        idepix_flags = IdepixClassificationPUPU().run(
             {'l1c': l1c},
         )["pixel_classif_flag"]
 

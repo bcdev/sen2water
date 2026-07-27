@@ -22,7 +22,7 @@ from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic, IdepixMsiConstants
 
 
-class IdepixClassificationPU(EOProcessingUnit):
+class IdepixClassificationPUPU(EOProcessingUnit):
     def run(
             self,
             inputs: MappingDataType,
@@ -96,16 +96,15 @@ class IdepixClassificationPU(EOProcessingUnit):
 
         is_b3_b11 = b3_b11_value > ic.B3B11_THRESH
 
-        # is_invalid = np.full( False, shape=toa[0].shape, dtype=bool)  # TODO implement
-        # is_clear_snow = np.full(False, shape=toa[0].shape, dtype=bool)  # TODO implement
+        is_invalid = np.zeros( toa[0].shape, dtype=bool)  # TODO implement
+        is_clear_snow = np.zeros(toa[0].shape, dtype=bool)  # TODO implement
 
         gcw = tc4_cirrus_value < ic.GCW_THRESH
         tcw = self._and(tc4_value < ic.TCW_TC_THRESH, ndwi_value < ic.TCW_NDWI_THRESH)
         acw = self._and(is_b3_b11, (self._or(gcw, tcw)))
         gcl = self._and(self._not(is_b3_b11), tc4_cirrus_value < ic.GCL_THRESH_DEFAULT,
                         vis_bright_value > ic.VISBRIGHT_THRESH)
-        # is_cloud_sure = self._and(self._not(is_invalid), self._not(is_clear_snow), self._or(acw, gcl))
-        is_cloud_sure = self._or(acw, gcl)
+        is_cloud_sure = self._and(self._not(is_invalid), self._not(is_clear_snow), self._or(acw, gcl))
 
         is_cloud_ambiguous = b3_b11_value > ic.B3B11_THRESH
 
@@ -140,3 +139,5 @@ class IdepixClassificationPU(EOProcessingUnit):
         for o in other:
             r = np.logical_or(r, o)
         return r
+
+

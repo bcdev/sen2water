@@ -57,8 +57,8 @@ io:
   - id: output_folder
     path: test_msiresampling/
     type: folder
-    engine: cpm_zarr
-#    engine: cpm_netcdf
+#    engine: cpm_zarr
+    engine: cpm_netcdf
     writer_params:
       mode: "w"
 
