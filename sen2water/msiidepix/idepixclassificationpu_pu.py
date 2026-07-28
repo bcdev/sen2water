@@ -27,10 +27,10 @@ class IdepixClassificationPUPU(EOProcessingUnit):
             self,
             inputs: MappingDataType,
             adfs: Optional[MappingAuxiliary] = None,
-            dims: Tuple[int, int] = None,
-            dtype: str = None,
-            image_chunksize: Tuple[int, int] = None,
-            **kwargs,
+            # dims: Tuple[int, int] = None,
+            # dtype: str = None,
+            # image_chunksize: Tuple[int, int] = None,
+            **kwargs
     ) -> MappingDataType:
 
         # check input
@@ -40,6 +40,11 @@ class IdepixClassificationPUPU(EOProcessingUnit):
         l1c = inputs["l1c"]
         if not isinstance(l1c, xr.DataTree):
             raise TypeError("Input 'l1c' of ResamplingMainPU is not an xarray.DataTree.")
+
+        dims = {
+            "y": l1c[f"measurements/reflectance/resampled"].coords.sizes["y"],
+            "x": l1c[f"measurements/reflectance/resampled"].coords.sizes["x"]
+        }
 
         toa_data = [l1c[f"measurements/reflectance/resampled/{band}"].data for band in IdepixMsiConstants.bands]
 

@@ -1,13 +1,13 @@
-from pathlib import Path
 from typing import Any
 
 # noinspection PyPackageRequirements
 import numpy as np
-# noinspection PyPackageRequirements
-from dask import array as da
+import xarray as xr
 
+from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic
-from sen2water.msiidepix.interface.algorithm import BlockAlgorithm
+
+# noinspection PyPackageRequirements
 
 # noinspection PyPackageRequirements
 # import numba
@@ -41,28 +41,28 @@ CLOUD_HEIGHT_MAX = 12_000
 MEAN_EARTH_RADIUS_METERS = 6372000
 """Average radius of the earth (m)"""
 
-DELTA_RHO_TOA_442_THRESHOLD = 0.03;
-RHO_TOA_442_THRESHOLD = 0.03;
-WATER_MASK_SOUTH_BOUND = -58.0;
+DELTA_RHO_TOA_442_THRESHOLD = 0.03
+RHO_TOA_442_THRESHOLD = 0.03
+WATER_MASK_SOUTH_BOUND = -58.0
 
-UNCERTAINTY_VALUE = 0.5;
-LAND_THRESH = 0.9;
-WATER_THRESH = 0.9;
+UNCERTAINTY_VALUE = 0.5
+LAND_THRESH = 0.9
+WATER_THRESH = 0.9
 
-BRIGHTWHITE_THRESH = 1.5;
-NDSI_THRESH = 0.6;
-BRIGHT_THRESH = 0.25;
-BRIGHT_THRESH = 0.45;      # JW, GK 20220825
-BRIGHT_FOR_WHITE_THRESH = 0.8;
-WHITE_THRESH = 0.9;
-NDVI_THRESH = 0.5;
+BRIGHTWHITE_THRESH = 1.5
+NDSI_THRESH = 0.6
+# BRIGHT_THRESH = 0.25
+BRIGHT_THRESH = 0.45  # JW, GK 20220825
+BRIGHT_FOR_WHITE_THRESH = 0.8
+WHITE_THRESH = 0.9
+NDVI_THRESH = 0.5
 
-B3B11_THRESH = 1.0;
+B3B11_THRESH = 1.0
 
-GCW_THRESH = -0.1;
-TCW_TC_THRESH = -0.08;
-TCW_NDWI_THRESH = 0.4;
-ELEVATION_THRESH = 2000.0;
+GCW_THRESH = -0.1
+TCW_TC_THRESH = -0.08
+TCW_NDWI_THRESH = 0.4
+ELEVATION_THRESH = 2000.0
 
 
 class MsiPixelClassification(BlockAlgorithm):
@@ -71,30 +71,12 @@ class MsiPixelClassification(BlockAlgorithm):
     @author Olaf Danne, Martin Böttcher
     """
 
-    def __init__(self, dtype: np.dtype = np.uint8, neural_network_path: Path | str | None = None):
-        """
-        """
-        super().__init__(dtype)
-        # TODO add more if needed
-
-    def chunks(self, *inputs: da.Array) -> tuple[int, ...] | None:
-        return None
-
-    @property
-    def created_axes(self) -> list[int] | None:
-        return None
-
-    @property
-    def dropped_axes(self) -> list[int]:
-        return []
-
-    # noinspection PyMethodMayBeStatic
-    def do_classif(
-        self,
-        *toa: np.ndarray,
-        thresh_cw: Any = 0.007,
-        thresh_gcl: Any = -0.11,
-        thresh_cl: Any = 0.007,
+    def do_classification(
+            self,
+            *toa: xr.DataTree,
+            thresh_cw: Any = 0.007,
+            thresh_gcl: Any = -0.11,
+            thresh_cl: Any = 0.007,
     ) -> np.ndarray:
         """Computes S2 MSI pixel classif flags. Implementation logig follows the ESA SNAP Java implementation.
 
@@ -148,8 +130,7 @@ class MsiPixelClassification(BlockAlgorithm):
 
         return result
 
-
-    func = do_classif
+    func = do_classification
 
     @staticmethod
     def _and(a: np.ndarray, b: np.ndarray, *other: np.ndarray) -> np.ndarray:
@@ -168,9 +149,4 @@ class MsiPixelClassification(BlockAlgorithm):
         for o in other:
             r = np.logical_or(r, o)
         return r
-
-    @property
-    def name(self) -> str:
-        return "cloud_masks"
-
 
