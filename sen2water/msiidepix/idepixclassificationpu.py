@@ -17,7 +17,7 @@ import xarray as xr
 from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 
 from sen2water.msiidepix.constants import IdepixMsiConstants
-from sen2water.msiidepix.libs.msipixelclassification import MsiPixelClassification
+from msiidepix.msipixelclassification import MsiPixelClassification
 
 
 class IdepixClassificationPU(EOProcessingUnit):
@@ -44,8 +44,6 @@ class IdepixClassificationPU(EOProcessingUnit):
         l1c: xr.DataTree = inputs["l1c"]
         if not isinstance(l1c, xr.DataTree):
             raise TypeError("Input 'l1c' of ResamplingMainPU is not an xarray.DataTree.")
-
-        # pixel_classif = xr.DataTree(name="pixel_classif_flag")
 
         dims = {
             "y": l1c[f"measurements/reflectance/resampled"].coords.sizes["y"],
