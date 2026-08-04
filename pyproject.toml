@@ -1,5 +1,13 @@
+[project]
+name = "SEN2WATER"
+version = "1.0"
+description = "s2w test package"
+
 [build-system]
 requires = [
   "setuptools >= 40.9.0",
 ]
 build-backend = "setuptools.build_meta"
+
+[project.entry-points."xarray.backends"]
+safe_msi_l1c="sen2water.eoutils.msil1creader:MsiL1cBackendEntrypoint"

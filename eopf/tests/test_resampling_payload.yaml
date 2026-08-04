@@ -1,0 +1,62 @@
+# =============================================================
+# Payload Configuration File for Polymer Processor
+# =============================================================
+# This payload defines the execution parameters for the Polymer
+# atmospheric correction processor within the EOPF-CPM framework.
+#
+# Input: Sentinel-2 MSI L1C product (Zarr format)
+# Output: Pass-through (identity) — returns inputs unchanged
+
+# -------------------------------------------------------------
+# General Configuration
+# -------------------------------------------------------------
+general_configuration:
+  logging:
+    level: INFO
+  triggering__use_basic_logging: true
+  triggering__wait_before_exit: 2
+  triggering__use_default_filename: false
+  triggering__validate_run: false
+  triggering__validate_mode: NONE
+  dask_utils__timeout: 1800
+
+# -------------------------------------------------------------
+# Workflow Definition
+# -------------------------------------------------------------
+workflow:
+- name: l2w_processor
+  active: true
+  module: sen2water.msiresampling.resamplingpu
+  processing_unit: ResamplingPU
+
+  inputs:
+    l1c: S2_L1C_TC33
+
+  outputs:
+    .*: output_folder
+
+  # parameters:
+    # Polymer processing parameters (forwarded to run_polymer_dataset
+    # when the hygeos/polymer pipeline is enabled).
+    # sensor: MSI
+    # gsw_agg: 3
+
+# -------------------------------------------------------------
+# Input/Output (I/O) Configuration
+# -------------------------------------------------------------
+io:
+  input_products:
+  - id: S2_L1C_TC33
+    path: test_l2w/S02MSIL1C_20210627T100559_0000_B022_TC33_T32TPS.zarr
+#    path: /windows/tmp/eopf/polymer/tests/test_l1c/S02MSIL1C_20210627T100559_0000_B022_TC33_T32TPS.zarr
+    engine: cpm_zarr
+
+  output_products:
+  - id: output_folder
+    path: test_msiresampling/
+    type: folder
+    engine: cpm_zarr
+#    engine: cpm_netcdf
+    writer_params:
+      mode: "w"
+
