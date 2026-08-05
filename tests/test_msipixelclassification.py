@@ -106,3 +106,78 @@ def test_tc4_value():
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.1773
 
     print("done test_tc4_cirrus_value")
+
+def test_ndwi_value():
+    ndwi_value = MsiPixelClassification().ndwi_value(refl_clear_land)
+    assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.1581
+
+    ndwi_value = MsiPixelClassification().ndwi_value(refl_cloud_sure)
+    assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.4122
+
+    ndwi_value = MsiPixelClassification().ndwi_value(refl_cloud_ambiguous)
+    assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.3422
+
+    ndwi_value = MsiPixelClassification().ndwi_value(refl_bright)
+    assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.2163
+
+    ndwi_value = MsiPixelClassification().ndwi_value(refl_white)
+    assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.2922
+
+    print("done test_ndwi_value")
+
+def test_b3_b11_value():
+    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_clear_land)
+    assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 0.4768
+
+    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_cloud_sure)
+    assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 2.0247
+
+    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_cloud_ambiguous)
+    assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 0.6432
+
+    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_bright)
+    assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 0.5377
+
+    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_white)
+    assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 1.6324
+
+    print("done test_b3_b11_value")
+
+def test_vis_bright_value():
+    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_clear_land)
+    assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.1170
+
+    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_cloud_sure)
+    assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.7774
+
+    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_cloud_ambiguous)
+    assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.1273
+
+    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_bright)
+    assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.1451
+
+    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_white)
+    assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.4083
+
+    print("done test_vis_bright_value")
+
+def test_is_cloud_sure():
+    assert not MsiPixelClassification().is_cloud_sure(refl_clear_land)[0][0]
+    assert MsiPixelClassification().is_cloud_sure(refl_cloud_sure)[0][0]
+    assert not MsiPixelClassification().is_cloud_sure(refl_cloud_ambiguous)[0][0]
+
+    print("done test_is_cloud_sure")
+
+def test_is_cloud_ambiguous():
+    assert not MsiPixelClassification().is_cloud_ambiguous(refl_clear_land)[0][0]
+    assert not MsiPixelClassification().is_cloud_ambiguous(refl_cloud_sure)[0][0]
+    assert MsiPixelClassification().is_cloud_ambiguous(refl_cloud_ambiguous)[0][0]
+
+    print("done test_is_cloud_ambiguous")
+
+def test_is_cloud():
+    assert not MsiPixelClassification().is_cloud(refl_clear_land)[0][0]
+    assert MsiPixelClassification().is_cloud(refl_cloud_sure)[0][0]
+    assert MsiPixelClassification().is_cloud(refl_cloud_ambiguous)[0][0]
+
+    print("done test_is_cloud")

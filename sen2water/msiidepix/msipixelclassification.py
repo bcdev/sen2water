@@ -322,9 +322,10 @@ class MsiPixelClassification(BlockAlgorithm):
         -------
 
         """
+        is_invalid = self.is_invalid(toa)
         b3_b11_value = self.b3_b11_value(toa)
-        cond = b3_b11_value < ic.B3B11_THRESH
-        return  np.where(cond, np.ones(shape=toa[0].shape, dtype=np.int32), np.zeros(shape=toa[0].shape, dtype=np.int32))
+
+        return self._and(self._not(is_invalid), b3_b11_value > ic.B3B11_THRESH)
 
 
     # Functions providing spectral quantities used for classification...
