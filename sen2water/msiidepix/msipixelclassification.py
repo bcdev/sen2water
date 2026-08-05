@@ -177,7 +177,7 @@ class MsiPixelClassification(BlockAlgorithm):
         return self._or(self.is_cloud_sure(toa), self.is_cloud_ambiguous(toa))
 
     @staticmethod
-    def is_cirrus(toa: tuple[np.ndarray, ...]) -> np.ndarray:
+    def is_cirrus(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
 
         Parameters
@@ -222,6 +222,38 @@ class MsiPixelClassification(BlockAlgorithm):
         white_value = self.white_value(toa)
 
         return self._and(self._not(is_invalid), bright_value + white_value > BRIGHTWHITE_THRESH)
+
+    def is_bright(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
+        """
+
+        Parameters
+        ----------
+        toa
+
+        Returns
+        -------
+
+        """
+        is_invalid = self.is_invalid(toa)
+        bright_value = self.bright_value(toa)
+
+        return self._and(self._not(is_invalid), bright_value > BRIGHT_THRESH)
+
+    def is_white(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
+        """
+
+        Parameters
+        ----------
+        toa
+
+        Returns
+        -------
+
+        """
+        is_invalid = self.is_invalid(toa)
+        white_value = self.white_value(toa)
+
+        return self._and(self._not(is_invalid), white_value > WHITE_THRESH)
 
     @staticmethod
     def is_clear_snow(toa: tuple[np.ndarray, ...]) -> np.ndarray:

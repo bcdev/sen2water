@@ -181,3 +181,69 @@ def test_is_cloud():
     assert MsiPixelClassification().is_cloud(refl_cloud_ambiguous)[0][0]
 
     print("done test_is_cloud")
+
+def test_is_clear_land():
+    assert MsiPixelClassification().is_clear_land(refl_clear_land)[0][0]
+    assert not MsiPixelClassification().is_clear_land(refl_clear_water)[0][0]
+    assert not MsiPixelClassification().is_clear_land(refl_cloud_sure)[0][0]
+    assert not MsiPixelClassification().is_clear_land(refl_cloud_ambiguous)[0][0]
+
+    print("done test_is_clear_land")
+
+def test_is_clear_water():
+    assert not MsiPixelClassification().is_clear_water(refl_clear_land)[0][0]
+    assert MsiPixelClassification().is_clear_water(refl_clear_water)[0][0]
+    assert not MsiPixelClassification().is_clear_water(refl_cloud_sure)[0][0]
+    assert not MsiPixelClassification().is_clear_water(refl_cloud_ambiguous)[0][0]
+
+    print("done test_is_clear_water")
+
+def test_is_bright():
+    assert MsiPixelClassification().is_bright(refl_bright)[0][0]
+
+    print("done test_is_bright")
+
+def test_is_white():
+    assert MsiPixelClassification().is_white(refl_white)[0][0]
+
+    print("done test_is_white")
+
+def test_is_bright_white():
+    assert MsiPixelClassification().is_bright_white(refl_bright_white)[0][0]
+
+    print("done test_is_bright_white")
+
+def test_is_snow_ice():
+    # TODO
+    assert True
+    print("done test_is_snow_ice")
+
+def test_is_cirrus():
+    # TODO we need elevation
+    assert True
+    print("done test_is_cirrus")
+
+def test_is_cirrus_ambiguous():
+    # TODO we need elevation
+    assert True
+    print("done test_is_cirrus_ambiguous")
+
+def test_spectral_slope():
+    refl_slope_1 = np.array([[50.0]])
+    refl_slope_2 = np.array([[100.0]])
+    wvl_1 = 450.0
+    wvl_2 = 460.0
+
+    slope = MsiPixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
+    assert pytest.approx(slope[0][0], 1.E-6) == 5.0
+
+    refl_slope_1 = np.array([[500.0]])
+    slope = MsiPixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
+    assert pytest.approx(slope[0][0], 1.E-6) == -40.0
+
+    refl_slope_1 = np.array([[50.0]])
+    wvl_2 = 450.0
+    slope = MsiPixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
+    assert np.isinf(slope)
+
+    print("done test_spectral_slope")
