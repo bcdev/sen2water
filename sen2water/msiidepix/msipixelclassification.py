@@ -93,16 +93,18 @@ class MsiPixelClassification(BlockAlgorithm):
 
         result = np.zeros(shape=toa[0].shape, dtype=np.int32)
 
-        result[self.is_invalid(toa)] = ic.FLAG_MASK_INVALID
-        result[self.is_cloud_sure(toa)] = ic.FLAG_MASK_CLOUD_SURE
-        result[self.is_cloud_ambiguous(toa)] = ic.FLAG_MASK_CLOUD_AMBIGUOUS
-        result[self.is_cloud(toa)] = ic.FLAG_MASK_CLOUD
-        result[self.is_cirrus(toa)] = ic.FLAG_MASK_CIRRUS_SURE
-        result[self.is_cirrus_ambiguous(toa)] = ic.FLAG_MASK_CIRRUS_AMBIGUOUS
-        result[self.is_bright_white(toa)] = ic.FLAG_MASK_BRIGHTWHITE
-        result[self.is_clear_snow(toa)] = ic.FLAG_MASK_CLEAR_SNOW
-        result[self.is_clear_land(toa)] = ic.FLAG_MASK_CLEAR_LAND
-        result[self.is_clear_water(toa)] = ic.FLAG_MASK_CLEAR_WATER
+        result[np.where(self.is_invalid(toa))] += ic.FLAG_MASK_INVALID
+        result[np.where(self.is_cloud_sure(toa))] += ic.FLAG_MASK_CLOUD_SURE
+        result[np.where(self.is_cloud_ambiguous(toa))] += ic.FLAG_MASK_CLOUD_AMBIGUOUS
+        result[np.where(self.is_cloud(toa))] += ic.FLAG_MASK_CLOUD
+        result[np.where(self.is_cirrus(toa))] += ic.FLAG_MASK_CIRRUS_SURE
+        result[np.where(self.is_cirrus_ambiguous(toa))] += ic.FLAG_MASK_CIRRUS_AMBIGUOUS
+        result[np.where(self.is_bright(toa))] += ic.FLAG_MASK_BRIGHT
+        result[np.where(self.is_white(toa))] += ic.FLAG_MASK_WHITE
+        result[np.where(self.is_bright_white(toa))] += ic.FLAG_MASK_BRIGHTWHITE
+        result[np.where(self.is_clear_snow(toa))] += ic.FLAG_MASK_CLEAR_SNOW
+        result[np.where(self.is_clear_land(toa))] += ic.FLAG_MASK_CLEAR_LAND
+        result[np.where(self.is_clear_water(toa))] += ic.FLAG_MASK_CLEAR_WATER
 
         return result
 
@@ -176,7 +178,6 @@ class MsiPixelClassification(BlockAlgorithm):
         """
         return self._or(self.is_cloud_sure(toa), self.is_cloud_ambiguous(toa))
 
-    @staticmethod
     def is_cirrus(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
 
@@ -191,8 +192,7 @@ class MsiPixelClassification(BlockAlgorithm):
         # TODO implement: we need elevation
         return np.zeros(shape=toa[0].shape, dtype=np.uint8)
 
-    @staticmethod
-    def is_cirrus_ambiguous(toa: tuple[np.ndarray, ...]) -> np.ndarray:
+    def is_cirrus_ambiguous(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
 
         Parameters
