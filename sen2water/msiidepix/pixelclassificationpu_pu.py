@@ -22,7 +22,7 @@ from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic, IdepixMsiConstants
 
 
-class IdepixClassificationPUPU(EOProcessingUnit):
+class PixelClassificationPUPU(EOProcessingUnit):
     def run(
             self,
             inputs: MappingDataType,
@@ -32,7 +32,22 @@ class IdepixClassificationPUPU(EOProcessingUnit):
             # image_chunksize: Tuple[int, int] = None,
             **kwargs
     ) -> MappingDataType:
+        """
+        Idepix classification (spectral tests) using the approach of decomposition of algos into further
+        PUs and calling dask 'map_blocks'.
+        This first, incomplete version works, but final decision in project s to go for 'Algorithm' (apply) approach.
+        Thus, implementation is now ongoing in 'PixelClassificationPU'.
 
+        Parameters
+        ----------
+        inputs
+        adfs
+        kwargs
+
+        Returns
+        -------
+
+        """
         # check input
 
         if not "l1c" in inputs:

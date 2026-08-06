@@ -63,7 +63,7 @@ TCW_NDWI_THRESH = 0.4
 ELEVATION_THRESH = 2000.0
 
 
-class MsiPixelClassification(BlockAlgorithm):
+class PixelClassification(BlockAlgorithm):
     """The algorithm to compute the pixel classification for S2 MSI.
 
     @author Olaf Danne, Martin Böttcher

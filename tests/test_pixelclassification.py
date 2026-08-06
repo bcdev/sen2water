@@ -15,7 +15,7 @@ __status__ = "Development"
 import numpy as np
 import pytest
 
-from sen2water.msiidepix.msipixelclassification import MsiPixelClassification
+from sen2water.msiidepix.pixelclassification import PixelClassification
 
 dummy = (np.array([[1.0]]), np.array([[2.0]]))
 dummy2 = (np.array([3.0]), np.array([2.0]))
@@ -69,147 +69,147 @@ refl_snow_ice = np.zeros(shape=13)  # TODO
 
 
 def test_tc4_cirrus_value():
-    assert MsiPixelClassification().test_value(dummy) == 3.0
-    assert MsiPixelClassification().test_value(dummy2) == 5.0
+    assert PixelClassification().test_value(dummy) == 3.0
+    assert PixelClassification().test_value(dummy2) == 5.0
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_cirrus_value(refl_clear_land)
+    tc4_cirrus_value = PixelClassification().tc4_cirrus_value(refl_clear_land)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.0538
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_cirrus_value(refl_cloud_sure)
+    tc4_cirrus_value = PixelClassification().tc4_cirrus_value(refl_cloud_sure)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.3353
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_cirrus_value(refl_cloud_ambiguous)
+    tc4_cirrus_value = PixelClassification().tc4_cirrus_value(refl_cloud_ambiguous)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.0953
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_cirrus_value(refl_bright)
+    tc4_cirrus_value = PixelClassification().tc4_cirrus_value(refl_bright)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.0715
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_cirrus_value(refl_white)
+    tc4_cirrus_value = PixelClassification().tc4_cirrus_value(refl_white)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.198
 
     print("done test_tc4_cirrus_value")
 
 def test_tc4_value():
-    tc4_cirrus_value = MsiPixelClassification().tc4_value(refl_clear_land)
+    tc4_cirrus_value = PixelClassification().tc4_value(refl_clear_land)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.0476
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_value(refl_cloud_sure)
+    tc4_cirrus_value = PixelClassification().tc4_value(refl_cloud_sure)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.2886
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_value(refl_cloud_ambiguous)
+    tc4_cirrus_value = PixelClassification().tc4_value(refl_cloud_ambiguous)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.0718
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_value(refl_bright)
+    tc4_cirrus_value = PixelClassification().tc4_value(refl_bright)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.0661
 
-    tc4_cirrus_value = MsiPixelClassification().tc4_value(refl_white)
+    tc4_cirrus_value = PixelClassification().tc4_value(refl_white)
     assert pytest.approx(tc4_cirrus_value[0][0], 1.E-3) == -0.1773
 
     print("done test_tc4_cirrus_value")
 
 def test_ndwi_value():
-    ndwi_value = MsiPixelClassification().ndwi_value(refl_clear_land)
+    ndwi_value = PixelClassification().ndwi_value(refl_clear_land)
     assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.1581
 
-    ndwi_value = MsiPixelClassification().ndwi_value(refl_cloud_sure)
+    ndwi_value = PixelClassification().ndwi_value(refl_cloud_sure)
     assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.4122
 
-    ndwi_value = MsiPixelClassification().ndwi_value(refl_cloud_ambiguous)
+    ndwi_value = PixelClassification().ndwi_value(refl_cloud_ambiguous)
     assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.3422
 
-    ndwi_value = MsiPixelClassification().ndwi_value(refl_bright)
+    ndwi_value = PixelClassification().ndwi_value(refl_bright)
     assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.2163
 
-    ndwi_value = MsiPixelClassification().ndwi_value(refl_white)
+    ndwi_value = PixelClassification().ndwi_value(refl_white)
     assert pytest.approx(ndwi_value[0][0], 1.E-3) == 0.2922
 
     print("done test_ndwi_value")
 
 def test_b3_b11_value():
-    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_clear_land)
+    b3_b11_value = PixelClassification().b3_b11_value(refl_clear_land)
     assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 0.4768
 
-    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_cloud_sure)
+    b3_b11_value = PixelClassification().b3_b11_value(refl_cloud_sure)
     assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 2.0247
 
-    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_cloud_ambiguous)
+    b3_b11_value = PixelClassification().b3_b11_value(refl_cloud_ambiguous)
     assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 0.6432
 
-    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_bright)
+    b3_b11_value = PixelClassification().b3_b11_value(refl_bright)
     assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 0.5377
 
-    b3_b11_value = MsiPixelClassification().b3_b11_value(refl_white)
+    b3_b11_value = PixelClassification().b3_b11_value(refl_white)
     assert pytest.approx(b3_b11_value[0][0], 1.E-3) == 1.6324
 
     print("done test_b3_b11_value")
 
 def test_vis_bright_value():
-    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_clear_land)
+    vis_bright_value = PixelClassification().vis_bright_value(refl_clear_land)
     assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.1170
 
-    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_cloud_sure)
+    vis_bright_value = PixelClassification().vis_bright_value(refl_cloud_sure)
     assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.7774
 
-    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_cloud_ambiguous)
+    vis_bright_value = PixelClassification().vis_bright_value(refl_cloud_ambiguous)
     assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.1273
 
-    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_bright)
+    vis_bright_value = PixelClassification().vis_bright_value(refl_bright)
     assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.1451
 
-    vis_bright_value = MsiPixelClassification().vis_bright_value(refl_white)
+    vis_bright_value = PixelClassification().vis_bright_value(refl_white)
     assert pytest.approx(vis_bright_value[0][0], 1.E-3) == 0.4083
 
     print("done test_vis_bright_value")
 
 def test_is_cloud_sure():
-    assert not MsiPixelClassification().is_cloud_sure(refl_clear_land)[0][0]
-    assert MsiPixelClassification().is_cloud_sure(refl_cloud_sure)[0][0]
-    assert not MsiPixelClassification().is_cloud_sure(refl_cloud_ambiguous)[0][0]
+    assert not PixelClassification().is_cloud_sure(refl_clear_land)[0][0]
+    assert PixelClassification().is_cloud_sure(refl_cloud_sure)[0][0]
+    assert not PixelClassification().is_cloud_sure(refl_cloud_ambiguous)[0][0]
 
     print("done test_is_cloud_sure")
 
 def test_is_cloud_ambiguous():
-    assert not MsiPixelClassification().is_cloud_ambiguous(refl_clear_land)[0][0]
-    assert not MsiPixelClassification().is_cloud_ambiguous(refl_cloud_sure)[0][0]
-    assert MsiPixelClassification().is_cloud_ambiguous(refl_cloud_ambiguous)[0][0]
+    assert not PixelClassification().is_cloud_ambiguous(refl_clear_land)[0][0]
+    assert not PixelClassification().is_cloud_ambiguous(refl_cloud_sure)[0][0]
+    assert PixelClassification().is_cloud_ambiguous(refl_cloud_ambiguous)[0][0]
 
     print("done test_is_cloud_ambiguous")
 
 def test_is_cloud():
-    assert not MsiPixelClassification().is_cloud(refl_clear_land)[0][0]
-    assert MsiPixelClassification().is_cloud(refl_cloud_sure)[0][0]
-    assert MsiPixelClassification().is_cloud(refl_cloud_ambiguous)[0][0]
+    assert not PixelClassification().is_cloud(refl_clear_land)[0][0]
+    assert PixelClassification().is_cloud(refl_cloud_sure)[0][0]
+    assert PixelClassification().is_cloud(refl_cloud_ambiguous)[0][0]
 
     print("done test_is_cloud")
 
 def test_is_clear_land():
-    assert MsiPixelClassification().is_clear_land(refl_clear_land)[0][0]
-    assert not MsiPixelClassification().is_clear_land(refl_clear_water)[0][0]
-    assert not MsiPixelClassification().is_clear_land(refl_cloud_sure)[0][0]
-    assert not MsiPixelClassification().is_clear_land(refl_cloud_ambiguous)[0][0]
+    assert PixelClassification().is_clear_land(refl_clear_land)[0][0]
+    assert not PixelClassification().is_clear_land(refl_clear_water)[0][0]
+    assert not PixelClassification().is_clear_land(refl_cloud_sure)[0][0]
+    assert not PixelClassification().is_clear_land(refl_cloud_ambiguous)[0][0]
 
     print("done test_is_clear_land")
 
 def test_is_clear_water():
-    assert not MsiPixelClassification().is_clear_water(refl_clear_land)[0][0]
-    assert MsiPixelClassification().is_clear_water(refl_clear_water)[0][0]
-    assert not MsiPixelClassification().is_clear_water(refl_cloud_sure)[0][0]
-    assert not MsiPixelClassification().is_clear_water(refl_cloud_ambiguous)[0][0]
+    assert not PixelClassification().is_clear_water(refl_clear_land)[0][0]
+    assert PixelClassification().is_clear_water(refl_clear_water)[0][0]
+    assert not PixelClassification().is_clear_water(refl_cloud_sure)[0][0]
+    assert not PixelClassification().is_clear_water(refl_cloud_ambiguous)[0][0]
 
     print("done test_is_clear_water")
 
 def test_is_bright():
-    assert MsiPixelClassification().is_bright(refl_bright)[0][0]
+    assert PixelClassification().is_bright(refl_bright)[0][0]
 
     print("done test_is_bright")
 
 def test_is_white():
-    assert MsiPixelClassification().is_white(refl_white)[0][0]
+    assert PixelClassification().is_white(refl_white)[0][0]
 
     print("done test_is_white")
 
 def test_is_bright_white():
-    assert MsiPixelClassification().is_bright_white(refl_bright_white)[0][0]
+    assert PixelClassification().is_bright_white(refl_bright_white)[0][0]
 
     print("done test_is_bright_white")
 
@@ -234,16 +234,16 @@ def test_spectral_slope():
     wvl_1 = 450.0
     wvl_2 = 460.0
 
-    slope = MsiPixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
+    slope = PixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
     assert pytest.approx(slope[0][0], 1.E-6) == 5.0
 
     refl_slope_1 = np.array([[500.0]])
-    slope = MsiPixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
+    slope = PixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
     assert pytest.approx(slope[0][0], 1.E-6) == -40.0
 
     refl_slope_1 = np.array([[50.0]])
     wvl_2 = 450.0
-    slope = MsiPixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
+    slope = PixelClassification().spectral_slope(refl_slope_1, refl_slope_2, wvl_1, wvl_2)
     assert np.isinf(slope)
 
     print("done test_spectral_slope")

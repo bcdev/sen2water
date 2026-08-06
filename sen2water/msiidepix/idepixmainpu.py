@@ -5,7 +5,7 @@ from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
 
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic
-from sen2water.msiidepix.idepixclassificationpu import IdepixClassificationPU
+from sen2water.msiidepix.pixelclassificationpu import IdepixClassificationPU
 
 
 class IdepixMainPU(EOProcessingUnit):
@@ -71,7 +71,7 @@ class IdepixMainPU(EOProcessingUnit):
         self._compute_idepix_classification(l1c, idepix)
 
         # compute slope, aspect, orientation...
-        self._compute_slope_aspect_orientatiomn(l1c, idepix)
+        self._compute_slope_aspect_orientation(l1c, idepix)
 
         return {
             "idepix": idepix
@@ -104,9 +104,9 @@ class IdepixMainPU(EOProcessingUnit):
         ))
 
 
-    def _compute_slope_aspect_orientatiomn(self, l1c, idepix):
+    def _compute_slope_aspect_orientation(self, l1c, idepix):
         """
-        Computes slope aspect orientatiomn from spectral tests
+        Computes slope, aspect, orientation
         TODO
 
         Parameters

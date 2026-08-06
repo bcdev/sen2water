@@ -17,7 +17,7 @@ import xarray as xr
 from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 
 from sen2water.msiidepix.constants import IdepixMsiConstants
-from msiidepix.msipixelclassification import MsiPixelClassification
+from msiidepix.pixelclassification import PixelClassification
 
 
 class IdepixClassificationPU(EOProcessingUnit):
@@ -51,7 +51,7 @@ class IdepixClassificationPU(EOProcessingUnit):
         }
 
         toa_data = [l1c[f"measurements/reflectance/resampled/{band}"].data for band in IdepixMsiConstants.bands]
-        pixel_classif = MsiPixelClassification().apply(
+        pixel_classif = PixelClassification().apply(
             *toa_data,
             thresh_cw=0.007,
             thresh_gcl=-0.11,
