@@ -27,8 +27,8 @@ class DownsamplingPU(EOProcessingUnit):
 
     def run(self,
             inputs: MappingDataType,
-            var_name: str,
-            band_chunksize: int,
+            var_name: str = None,
+            band_chunksize: int = None,
             mode: Literal[
                 "mean", "median", "min", "max", "first",
                 "flagand", "flagor", "flagmedianand", "flagmedianor",

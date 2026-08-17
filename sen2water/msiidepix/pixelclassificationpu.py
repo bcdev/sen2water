@@ -17,7 +17,7 @@ import xarray as xr
 from eopf.computing import EOProcessingUnit, MappingDataType, MappingAuxiliary
 
 from sen2water.msiidepix.constants import IdepixMsiConstants
-from msiidepix.pixelclassification import PixelClassification
+from sen2water.msiidepix.pixelclassification import PixelClassification
 
 
 class IdepixClassificationPU(EOProcessingUnit):

@@ -13,7 +13,7 @@ __status__ = "Production"
 # ...
 
 import warnings
-from typing import Union
+from typing import Literal
 import numpy as np
 from sen2water.eoutils.eoprocessingifc import BlockAlgorithm
 
@@ -23,7 +23,7 @@ class Downsampling(BlockAlgorithm):
     def downsample(
         self,
         *inputs: np.ndarray,
-        mode: Union[
+        mode: Literal[
             "mean", "median", "min", "max", "first",
             "flagand", "flagor", "flagmedianand", "flagmedianor",
             "majority", "detectormean", "masterdetfoo"]='mean',
@@ -142,4 +142,3 @@ class Downsampling(BlockAlgorithm):
     @staticmethod
     def _first(angles: np.ndarray) -> np.ndarray:
         return angles[0] if len(angles) > 0 else np.nan
-

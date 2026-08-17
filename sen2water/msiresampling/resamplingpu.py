@@ -58,7 +58,7 @@ class ResamplingPU(EOProcessingUnit):
         # check input
 
         if not "l1c" in inputs:
-            raise KeyError("No 'l1c' in input of ResamplingMainPU.")
+            raise KeyError("No 'l1c' in input of ResamplingPU.")
         l1c: xr.DataTree = inputs["l1c"]
         if not isinstance(l1c, xr.DataTree):
             raise TypeError("Input 'l1c' of ResamplingMainPU is not an xarray.DataTree.")
@@ -417,6 +417,7 @@ class ResamplingPU(EOProcessingUnit):
             source_band = l1c[f"measurements/reflectance/r{band_resolution}m/{band}"]
             source_band_data = l1c[f"measurements/reflectance/r{band_resolution}m/{band}"].data.rechunk(chunksize_in_meters // band_resolution)
             factor = resolution // band_resolution
+
             if resolution > band_resolution:
                 if downsampling == 'detectormean':
                     detector_footprint_band_name = f"/conditions/mask/detector_footprint/r{band_resolution}m/{band}"
