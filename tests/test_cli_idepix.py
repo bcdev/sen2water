@@ -26,11 +26,11 @@ from eopf.config.config import EOConfiguration
 #     #("trigger","local","/home/martin/projects/sen2water/eopf/tests/test_payload.yaml")
 #      ("trigger","local","/home/hannes/projects/opt-mpc/sen2water/eopf/tests/test_resamplingpu_payload.yaml")
 # ])
-# @pytest.mark.parametrize("opts", [("trigger","local","E:/olaf/bc/workspace/sen2water_reengineering-experiment-resampling-pu/sen2water/eopf/tests/test_idepixclassificationpu_payload.yaml")])
+@pytest.mark.parametrize("opts", [("trigger","local","E:/olaf/bc/workspace/sen2water_reengineering-experiment-resampling-pu/sen2water/eopf/tests/test_idepixclassificationpu_payload.yaml")])
 # @pytest.mark.parametrize("opts", [("trigger","local","E:/olaf/bc/workspace/sen2water_reengineering-experiment-resampling-pu/sen2water/eopf/tests/test_resampling_payload.yaml")])
 # @pytest.mark.parametrize("opts", [("trigger","local","E:/olaf/bc/workspace/sen2water_reengineering-experiment-resampling-pu/sen2water/eopf/tests/test_payload.yaml")])
 # @pytest.mark.parametrize("opts", [("trigger","local",".\tests\test_payload.yaml")])
-@pytest.mark.parametrize("opts", [("trigger","local","/home/martin/projects/sen2water/eopf/tests/test_idepixclassificationpu_payload.yaml")])
+# @pytest.mark.parametrize("opts", [("trigger","local","/home/martin/projects/sen2water/eopf/tests/test_idepixclassificationpu_payload.yaml")])
 def test_cli(opts):
     # set env var EOPF_CONFIGURATION_FOLDER to absolute path of directory that contains file eopf.toml
     EOConfiguration().load_default_file()

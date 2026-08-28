@@ -131,15 +131,15 @@ class PixelClassification(BlockAlgorithm):
         gcw = tc4_cirrus_value < ic.GCW_THRESH
         tcw = self._and(tc4_value < ic.TCW_TC_THRESH, ndwi_value < ic.TCW_NDWI_THRESH)
         is_b3_b11_water = self.is_b3_b11_water(toa)
-        acw = self._and(is_b3_b11_water, (self._or(gcw, tcw)))
-        gcl = self._and(self._not(is_b3_b11_water),
+        acw = is_b3_b11_water & (gcw | tcw)
+        gcl = self._and(is_b3_b11_water == 0,
                         tc4_cirrus_value < ic.GCL_THRESH_DEFAULT,
                         self.vis_bright_value(toa) > ic.VISBRIGHT_THRESH)
 
         is_invalid = self.is_invalid(toa)
         is_clear_snow = self.is_clear_snow(toa)
 
-        return self._and(self._not(is_invalid), self._not(is_clear_snow), self._or(acw, gcl))
+        return self._and(is_invalid == 0, is_clear_snow == 0, (acw | gcl))
 
     def is_cloud_ambiguous(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
@@ -155,15 +155,13 @@ class PixelClassification(BlockAlgorithm):
         tc4_cirrus_value = self.tc4_cirrus_value(toa)
         vis_bright_value = self.vis_bright_value(toa)
         is_b3_b11_water = self.is_b3_b11_water(toa)
-        tcl = self._and(self._not(is_b3_b11_water),
-                        tc4_cirrus_value < ic.TCL_THRESH,
-                        vis_bright_value > ic.VISBRIGHT_THRESH)
+        tcl = self._and(is_b3_b11_water == 0, tc4_cirrus_value < ic.TCL_THRESH, vis_bright_value > ic.VISBRIGHT_THRESH)
 
         is_invalid = self.is_invalid(toa)
         is_clear_snow = self.is_clear_snow(toa)
         is_cloud_sure = self.is_cloud_sure(toa)
 
-        return self._and(self._not(is_invalid), self._not(is_clear_snow), self._not(is_cloud_sure), tcl)
+        return self._and(is_invalid == 0, is_clear_snow == 0, is_cloud_sure == 0, tcl)
 
     def is_cloud(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
@@ -176,7 +174,7 @@ class PixelClassification(BlockAlgorithm):
         -------
 
         """
-        return self._or(self.is_cloud_sure(toa), self.is_cloud_ambiguous(toa))
+        return self.is_cloud_sure(toa) | self.is_cloud_ambiguous(toa)
 
     def is_cirrus(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
@@ -221,7 +219,7 @@ class PixelClassification(BlockAlgorithm):
         bright_value = self.bright_value(toa)
         white_value = self.white_value(toa)
 
-        return self._and(self._not(is_invalid), bright_value + white_value > BRIGHTWHITE_THRESH)
+        return self._and(is_invalid == 0, bright_value + white_value > BRIGHTWHITE_THRESH)
 
     def is_bright(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
@@ -237,7 +235,7 @@ class PixelClassification(BlockAlgorithm):
         is_invalid = self.is_invalid(toa)
         bright_value = self.bright_value(toa)
 
-        return self._and(self._not(is_invalid), bright_value > BRIGHT_THRESH)
+        return self._and(is_invalid == 0, bright_value > BRIGHT_THRESH)
 
     def is_white(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
@@ -253,7 +251,7 @@ class PixelClassification(BlockAlgorithm):
         is_invalid = self.is_invalid(toa)
         white_value = self.white_value(toa)
 
-        return self._and(self._not(is_invalid), white_value > WHITE_THRESH)
+        return self._and(is_invalid == 0, white_value > WHITE_THRESH)
 
     @staticmethod
     def is_clear_snow(toa: tuple[np.ndarray, ...]) -> np.ndarray:
@@ -290,12 +288,12 @@ class PixelClassification(BlockAlgorithm):
         radiometric_land_value = self.radiometric_land_value(toa)
         land_value = radiometric_land_value
 
-        return self._and(self._not(is_invalid),
-                         self._not(is_cloud_sure),
-                         self._not(is_cloud_ambiguous),
-                         self._not(is_cirrus),
-                         self._not(is_cirrus_ambiguous),
-                         land_value > LAND_THRESH)
+        return self._and(is_invalid == 0,
+                is_cloud_sure == 0,
+                is_cloud_ambiguous == 0,
+                is_cirrus == 0,
+                is_cirrus_ambiguous == 0,
+                land_value > LAND_THRESH)
 
     def is_clear_water(self, toa: tuple[np.ndarray, ...]) -> np.ndarray:
         """
@@ -319,14 +317,14 @@ class PixelClassification(BlockAlgorithm):
         radiometric_water_value = self.radiometric_water_value(toa)
         water_value = radiometric_water_value
 
-        return self._and(self._not(is_invalid),
-                         self._not(is_cloud_sure),
-                         self._not(is_cloud_ambiguous),
-                         self._not(is_cirrus),
-                         self._not(is_cirrus_ambiguous),
-                         self._not(is_clear_snow),
-                         self._not(is_bright_white),
-                         water_value > WATER_THRESH)
+        return self._and(is_invalid == 0,
+                is_cloud_sure == 0,
+                is_cloud_ambiguous == 0,
+                is_cirrus == 0,
+                is_cirrus_ambiguous == 0,
+                is_clear_snow == 0,
+                is_bright_white == 0,
+                water_value > WATER_THRESH)
 
     @staticmethod
     def is_invalid(toa: tuple[np.ndarray, ...]) -> np.ndarray:
@@ -357,7 +355,7 @@ class PixelClassification(BlockAlgorithm):
         is_invalid = self.is_invalid(toa)
         b3_b11_value = self.b3_b11_value(toa)
 
-        return self._and(self._not(is_invalid), b3_b11_value > ic.B3B11_THRESH)
+        return self._and(is_invalid == 0, b3_b11_value > ic.B3B11_THRESH)
 
 
     # Functions providing spectral quantities used for classification...
@@ -503,7 +501,7 @@ class PixelClassification(BlockAlgorithm):
 
         """
         cond = toa[7] >= toa[3]
-        return np.where(cond, np.ones(shape=toa[0].shape, dtype=np.int32), 0.5 * np.ones(shape=toa[0].shape, dtype=np.int32))
+        return np.where(cond, 1, 0.5)
 
     @staticmethod
     def radiometric_water_value(toa: tuple[np.ndarray, ...]) -> np.ndarray:
@@ -579,7 +577,8 @@ class PixelClassification(BlockAlgorithm):
 
         """
         nodata_arr = -1.0 * np.ones(shape=toa[0].shape)
-        cond_nodata = self._or(toa[1] <= 0.0, toa[2] <= 0.0, toa[3] <= 0.0, toa[8] <= 0.0, toa[11] <= 0.0, toa[12] <= 0.0)
+        cond_nodata = self._or(toa[1] <= 0.0, toa[2] <= 0.0, toa[3] <= 0.0, toa[8] <= 0.0, toa[11] <= 0.0,
+                               toa[12] <= 0.0)
 
         bright_value = np.where(cond_nodata, nodata_arr,
                                 0.3029 * toa[1] + 0.2786 * toa[2] + 0.4733 * toa[3] + 0.5599 * toa[8] +
