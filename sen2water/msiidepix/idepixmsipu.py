@@ -10,7 +10,6 @@ from eopf.computing.types import MappingAuxiliary, MappingDataType
 from msiidepix.constants import IdepixMsiConstants
 from msiidepix.pixelclassification import PixelClassification
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic
-from sen2water.msiidepix.pixelclassificationpu import IdepixClassificationPU
 
 
 class IdepixMsiPU(EOProcessingUnit):
