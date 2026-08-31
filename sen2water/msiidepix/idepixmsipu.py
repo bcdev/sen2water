@@ -1,14 +1,19 @@
 from typing import Any, Optional, List
 
+import kwargs
+import numpy as np
+
 import xarray as xr
 from eopf.computing.abstract import EOProcessingUnit
 from eopf.computing.types import MappingAuxiliary, MappingDataType
 
+from msiidepix.constants import IdepixMsiConstants
+from msiidepix.pixelclassification import PixelClassification
 from sen2water.msiidepix.constants import IdepixMsiConstants as ic
 from sen2water.msiidepix.pixelclassificationpu import IdepixClassificationPU
 
 
-class IdepixMainPU(EOProcessingUnit):
+class IdepixMsiPU(EOProcessingUnit):
     """
     TODO add doc
     """
@@ -94,10 +99,28 @@ class IdepixMainPU(EOProcessingUnit):
         #     {'l1c': l1c},
         # )["pixel_classif_flag"]
 
-        # 'PU --> Algorithm' approach, this is what we finally want
-        idepix_flags = IdepixClassificationPU().run(
-            {'l1c': l1c},
-        )["pixel_classif_flag"]
+        # 'Algorithm' approach, this is what we finally want:
+
+        dims = {
+            "y": l1c[f"measurements/reflectance/resampled"].coords.sizes["y"],
+            "x": l1c[f"measurements/reflectance/resampled"].coords.sizes["x"]
+        }
+
+        toa_data = [l1c[f"measurements/reflectance/resampled/{band}"].data for band in IdepixMsiConstants.bands]
+        pixel_classif = PixelClassification().apply(
+            *toa_data,
+            thresh_cw=0.007,
+            thresh_gcl=-0.11,
+            thresh_cl=0.007,
+            dtype=np.int32
+        )
+
+        idepix_flags = xr.DataTree()
+        idepix_flags["pixel_classif_flag"] = xr.DataArray(
+            pixel_classif,
+            dims=dims,
+            attrs={"long_name": "pixel_classif_flag"}
+        )
 
         idepix[flag_band_name] = self._with_encoding(xr.DataArray(
             idepix_flags["pixel_classif_flag"]

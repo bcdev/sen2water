@@ -26,8 +26,8 @@ general_configuration:
 workflow:
 - name: l2w_processor
   active: true
-  module: sen2water.msiidepix.idepixmainpu
-  processing_unit: IdepixMainPU
+  module: sen2water.msiidepix.idepixmsipu
+  processing_unit: IdepixMsiPU
 
   inputs:
     l1c: S2_L1C_TC33
